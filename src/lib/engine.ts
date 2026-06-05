@@ -92,3 +92,87 @@ export function simulate(picks: Player[], rng: () => number): MatchResult {
     isPerfect: gf >= 7 && ga === 0,
   };
 }
+
+/* ──────────────────────────────────────────────────────────────
+   REPLACE the block you appended last time with THIS one,
+   at the end of src/lib/engine.ts.
+   Uses only symbols already in scope there:
+     Player, Team, MatchResult, TEAMS, mulberry32, rollTeam, simulate
+────────────────────────────────────────────────────────────── */
+
+/* ── Scorers ─────────────────────────────────────────────────
+   Who scored your goals. Weighted by role × rating (FW > MF > DF,
+   GK almost never), drawn from the SAME rng as the scoreline. */
+export interface Scorer {
+  i: number; // player id
+  n: string; // player name
+}
+
+// Base likelihood per position, before rating. Player['p'] is the Pos
+// union, so no extra import is needed (same trick as validateXI).
+const ATTACK_WEIGHT: Record<Player['p'], number> = {
+  FW: 3,
+  MF: 1.5,
+  DF: 0.5,
+  GK: 0.05,
+};
+
+export function pickScorers(
+  goals: number,
+  picks: Player[],
+  rng: () => number,
+): Scorer[] {
+  if (goals <= 0) return [];
+
+  const weighted = picks.map((p) => ({ p, w: ATTACK_WEIGHT[p.p] * p.r }));
+  const total = weighted.reduce((sum, x) => sum + x.w, 0);
+
+  const scorers: Scorer[] = [];
+  for (let g = 0; g < goals; g++) {
+    let ticket = rng() * total; // weighted roulette spin
+    let chosen = weighted[weighted.length - 1].p; // float-drift fallback
+    for (const { p, w } of weighted) {
+      ticket -= w;
+      if (ticket <= 0) {
+        chosen = p;
+        break;
+      }
+    }
+    scorers.push({ i: chosen.i, n: chosen.n });
+  }
+  return scorers;
+}
+
+/* ── Draft ───────────────────────────────────────────────────
+   Which champion is OFFERED at a given draft step. Derived purely
+   from the seed, so the whole sequence of draws is reproducible.
+   Repeats are allowed across the draft (we only have a few clubs),
+   but never two in a row, so the pool feels alive. */
+export function draftTeamAt(
+  seed: number,
+  step: number,
+  teams: Team[] = TEAMS,
+): Team {
+  const rng = mulberry32(seed);
+  let team = rollTeam(rng, teams);
+  for (let k = 0; k < step; k++) {
+    let next = rollTeam(rng, teams);
+    // skip an immediate repeat (terminates fast with >1 team)
+    while (teams.length > 1 && next.id === team.id) next = rollTeam(rng, teams);
+    team = next;
+  }
+  return team;
+}
+
+/* ── Match ───────────────────────────────────────────────────
+   Reproducible from the seed + your final XI alone — independent
+   of how the draft got there. A share code = seed + picked ids. */
+export function resolveMatch(
+  seed: number,
+  xi: Player[],
+): { result: MatchResult; scorers: Scorer[] } {
+  const rng = mulberry32(seed);
+  const result = simulate(xi, rng);
+  const scorers = pickScorers(result.gf, xi, rng);
+  return { result, scorers };
+}

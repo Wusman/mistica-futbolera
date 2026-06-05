@@ -1,111 +1,349 @@
+/* @import must be the first rule in the file. */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
+
+/* ──────────────────────────────────────────────────────────────
+   THEME — Mística Futbolera
+   Sports-magazine editorial: warm paper, near-black ink, a single
+   tomato accent for actions and gold for the scoreline. The game's
+   OWN identity — no club crests, kits or competition marks.
+────────────────────────────────────────────────────────────── */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --cream: #f3ebdd;
+  --ink: #1b1714;
+  --tomato: #e0452b;
+  --gold: #c8932a;
+  --pitch: #2f6b40;
+  --line: #d8ccb6;
+  --paper: #fff8ec;
+  --muted: #6b5f4d;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  color: var(--ink);
+  background: var(--cream);
+  font-family: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+* {
   box-sizing: border-box;
 }
-
 body {
   margin: 0;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.app {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+/* ── Masthead ── */
+.masthead {
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 12px;
+  margin-bottom: 28px;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
+.masthead h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  font-size: clamp(34px, 9vw, 52px);
+  line-height: 0.95;
   margin: 0;
 }
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.tagline {
+  font-style: italic;
+  color: var(--muted);
+  margin: 6px 0 0;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ── Steps ── */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.step-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+  color: var(--tomato);
+  margin: 4px 0 -4px;
+}
+
+/* ── Formation chips ── */
+.formation-grid {
+  display: flex;
+  gap: 10px;
+}
+.chip {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 20px;
+  padding: 16px;
+  background: transparent;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.chip--on {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+/* ── Seed row ── */
+.seed-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+.seed-pill {
+  flex: 1;
+  font-family: var(--font-display);
+  letter-spacing: 2px;
+  font-size: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+/* ── CTA ── */
+.cta {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 18px;
+  color: var(--cream);
+  background: var(--tomato);
+  border: none;
+  padding: 16px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.cta:disabled {
+  background: var(--line);
+  color: #8a7d68;
+  cursor: not-allowed;
+}
+.cta--ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  margin-top: 0;
+}
+
+/* ── Draft header ── */
+.draft-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+.draft-step {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+.overall-inline {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--gold);
+}
+
+/* ── The growing XI ── */
+.squad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.squad-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.squad-pos {
+  flex: 0 0 64px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  padding-top: 6px;
+}
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.slot {
+  font-size: 13px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+}
+.slot--filled {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+.slot--empty {
+  color: #b6a98e;
+  border-style: dashed;
+}
+
+/* ── The champion on offer ── */
+.draft-pick {
+  border-left: 6px solid var(--club, var(--ink));
+  padding-left: 14px;
+  margin-top: 6px;
+}
+.draft-champ {
+  margin-bottom: 10px;
+}
+.club-name {
+  font-family: var(--font-display);
+  font-size: 28px;
+  text-transform: uppercase;
+  margin: 0;
+}
+.club-edition {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+
+/* ── Player pick buttons ── */
+.players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink);
+}
+.player:hover {
+  border-color: var(--ink);
+}
+.player-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-pos {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.player-rating {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.draft-none {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+}
+
+/* ── Result card ── */
+.card {
+  border: 3px solid var(--ink);
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card--perfect {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 6px rgba(200, 147, 42, 0.18);
+}
+.card-club {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+.scoreline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+.score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 88px;
+  line-height: 1;
+  color: var(--gold);
+}
+.score--away {
+  color: var(--ink);
+}
+.score-sep {
+  font-family: var(--font-display);
+  font-size: 56px;
+  color: var(--line);
+}
+.perfect-tag {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--tomato);
+  margin: 0;
+}
+.scorers {
+  text-align: left;
+}
+.scorers-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--tomato);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+  margin: 0 0 8px;
+}
+.scorers ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.scorers li {
+  padding: 3px 0;
+}
+.scorers-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+.power {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
 }
