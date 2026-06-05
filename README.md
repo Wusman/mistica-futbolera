@@ -60,4 +60,4 @@ and historical facts are not copyrightable; the visual identity is original.
 
 ## License
 
-MIT © Wusman Guzmán
+MIT © Wusman
