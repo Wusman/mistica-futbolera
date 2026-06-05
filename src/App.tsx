@@ -3,7 +3,6 @@ import { FORMATIONS, type Player, type FormationName } from './data/players';
 import {
   type MatchResult,
   type Scorer,
-  draftTeamAt,
   resolveMatch,
   validateXI,
 } from './lib/engine';
