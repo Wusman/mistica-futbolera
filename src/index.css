@@ -2,10 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
 
 /* ──────────────────────────────────────────────────────────────
-   THEME — Mística Futbolera
-   Sports-magazine editorial: warm paper, near-black ink, a single
-   tomato accent for actions and gold for the scoreline. The game's
-   OWN identity — no club crests, kits or competition marks.
+   THEME — Mística Futbolera (sports-magazine editorial)
 ────────────────────────────────────────────────────────────── */
 :root {
   --cream: #f3ebdd;
@@ -13,6 +10,7 @@
   --tomato: #e0452b;
   --gold: #c8932a;
   --pitch: #2f6b40;
+  --pitch-dark: #2a6139;
   --line: #d8ccb6;
   --paper: #fff8ec;
   --muted: #6b5f4d;
@@ -25,12 +23,8 @@
   font-family: var(--font-body);
 }
 
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-}
+* { box-sizing: border-box; }
+body { margin: 0; }
 
 .app {
   max-width: 540px;
@@ -53,18 +47,10 @@ body {
   line-height: 0.95;
   margin: 0;
 }
-.tagline {
-  font-style: italic;
-  color: var(--muted);
-  margin: 6px 0 0;
-}
+.tagline { font-style: italic; color: var(--muted); margin: 6px 0 0; }
 
 /* ── Steps ── */
-.step {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.step { display: flex; flex-direction: column; gap: 16px; }
 .step-title {
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -75,10 +61,7 @@ body {
 }
 
 /* ── Formation chips ── */
-.formation-grid {
-  display: flex;
-  gap: 10px;
-}
+.formation-grid { display: flex; gap: 10px; }
 .chip {
   flex: 1;
   font-family: var(--font-display);
@@ -89,17 +72,10 @@ body {
   cursor: pointer;
   transition: background 0.12s ease;
 }
-.chip--on {
-  background: var(--ink);
-  color: var(--cream);
-}
+.chip--on { background: var(--ink); color: var(--cream); }
 
 /* ── Seed row ── */
-.seed-row {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-}
+.seed-row { display: flex; align-items: stretch; gap: 10px; }
 .seed-pill {
   flex: 1;
   font-family: var(--font-display);
@@ -125,11 +101,7 @@ body {
   cursor: pointer;
   margin-top: 6px;
 }
-.cta:disabled {
-  background: var(--line);
-  color: #8a7d68;
-  cursor: not-allowed;
-}
+.cta:disabled { background: var(--line); color: #8a7d68; cursor: not-allowed; }
 .cta--ghost {
   background: transparent;
   color: var(--ink);
@@ -151,73 +123,102 @@ body {
   letter-spacing: 1px;
   font-size: 14px;
 }
-.overall-inline {
-  font-family: var(--font-display);
-  font-size: 16px;
-  color: var(--gold);
+.overall-inline { font-family: var(--font-display); font-size: 16px; color: var(--gold); }
+
+/* ── The pitch board ── */
+.pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 68 / 100;
+  border: 2px solid var(--ink);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      var(--pitch) 0,
+      var(--pitch) 10%,
+      var(--pitch-dark) 10%,
+      var(--pitch-dark) 20%
+    );
+  overflow: hidden;
+}
+/* halfway line + centre circle, drawn with pseudo-elements */
+.pitch::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 2px solid rgba(255, 255, 255, 0.35);
+}
+.pitch::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 26%; aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
 }
 
-/* ── The growing XI ── */
-.squad {
+.pslot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.05;
 }
-.squad-line {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+.pslot--empty {
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.8);
 }
-.squad-pos {
-  flex: 0 0 64px;
+.pslot-pos { font-family: var(--font-display); letter-spacing: 1px; }
+.pslot--filled {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.pslot-name {
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.pslot-rating { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
+.pslot--choose {
+  cursor: pointer;
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(200, 147, 42, 0.15);
+}
+.choose-hint {
   font-family: var(--font-display);
   text-transform: uppercase;
-  font-size: 12px;
   letter-spacing: 1px;
-  color: var(--muted);
-  padding-top: 6px;
-}
-.slots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
-}
-.slot {
   font-size: 13px;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
+  color: var(--tomato);
+  margin: 0;
 }
-.slot--filled {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
-}
-.slot--empty {
-  color: #b6a98e;
-  border-style: dashed;
-}
-
 /* ── The champion on offer ── */
 .draft-pick {
   border-left: 6px solid var(--club, var(--ink));
   padding-left: 14px;
   margin-top: 6px;
 }
-.draft-champ {
-  margin-bottom: 10px;
-}
+.draft-champ { margin-bottom: 10px; }
 .club-name {
   font-family: var(--font-display);
   font-size: 28px;
   text-transform: uppercase;
   margin: 0;
 }
-.club-edition {
-  color: var(--muted);
-  font-size: 13px;
-  margin: 2px 0 0;
-}
+.club-edition { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
 
 /* ── Player pick buttons ── */
 .players {
@@ -241,32 +242,17 @@ body {
   font-size: 14px;
   color: var(--ink);
 }
-.player:hover {
-  border-color: var(--ink);
-}
-.player-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.player:hover { border-color: var(--ink); }
+.player-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .player-pos {
   font-family: var(--font-display);
   font-size: 11px;
   letter-spacing: 1px;
   color: var(--muted);
 }
-.player-rating {
-  font-family: var(--font-display);
-  font-weight: 700;
-}
+.player-rating { font-family: var(--font-display); font-weight: 700; }
 
-.draft-none {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: var(--muted);
-}
+.draft-none { display: flex; flex-direction: column; gap: 10px; color: var(--muted); }
 
 /* ── Result card ── */
 .card {
@@ -289,27 +275,10 @@ body {
   color: var(--muted);
   margin: 0;
 }
-.scoreline {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-}
-.score {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 88px;
-  line-height: 1;
-  color: var(--gold);
-}
-.score--away {
-  color: var(--ink);
-}
-.score-sep {
-  font-family: var(--font-display);
-  font-size: 56px;
-  color: var(--line);
-}
+.scoreline { display: flex; justify-content: center; align-items: center; gap: 14px; }
+.score { font-family: var(--font-display); font-weight: 700; font-size: 88px; line-height: 1; color: var(--gold); }
+.score--away { color: var(--ink); }
+.score-sep { font-family: var(--font-display); font-size: 56px; color: var(--line); }
 .perfect-tag {
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -317,9 +286,7 @@ body {
   color: var(--tomato);
   margin: 0;
 }
-.scorers {
-  text-align: left;
-}
+.scorers { text-align: left; }
 .scorers-title {
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -330,20 +297,7 @@ body {
   padding-bottom: 4px;
   margin: 0 0 8px;
 }
-.scorers ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.scorers li {
-  padding: 3px 0;
-}
-.scorers-empty {
-  color: var(--muted);
-  font-style: italic;
-}
-.power {
-  color: var(--muted);
-  font-size: 13px;
-  margin: 0;
-}
+.scorers ul { list-style: none; padding: 0; margin: 0; }
+.scorers li { padding: 3px 0; }
+.scorers-empty { color: var(--muted); font-style: italic; }
+.power { color: var(--muted); font-size: 13px; margin: 0; }
