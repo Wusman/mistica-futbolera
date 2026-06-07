@@ -9,85 +9,79 @@ estrategia e identidad propios.
 
 ## Cómo se juega
 
-1. **Setup** — elegís formación (define los 11 cupos) y ves la semilla de la partida.
-2. **Draft** — la semilla sortea campeones de a uno; en cada sorteo elegís **un**
-   jugador de ese campeón hacia un cupo abierto. Un campeón puede volver a salir
-   (nunca dos veces seguidas).
+1. **Setup** — elegís formación y ves la semilla de la partida.
+2. **Draft** — la semilla sortea campeones de a uno; de cada uno elegís **un**
+   jugador hacia un casillero abierto de la cancha. Cada jugador está catalogado
+   para una o dos posiciones; si entra en dos casilleros libres, elegís cuál.
+   Si nadie te sirve, sorteás otro campeón.
 3. **Simular** — con los 11 listos, un click resuelve el partido (ataque vs defensa).
 4. **Resultado** — marcador + goleadores, ponderados por rol y rating.
 
-Todo es **determinista por semilla**: misma semilla → misma partida. Es la base de
-la rejugabilidad y de poder compartir/desafiar con un código.
-
-## Modos (objetivo)
-
-- **Diario** — misma semilla para todo el mundo cada día; una jugada por día (soft).
-  Es el momento social: comparás tu resultado con el de todos.
-- **Libre** — semillas infinitas, para enganchar y cazar el 7–0 que se comparte.
+Todo es **determinista por semilla**: misma semilla → misma partida. Base de la
+rejugabilidad y de poder compartir/desafiar con un código.
 
 ## Qué lo hace distinto
 
 No es solo azar: sobre el draft hay una **capa fina de estrategia** — encaje de
-posición (jugar fuera de puesto penaliza), descartes limitados, un cambio de
-entretiempo y decisiones de partido — manteniendo sesiones de ~1 minuto.
+posición (cada jugador vale para 1–2 puestos), y en el roadmap descartes
+limitados, un cambio de entretiempo y decisiones de partido — en sesiones de ~1 minuto.
+
+## Modos (objetivo)
+
+- **Diario** — misma semilla para todos cada día; una jugada por día (soft). El momento social.
+- **Libre** — semillas infinitas, para enganchar y cazar el 7–0 que se comparte.
 
 ## Stack
 
-- **Vite + React + TypeScript** (bundle chico, objetivo <1 MB).
+- **Vite + React + TypeScript** (bundle chico).
 - **Cloudflare** (Workers con static assets), auto-deploy en cada push a `main`.
 - Engine de simulación en funciones puras, desacoplado de React.
 
 ## Arquitectura
 
-Patrón *funcional core / imperative shell*:
-
-- **Núcleo puro** (`src/lib/engine.ts`, `src/data/players.ts`): determinista, sin
-  React ni DOM. Un seed reconstruye una partida.
-- **Cáscara** (componentes React): estado, eventos y la única aleatoriedad (el seed).
-- El loop es una **máquina de estados** en un `useReducer`; el reducer solo guarda
-  `seed + step + picks` y todo lo demás se deriva.
+Patrón *funcional core / imperative shell*. El núcleo (`engine.ts`, `players.ts`)
+es puro y determinista; la cáscara React guarda estado y dispara eventos. El loop
+es una máquina de estados (`useReducer`); el reducer guarda `seed + step + lineup`
+y todo lo demás se deriva.
 
 ```
 src/
-  data/players.ts          # clubes campeones + formaciones (fuente de datos)
-  lib/engine.ts            # PRNG, draft, simulación y goleadores (puro)
+  data/players.ts          # 12 planteles + posiciones finas + formaciones (con coordenadas)
+  lib/engine.ts            # PRNG, draft, lineup, simulación y goleadores (puro)
   App.tsx                  # máquina de estados del loop
   components/
     SetupStep.tsx          # formación + semilla
-    BuildStep.tsx          # el draft
+    BuildStep.tsx          # el draft (equipo izquierda + tablero derecha)
     ResultCard.tsx         # marcador + goleadores
-  index.css                # identidad editorial
+  index.css                # identidad editorial + cancha
 ```
 
 ## Desarrollo
 
 ```bash
 npm install
-npm run dev        # entorno local
-npm run build      # build de producción
-npm run preview    # previsualizar el build
+npm run dev
+npm run build
+npm run preview
 ```
 
 ## Datos e IP
 
 Solo nombres, ratings y hechos históricos. **Nunca** escudos, camisetas ni marcas
 de CONMEBOL / Libertadores. Identidad visual 100% original. El dataset se cura por
-calidad (grandes históricos + hinchada) y se edita en un único lugar
-(`src/data/players.ts`).
+calidad y se edita en `src/data/players.ts`.
 
 ## Roadmap
 
-- [x] **Fase 0** — slice draft jugable: setup → draft → simular → resultado.
-- [ ] **Fase 1** — dataset curado + balance; descartes limitados (passes).
-- [ ] **Fase 2** — posiciones finas + penalización fuera de puesto; banco + cambio
-  de entretiempo (dos tiempos); decisiones de partido.
-- [ ] **Fase 3** — share-code + card compartible; modos Diario y Libre; pizarra
-  estilo cancha; trilingüe ES/PT/EN; toggle claro/oscuro.
-- [ ] **Fase 4** — card OG en edge; tabla con iniciales estilo arcade (Worker + KV,
-  con verificación por re-simulación); reto por seed.
-- [ ] **Fase 5** — pulido viral, Ko-fi/AdSense, modos extra (campaña, "de memoria").
+- [x] **Fase 0** — slice draft jugable.
+- [x] **Fase 1** — dataset curado (12 ediciones).
+- [~] **Fase 2** — posiciones finas + doble puesto + tablero (hecho); descartes
+  limitados, banco + cambio de entretiempo, decisiones de partido (pendiente).
+- [ ] **Fase 3** — share-code + card; modos Diario y Libre; idiomas; tema claro/oscuro; animaciones.
+- [ ] **Fase 4** — OG en edge; tabla con iniciales (Worker + KV, verificada); reto por seed.
+- [ ] **Fase 5** — Ko-fi/AdSense; modos extra (campaña, "de memoria").
 
 ## Licencia
 
-Código bajo la licencia del repositorio. Los nombres de clubes y jugadores
-pertenecen a sus respectivos titulares y se usan de forma nominativa.
+Código bajo la licencia del repositorio. Nombres de clubes y jugadores pertenecen
+a sus titulares y se usan de forma nominativa.

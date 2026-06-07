@@ -1,8 +1,6 @@
 /* ══════════════════════════════════════════
    ENGINE — engine.ts
-
-   Pure functions, zero React, zero DOM. Everything is deterministic
-   from a seed, which is what makes matches reproducible and shareable.
+   Pure, deterministic from a seed. Zero React, zero DOM.
 ══════════════════════════════════════════ */
 
 import {
@@ -25,7 +23,6 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/* FNV-1a: turn any string (a date, a share code) into a stable seed. */
 export function hashSeed(str: string): number {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -35,35 +32,25 @@ export function hashSeed(str: string): number {
   return h >>> 0;
 }
 
-/* Everyone who plays on the same day gets the same roll (Wordle-style). */
 export function dailySeed(date = new Date()): number {
   return hashSeed(date.toISOString().slice(0, 10));
 }
 
-/* ── Roll: pick which champion team is offered. ── */
 export function rollTeam(rng: () => number, teams: Team[] = TEAMS): Team {
   return teams[Math.floor(rng() * teams.length)];
 }
 
-/* ════════════════════════════════════════════════
-   LINEUP — the XI as positioned slots
-   A lineup is one cell per formation slot, in slot order.
-   `null` = still open. This is what the pitch board renders.
-═══════════════════════════════════════════════════ */
+/* ════════ LINEUP — the XI as positioned slots ════════ */
 export type Lineup = (Player | null)[];
 
 export function emptyLineup(formation: FormationName): Lineup {
   return FORMATIONS[formation].slots.map(() => null);
 }
 
-/* A player fits a slot if the slot's position is one of the player's.
-   No penalty: it fits or it doesn't (7a0-style). */
 export function fitsSlot(player: Player, slotPos: Pos): boolean {
   return player.pos.includes(slotPos);
 }
 
-/* First open slot this player can fill, or -1 if none. Picking always
-   drops the player into the earliest matching gap. */
 export function firstOpenSlotFor(
   player: Player,
   lineup: Lineup,
@@ -94,18 +81,12 @@ export function lineupFilled(lineup: Lineup): boolean {
   return lineup.every((cell) => cell !== null);
 }
 
-/* The XI as a flat array (for the simulation), skipping any gaps. */
 export function lineupXI(lineup: Lineup): Player[] {
   return lineup.filter((cell): cell is Player => cell !== null);
 }
 
-/* ── Draft: which champion is offered at a given step (pure). ──
-   Repeats allowed across the draft, but never two in a row. */
-export function draftTeamAt(
-  seed: number,
-  step: number,
-  teams: Team[] = TEAMS,
-): Team {
+/* ── Draft: which champion is offered at a step (pure). ── */
+export function draftTeamAt(seed: number, step: number, teams: Team[] = TEAMS): Team {
   const rng = mulberry32(seed);
   let team = rollTeam(rng, teams);
   for (let k = 0; k < step; k++) {
@@ -116,35 +97,45 @@ export function draftTeamAt(
   return team;
 }
 
-/* ════════════════════════════════════════════════
-   SIMULATE — deterministic scoreline from the seed + your XI
-═══════════════════════════════════════════════════ */
+/* ════════ SIMULATE — your XI vs a named champion rival ════════ */
 export interface MatchResult {
   gf: number;
   ga: number;
   power: number;
-  isPerfect: boolean; // the 7–0 jackpot
+  isPerfect: boolean;
+  opp: string; // the named rival (for the card)
 }
 
 const clampGoals = (n: number) => Math.max(0, Math.min(9, Math.round(n)));
+const avg = (ps: Player[]) => ps.reduce((s, p) => s + p.r, 0) / ps.length;
 
-export function simulate(picks: Player[], rng: () => number): MatchResult {
-  const avg = picks.reduce((sum, p) => sum + p.r, 0) / picks.length;
-  const power = avg + (rng() - 0.5) * 12;        // seeded variance
-  const opponent = 68 + rng() * 8;               // fixed wall + noise
-  const margin = power - opponent;
-  const gf = clampGoals(margin / 4 + rng() * 2.5);
-  const ga = clampGoals(-margin / 12 + rng() * 1.3);
-  return { gf, ga, power: Math.round(power), isPerfect: gf >= 7 && ga === 0 };
+export function simulate(picks: Player[], opp: Team, rng: () => number): MatchResult {
+  // Opponent strength = its best 11 by rating.
+  const oppXI = [...opp.players].sort((a, b) => b.r - a.r).slice(0, 11);
+
+  const yourPow = avg(picks) + (rng() - 0.5) * 10;
+  const oppPow = avg(oppXI) + (rng() - 0.5) * 10;
+  const margin = yourPow - oppPow;
+
+  // Base of ~1.5 so games aren't goalless; margin tilts it; rng gives life.
+  const gf = clampGoals(1.5 + margin / 5 + rng() * 2.6);
+  const ga = clampGoals(1.3 - margin / 7 + rng() * 1.7);
+
+  return {
+    gf,
+    ga,
+    power: Math.round(yourPow),
+    isPerfect: gf >= 7 && ga === 0,
+    opp: `${opp.name} · ${opp.edition}`,
+  };
 }
 
-/* ── Scorers ── weighted by attacking line × rating, same rng. */
+/* ── Scorers ── weighted by attacking line × rating, same rng. ── */
 export interface Scorer {
   i: number;
   n: string;
 }
 
-// Map a fine position to its coarse line, to weight scoring chance.
 function lineOf(pos: Pos): 'GK' | 'DF' | 'MF' | 'FW' {
   if (pos === 'GK') return 'GK';
   if (pos === 'RB' || pos === 'CB' || pos === 'LB') return 'DF';
@@ -166,14 +157,13 @@ export function pickScorers(
 ): Scorer[] {
   if (goals <= 0) return [];
 
-  // Weight by the player's NATURAL position (pos[0]) × rating.
   const weighted = picks.map((p) => ({ p, w: ATTACK_WEIGHT[lineOf(p.pos[0])] * p.r }));
   const total = weighted.reduce((sum, x) => sum + x.w, 0);
 
   const scorers: Scorer[] = [];
   for (let g = 0; g < goals; g++) {
     let ticket = rng() * total;
-    let chosen = weighted[weighted.length - 1].p; // float-drift fallback
+    let chosen = weighted[weighted.length - 1].p;
     for (const { p, w } of weighted) {
       ticket -= w;
       if (ticket <= 0) {
@@ -186,13 +176,14 @@ export function pickScorers(
   return scorers;
 }
 
-/* ── Match ── reproducible from the seed + your XI alone. */
+/* ── Match ── reproducible from the seed + your XI alone. ── */
 export function resolveMatch(
   seed: number,
   xi: Player[],
 ): { result: MatchResult; scorers: Scorer[] } {
   const rng = mulberry32(seed);
-  const result = simulate(xi, rng);
+  const opp = rollTeam(rng); // the rival, drawn from the seed
+  const result = simulate(xi, opp, rng);
   const scorers = pickScorers(result.gf, xi, rng);
   return { result, scorers };
 }

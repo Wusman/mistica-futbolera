@@ -166,7 +166,7 @@ export const TEAMS: Team[] = [
       { i: 704, n: 'Júnior',   pos: ['LB', 'LM'], r: 87 },
       { i: 705, n: 'Nei Dias', pos: ['CB', 'RB'], r: 77 },
       { i: 706, n: 'Andrade',  pos: ['DM', 'CM'], r: 80 },
-      { i: 707, n: 'Zico',     pos: ['AM'],       r: 95 }, // top scorer, the genius
+      { i: 707, n: 'Zico',     pos: ['AM', 'CM'], r: 95 }, // top scorer, the genius
       { i: 708, n: 'Adílio',   pos: ['CM'],       r: 79 },
       { i: 709, n: 'Tita',     pos: ['RW', 'ST'], r: 80 },
       { i: 710, n: 'Nunes',    pos: ['ST'],       r: 82 },
@@ -187,7 +187,7 @@ export const TEAMS: Team[] = [
       { i: 805, n: 'Rodolfo Zimmermann', pos: ['CB', 'RB'], r: 74 },
       { i: 806, n: 'Ricardo Giusti',     pos: ['CM', 'DM'], r: 84 },
       { i: 807, n: 'Claudio Marangoni',  pos: ['CM', 'AM'], r: 83 },
-      { i: 808, n: 'Ricardo Bochini',    pos: ['AM'],       r: 90 }, // El Bocha, idol
+      { i: 808, n: 'Ricardo Bochini',    pos: ['AM', 'CM'], r: 90 }, // El Bocha, idol
       { i: 809, n: 'Jorge Burruchaga',   pos: ['AM', 'RW'], r: 87 }, // scored in the final
       { i: 810, n: 'Sergio Bufarini',    pos: ['ST', 'RW'], r: 77 },
       { i: 811, n: 'Alejandro Barberón', pos: ['ST'],       r: 76 },
@@ -247,7 +247,7 @@ export const TEAMS: Team[] = [
       { i: 305, n: 'Sebastián Battaglia',    pos: ['DM', 'CM'], r: 81 },
       { i: 306, n: 'Cristian Traverso',      pos: ['DM', 'CB'], r: 78 },
       { i: 307, n: 'José Basualdo',          pos: ['CM'],       r: 80 },
-      { i: 308, n: 'Juan Román Riquelme',    pos: ['AM'],       r: 92 }, // the genius
+      { i: 308, n: 'Juan Román Riquelme',    pos: ['AM', 'CM'], r: 92 }, // the genius
       { i: 309, n: 'Diego Cagna',            pos: ['CM', 'LM'], r: 80 },
       { i: 310, n: 'Mauricio Serna',         pos: ['DM', 'CM'], r: 79 },
       { i: 311, n: 'Guillermo B. Schelotto', pos: ['RW', 'AM'], r: 84 },
