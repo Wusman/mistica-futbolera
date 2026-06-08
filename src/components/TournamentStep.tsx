@@ -1,6 +1,6 @@
 import { type CSSProperties } from 'react';
 import { type Team } from '../data/players';
-import { type Campaign, type Stage } from '../App';
+import { type Campaign, type Stage } from '../lib/tournament';
 import { rivalOf } from '../lib/engine';
 
 interface Props {

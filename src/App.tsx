@@ -1,10 +1,8 @@
 import { type CSSProperties, useReducer } from 'react';
 import { type Player, type FormationName, TEAMS } from './data/players';
 import {
-  type Scorer,
   type Lineup,
   type Attitude,
-  type Rival,
   type Shootout,
   emptyLineup,
   lineupFilled,
@@ -15,6 +13,16 @@ import {
   rivalOf,
   avg,
 } from './lib/engine';
+import {
+  type Stage,
+  type Stats,
+  type MatchView,
+  type Campaign,
+  LADDER,
+  STAGE_LABEL,
+  isGroup,
+  emptyStats,
+} from './lib/tournament';
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
 import { MatchStep } from './components/MatchStep';
@@ -22,43 +30,6 @@ import { TournamentStep } from './components/TournamentStep';
 
 const newSeed = () => Math.floor(Math.random() * 0xffffffff);
 const STARTING_PASSES = 3;
-
-/* ── Tournament ladder ── */
-export type Stage = 'g1' | 'g2' | 'r16' | 'qf' | 'sf' | 'final';
-const LADDER: Stage[] = ['g1', 'g2', 'r16', 'qf', 'sf', 'final'];
-export const STAGE_LABEL: Record<Stage, string> = {
-  g1: 'Grupo · Fecha 1', g2: 'Grupo · Fecha 2', r16: 'Octavos', qf: 'Cuartos', sf: 'Semifinal', final: 'Final',
-};
-const isGroup = (s: Stage) => s === 'g1' || s === 'g2';
-
-export interface Stats {
-  pj: number; w: number; d: number; l: number; gf: number; ga: number; cs: number;
-  goals: Record<string, number>; // your scorers across the run
-}
-const emptyStats = (): Stats => ({ pj: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, cs: 0, goals: {} });
-
-export interface MatchView {
-  oppId: string; oppName: string; oppEdition: string;
-  gf: number; ga: number; scorers: Scorer[];
-  pens?: Shootout;
-  outcome: 'W' | 'D' | 'L';
-}
-
-type Sub =
-  | { k: 'preview' }
-  | { k: 'half'; gf1: number; ga1: number; sc1: Scorer[] }
-  | { k: 'fulltime'; m: MatchView };
-
-export interface Campaign {
-  xi: Player[];
-  stageIdx: number;
-  oppId: string;
-  pool: string[];     // surviving champion ids (yours-to-face)
-  groupPts: number;
-  stats: Stats;
-  sub: Sub;
-  done?: { champion: boolean; stage: Stage };
-}
 
 type Phase =
   | { kind: 'setup' }
@@ -74,10 +45,10 @@ type Action =
   | { type: 'PICK'; player: Player; slot: number }
   | { type: 'SKIP' }
   | { type: 'PASS' }
-  | { type: 'ENTER' }       // drafting → tournament
-  | { type: 'KICKOFF' }     // preview → first half
-  | { type: 'DECIDE'; attitude: Attitude } // half → fulltime
-  | { type: 'NEXT' }        // fulltime → next round
+  | { type: 'ENTER' }
+  | { type: 'KICKOFF' }
+  | { type: 'DECIDE'; attitude: Attitude }
+  | { type: 'NEXT' }
   | { type: 'RESET'; seed: number };
 
 const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' } });
@@ -122,8 +93,9 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'KICKOFF': {
-      if (state.phase.kind !== 'campaign' || state.phase.c.sub.k !== 'preview') return state;
+      if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
+      if (c.sub.k !== 'preview') return state;
       const opp = teamById(c.oppId);
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const h1 = playHalf(ms, 1, c.xi, rivalOf(opp).overall, 'eq');
@@ -131,17 +103,20 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'DECIDE': {
-      if (state.phase.kind !== 'campaign' || state.phase.c.sub.k !== 'half') return state;
+      if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
-      const stage = LADDER[c.stageIdx];
+      if (c.sub.k !== 'half') return state;
+      const { gf1, ga1, sc1 } = c.sub;
+
+      const stage: Stage = LADDER[c.stageIdx];
       const opp = teamById(c.oppId);
       const ov = rivalOf(opp).overall;
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const h2 = playHalf(ms, 2, c.xi, ov, action.attitude);
 
-      const gf = Math.min(9, c.sub.gf1 + h2.gf);
-      const ga = Math.min(9, c.sub.ga1 + h2.ga);
-      const scorers = [...c.sub.sc1, ...h2.scorers];
+      const gf = Math.min(9, gf1 + h2.gf);
+      const ga = Math.min(9, ga1 + h2.ga);
+      const scorers = [...sc1, ...h2.scorers];
 
       let outcome: 'W' | 'D' | 'L';
       let pens: Shootout | undefined;
@@ -159,7 +134,6 @@ function reducer(state: GameState, action: Action): GameState {
         if (outcome === 'W') beatOpp = true;
       }
 
-      // stats
       const goals = { ...c.stats.goals };
       for (const s of scorers) goals[s.n] = (goals[s.n] ?? 0) + 1;
       const stats: Stats = {
@@ -189,8 +163,9 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'NEXT': {
-      if (state.phase.kind !== 'campaign' || state.phase.c.sub.k !== 'fulltime' || state.phase.c.done) return state;
+      if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
+      if (c.sub.k !== 'fulltime' || c.done) return state;
       const nextIdx = c.stageIdx + 1;
       const ms = matchSeedFor(state.seed, nextIdx);
       const candidates = c.pool.filter((id) => id !== c.oppId);
@@ -209,6 +184,8 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const rootStyle = { '--seed-hue': String(state.seed % 360) } as CSSProperties;
 
+  const phase = state.phase;
+
   return (
     <div className="app" style={rootStyle}>
       <div className="backdrop" aria-hidden="true" />
@@ -218,7 +195,7 @@ export default function App() {
         <p className="tagline">Convertite en el rey de Europa.</p>
       </header>
 
-      {state.phase.kind === 'setup' && (
+      {phase.kind === 'setup' && (
         <SetupStep
           formation={state.formation}
           seed={state.seed}
@@ -228,12 +205,12 @@ export default function App() {
         />
       )}
 
-      {state.phase.kind === 'drafting' && (
+      {phase.kind === 'drafting' && (
         <BuildStep
           seed={state.seed}
-          step={state.phase.step}
-          lineup={state.phase.lineup}
-          passes={state.phase.passes}
+          step={phase.step}
+          lineup={phase.lineup}
+          passes={phase.passes}
           formation={state.formation}
           onPick={(player, slot) => dispatch({ type: 'PICK', player, slot })}
           onSkip={() => dispatch({ type: 'SKIP' })}
@@ -242,21 +219,21 @@ export default function App() {
         />
       )}
 
-      {state.phase.kind === 'campaign' && state.phase.c.sub.k === 'half' && (
+      {phase.kind === 'campaign' && phase.c.sub.k === 'half' && (
         <MatchStep
-          rival={rivalOf(teamById(state.phase.c.oppId)) as Rival}
-          gf1={state.phase.c.sub.gf1}
-          ga1={state.phase.c.sub.ga1}
+          rival={rivalOf(teamById(phase.c.oppId))}
+          gf1={phase.c.sub.gf1}
+          ga1={phase.c.sub.ga1}
           onDecide={(attitude) => dispatch({ type: 'DECIDE', attitude })}
         />
       )}
 
-      {state.phase.kind === 'campaign' && state.phase.c.sub.k !== 'half' && (
+      {phase.kind === 'campaign' && phase.c.sub.k !== 'half' && (
         <TournamentStep
-          campaign={state.phase.c}
-          stageLabel={STAGE_LABEL[LADDER[state.phase.c.stageIdx]]}
-          xiAvg={Math.round(avg(state.phase.c.xi))}
-          opp={teamById(state.phase.c.oppId)}
+          campaign={phase.c}
+          stageLabel={STAGE_LABEL[LADDER[phase.c.stageIdx]]}
+          xiAvg={Math.round(avg(phase.c.xi))}
+          opp={teamById(phase.c.oppId)}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
           onNext={() => dispatch({ type: 'NEXT' })}
           onReset={() => dispatch({ type: 'RESET', seed: newSeed() })}
