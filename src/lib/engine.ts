@@ -125,6 +125,26 @@ export function rivalOf(team: Team): Rival {
   };
 }
 
+/* ════════ DIFFICULTY RAMP (deterministic) ════════
+   A cherry-picked cross-era XI out-rates any single real squad, so without
+   a ramp the run is a steamroll. This raises the rival's effective strength
+   by ladder stage: groups untouched (you should advance), then it climbs to
+   a wall in the final — that's where "te moriste en la orilla" earns itself.
+
+   Indexed by stageIdx → LADDER: [g1, g2, r16, qf, sf, final].
+   Pure tuning knob: bump these up for harder, down for softer. */
+export const STAGE_RAMP: number[] = [0, 0, 1, 3, 5, 7];
+
+/* The rival as the player faces (and scouts) it at a given stage. Adds the
+   ramp bonus to atk/def/overall so the scouting card never lies about how
+   hard the match actually is. Stays pure/deterministic. */
+export function scaledRivalOf(team: Team, stageIdx: number): Rival {
+  const r = rivalOf(team);
+  const bump = STAGE_RAMP[stageIdx] ?? 0;
+  if (bump === 0) return r;
+  return { ...r, atk: r.atk + bump, def: r.def + bump, overall: r.overall + bump };
+}
+
 /* ════════ MATCH — two halves, one halftime decision ════════ */
 export type Attitude = 'def' | 'eq' | 'off';
 export interface HalfOutcome { gf: number; ga: number; scorers: Scorer[]; }

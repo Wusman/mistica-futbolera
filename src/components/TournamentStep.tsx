@@ -1,7 +1,7 @@
 import { type CSSProperties } from 'react';
 import { type Team } from '../data/players';
 import { type Campaign, type Stage } from '../lib/tournament';
-import { rivalOf } from '../lib/engine';
+import { scaledRivalOf } from '../lib/engine';
 
 interface Props {
   campaign: Campaign;
@@ -22,8 +22,6 @@ const OUT_MSG: Record<Stage, string> = {
   final: 'Subcampeón. Perdiste LA final.',
 };
 
-const OUTCOME_LABEL = { W: 'Victoria', L: 'Derrota', D: 'Empate' } as const;
-
 function topScorer(goals: Record<string, number>): string {
   const e = Object.entries(goals).sort((a, b) => b[1] - a[1])[0];
   return e ? `${e[0]} (${e[1]})` : '—';
@@ -33,16 +31,38 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
   const s = c.stats;
   const record = `PJ ${s.pj} · ${s.w}G ${s.d}E ${s.l}P · GF ${s.gf} GA ${s.ga}`;
 
-  /* ── Full-time: show the match that was just played ── */
-  if (c.sub.k === 'fulltime') {
-    const m = c.sub.m;
-    const champ = c.done?.champion;
-
+  /* ── Campaign over ── */
+  if (c.sub.k === 'fulltime' && c.done) {
+    const champ = c.done.champion;
     return (
       <section className={`card ${champ ? 'card--perfect' : ''}`}>
-        <p className="card-club">{stageLabel}</p>
+        <p className="card-club">{champ ? 'Mística Futbolera' : stageLabel}</p>
+        {champ ? (
+          <p className="perfect-tag">¡Campeón de Europa!</p>
+        ) : (
+          <p className="verdict">{OUT_MSG[c.done.stage]}</p>
+        )}
+        <div className="scorers">
+          <h3 className="scorers-title">Tu campaña</h3>
+          <ul>
+            <li>Partidos: {s.pj} · {s.w}G {s.d}E {s.l}P</li>
+            <li>Goles: {s.gf} a favor, {s.ga} en contra</li>
+            <li>Vallas invictas: {s.cs}</li>
+            <li>Goleador: {topScorer(s.goals)}</li>
+          </ul>
+        </div>
+        <button className="cta" onClick={onReset}>Jugar de nuevo</button>
+      </section>
+    );
+  }
 
-        {/* the match result (always shown — including the one that ended the run) */}
+  /* ── Full-time of a match (advance) ── */
+  if (c.sub.k === 'fulltime') {
+    const m = c.sub.m;
+    const label = m.outcome === 'W' ? 'Victoria' : m.outcome === 'L' ? 'Derrota' : 'Empate';
+    return (
+      <section className="card">
+        <p className="card-club">{stageLabel}</p>
         <div className="scoreline">
           <span className="score">{m.gf}</span>
           <span className="score-sep">–</span>
@@ -50,41 +70,20 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
         </div>
         <p className="vs">Tu once vs {m.oppName} · {m.oppEdition}</p>
         {m.pens && <p className="perfect-tag">Penales {m.pens.you}–{m.pens.opp}</p>}
-        <p className="verdict">{OUTCOME_LABEL[m.outcome]}</p>
+        <p className="verdict">{label}</p>
         {m.scorers.length > 0 && (
           <div className="scorers">
             <h3 className="scorers-title">Tus goles</h3>
             <ul>{m.scorers.map((sc, k) => <li key={k}>{sc.n}</li>)}</ul>
           </div>
         )}
-
-        {/* run continues */}
-        {!c.done && <button className="cta" onClick={onNext}>Siguiente ronda</button>}
-
-        {/* run is over: verdict + full campaign summary */}
-        {c.done && (
-          <>
-            {champ
-              ? <p className="perfect-tag">¡Campeón de Europa!</p>
-              : <p className="verdict">{OUT_MSG[c.done.stage]}</p>}
-            <div className="scorers">
-              <h3 className="scorers-title">Tu campaña</h3>
-              <ul>
-                <li>Partidos: {s.pj} · {s.w}G {s.d}E {s.l}P</li>
-                <li>Goles: {s.gf} a favor, {s.ga} en contra</li>
-                <li>Vallas invictas: {s.cs}</li>
-                <li>Goleador: {topScorer(s.goals)}</li>
-              </ul>
-            </div>
-            <button className="cta" onClick={onReset}>Jugar de nuevo</button>
-          </>
-        )}
+        <button className="cta" onClick={onNext}>Siguiente ronda</button>
       </section>
     );
   }
 
   /* ── Preview / scouting before kickoff ── */
-  const r = rivalOf(opp);
+  const r = scaledRivalOf(opp, c.stageIdx);
   const bars = { '--club': opp.colors[0] } as CSSProperties;
   const inGroup = stageLabel.startsWith('Grupo');
   return (

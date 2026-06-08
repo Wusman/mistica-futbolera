@@ -10,7 +10,7 @@ import {
   playHalf,
   penalties,
   pickOpponent,
-  rivalOf,
+  scaledRivalOf,
   avg,
 } from './lib/engine';
 import {
@@ -98,7 +98,8 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'preview') return state;
       const opp = teamById(c.oppId);
       const ms = matchSeedFor(state.seed, c.stageIdx);
-      const h1 = playHalf(ms, 1, c.xi, rivalOf(opp).overall, 'eq');
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
+      const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
       return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers } } } };
     }
 
@@ -110,7 +111,7 @@ function reducer(state: GameState, action: Action): GameState {
 
       const stage: Stage = LADDER[c.stageIdx];
       const opp = teamById(c.oppId);
-      const ov = rivalOf(opp).overall;
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const h2 = playHalf(ms, 2, c.xi, ov, action.attitude);
 
@@ -221,7 +222,7 @@ export default function App() {
 
       {phase.kind === 'campaign' && phase.c.sub.k === 'half' && (
         <MatchStep
-          rival={rivalOf(teamById(phase.c.oppId))}
+          rival={scaledRivalOf(teamById(phase.c.oppId), phase.c.stageIdx)}
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
           onDecide={(attitude) => dispatch({ type: 'DECIDE', attitude })}
