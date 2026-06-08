@@ -40,6 +40,8 @@ export function rollTeam(rng: () => number, teams: Team[] = TEAMS): Team {
   return teams[Math.floor(rng() * teams.length)];
 }
 
+const avg = (ps: Player[]) => ps.reduce((s, p) => s + p.r, 0) / ps.length;
+
 /* ════════ LINEUP — the XI as positioned slots ════════ */
 export type Lineup = (Player | null)[];
 
@@ -51,11 +53,7 @@ export function fitsSlot(player: Player, slotPos: Pos): boolean {
   return player.pos.includes(slotPos);
 }
 
-export function firstOpenSlotFor(
-  player: Player,
-  lineup: Lineup,
-  formation: FormationName,
-): number {
+export function firstOpenSlotFor(player: Player, lineup: Lineup, formation: FormationName): number {
   const slots = FORMATIONS[formation].slots;
   for (let i = 0; i < slots.length; i++) {
     if (lineup[i] === null && fitsSlot(player, slots[i].pos)) return i;
@@ -63,12 +61,7 @@ export function firstOpenSlotFor(
   return -1;
 }
 
-/* All open slots this player could fill (for "choose a position"). */
-export function openSlotsFor(
-  player: Player,
-  lineup: Lineup,
-  formation: FormationName,
-): number[] {
+export function openSlotsFor(player: Player, lineup: Lineup, formation: FormationName): number[] {
   const slots = FORMATIONS[formation].slots;
   const out: number[] = [];
   for (let i = 0; i < slots.length; i++) {
@@ -97,40 +90,7 @@ export function draftTeamAt(seed: number, step: number, teams: Team[] = TEAMS): 
   return team;
 }
 
-/* ════════ SIMULATE — your XI vs a named champion rival ════════ */
-export interface MatchResult {
-  gf: number;
-  ga: number;
-  power: number;
-  isPerfect: boolean;
-  opp: string; // the named rival (for the card)
-}
-
-const clampGoals = (n: number) => Math.max(0, Math.min(9, Math.round(n)));
-const avg = (ps: Player[]) => ps.reduce((s, p) => s + p.r, 0) / ps.length;
-
-export function simulate(picks: Player[], opp: Team, rng: () => number): MatchResult {
-  // Opponent strength = its best 11 by rating.
-  const oppXI = [...opp.players].sort((a, b) => b.r - a.r).slice(0, 11);
-
-  const yourPow = avg(picks) + (rng() - 0.5) * 10;
-  const oppPow = avg(oppXI) + (rng() - 0.5) * 10;
-  const margin = yourPow - oppPow;
-
-  // Base of ~1.5 so games aren't goalless; margin tilts it; rng gives life.
-  const gf = clampGoals(1.5 + margin / 5 + rng() * 2.6);
-  const ga = clampGoals(1.3 - margin / 7 + rng() * 1.7);
-
-  return {
-    gf,
-    ga,
-    power: Math.round(yourPow),
-    isPerfect: gf >= 7 && ga === 0,
-    opp: `${opp.name} · ${opp.edition}`,
-  };
-}
-
-/* ── Scorers ── weighted by attacking line × rating, same rng. ── */
+/* ════════ SCORERS ════════ */
 export interface Scorer {
   i: number;
   n: string;
@@ -143,23 +103,12 @@ function lineOf(pos: Pos): 'GK' | 'DF' | 'MF' | 'FW' {
   return 'MF';
 }
 
-const ATTACK_WEIGHT: Record<'GK' | 'DF' | 'MF' | 'FW', number> = {
-  FW: 3,
-  MF: 1.5,
-  DF: 0.5,
-  GK: 0.05,
-};
+const ATTACK_WEIGHT: Record<'GK' | 'DF' | 'MF' | 'FW', number> = { FW: 3, MF: 1.5, DF: 0.5, GK: 0.05 };
 
-export function pickScorers(
-  goals: number,
-  picks: Player[],
-  rng: () => number,
-): Scorer[] {
+export function pickScorers(goals: number, picks: Player[], rng: () => number): Scorer[] {
   if (goals <= 0) return [];
-
   const weighted = picks.map((p) => ({ p, w: ATTACK_WEIGHT[lineOf(p.pos[0])] * p.r }));
   const total = weighted.reduce((sum, x) => sum + x.w, 0);
-
   const scorers: Scorer[] = [];
   for (let g = 0; g < goals; g++) {
     let ticket = rng() * total;
@@ -176,14 +125,76 @@ export function pickScorers(
   return scorers;
 }
 
-/* ── Match ── reproducible from the seed + your XI alone. ── */
-export function resolveMatch(
-  seed: number,
-  xi: Player[],
-): { result: MatchResult; scorers: Scorer[] } {
+/* ════════ RIVAL — scouteable, drawn from the seed ════════ */
+export interface Rival {
+  name: string;
+  edition: string;
+  atk: number; // attacking strength (its best XI)
+  def: number; // defensive strength
+  overall: number;
+}
+
+export function rivalFor(seed: number): Rival {
   const rng = mulberry32(seed);
-  const opp = rollTeam(rng); // the rival, drawn from the seed
-  const result = simulate(xi, opp, rng);
-  const scorers = pickScorers(result.gf, xi, rng);
-  return { result, scorers };
+  const opp = rollTeam(rng);
+  const best = [...opp.players].sort((a, b) => b.r - a.r).slice(0, 11);
+  const atkers = best.filter((p) => {
+    const l = lineOf(p.pos[0]);
+    return l === 'FW' || l === 'MF';
+  });
+  const backs = best.filter((p) => {
+    const l = lineOf(p.pos[0]);
+    return l === 'DF' || l === 'GK';
+  });
+  return {
+    name: opp.name,
+    edition: opp.edition,
+    atk: Math.round(avg(atkers.length ? atkers : best)),
+    def: Math.round(avg(backs.length ? backs : best)),
+    overall: Math.round(avg(best)),
+  };
+}
+
+/* ════════ MATCH — two halves, one halftime decision ════════ */
+export type Attitude = 'def' | 'eq' | 'off';
+
+export interface HalfOutcome {
+  gf: number;
+  ga: number;
+  scorers: Scorer[];
+}
+
+export interface MatchResult {
+  gf: number;
+  ga: number;
+  power: number;
+  isPerfect: boolean;
+  opp: string;
+}
+
+const clampHalf = (n: number) => Math.max(0, Math.min(6, Math.round(n)));
+
+// Attitude tilts the goals-for / goals-against trade-off (the 50/50).
+const ATT: Record<Attitude, { gf: number; ga: number }> = {
+  def: { gf: -0.4, ga: -0.6 }, // fewer conceded, fewer scored
+  eq: { gf: 0, ga: 0 },
+  off: { gf: 0.6, ga: 0.5 }, // more scored, more exposed
+};
+
+/* One half. The dice are fixed by (seed, half); your attitude shifts the
+   expected outcome. First half is always played 'eq'; the 2nd uses the
+   halftime decision. Deterministic from (seed, half, attitude). */
+export function playHalf(seed: number, half: 1 | 2, xi: Player[], attitude: Attitude): HalfOutcome {
+  const rng = mulberry32((seed ^ (half * 0x9e3779b1)) >>> 0);
+  const rival = rivalFor(seed);
+
+  const yourPow = avg(xi) + (rng() - 0.5) * 10;
+  const oppPow = rival.overall + (rng() - 0.5) * 10;
+  const margin = yourPow - oppPow;
+  const a = ATT[attitude];
+
+  const gf = clampHalf(0.8 + margin / 10 + a.gf + rng() * 1.4);
+  const ga = clampHalf(0.7 - margin / 14 + a.ga + rng() * 1.2);
+  const scorers = pickScorers(gf, xi, rng);
+  return { gf, ga, scorers };
 }

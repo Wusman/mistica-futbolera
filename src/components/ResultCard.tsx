@@ -1,13 +1,15 @@
-import { type MatchResult, type Scorer } from '../lib/engine';
+import { type MatchResult, type Scorer, type Attitude } from '../lib/engine';
 
 interface Props {
   seed: number;
   result: MatchResult;
   scorers: Scorer[];
+  attitude: Attitude;
   onReset: () => void;
 }
 
-// A bit of flavour based on the scoreline.
+const ATT_LABEL: Record<Attitude, string> = { def: 'Defensivo', eq: 'Equilibrado', off: 'Ofensivo' };
+
 function verdict(r: MatchResult): string {
   if (r.isPerfect) return '7–0. Pintura. Sos leyenda.';
   const diff = r.gf - r.ga;
@@ -20,7 +22,7 @@ function verdict(r: MatchResult): string {
   return 'Derrota. Otra semilla será.';
 }
 
-export function ResultCard({ seed, result, scorers, onReset }: Props) {
+export function ResultCard({ seed, result, scorers, attitude, onReset }: Props) {
   const tally = scorers.reduce<Record<string, number>>((acc, s) => {
     acc[s.n] = (acc[s.n] ?? 0) + 1;
     return acc;
@@ -58,7 +60,9 @@ export function ResultCard({ seed, result, scorers, onReset }: Props) {
         )}
       </div>
 
-      <p className="power">Potencia del once: {result.power}</p>
+      <p className="power">
+        Potencia {result.power} · 2T {ATT_LABEL[attitude]}
+      </p>
 
       <button className="cta" onClick={onReset}>
         Jugar de nuevo

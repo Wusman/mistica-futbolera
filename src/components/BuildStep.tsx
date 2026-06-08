@@ -17,9 +17,11 @@ interface Props {
   seed: number;
   step: number;
   lineup: Lineup;
+  passes: number;
   formation: FormationName;
   onPick: (p: Player, slot: number) => void;
   onSkip: () => void;
+  onPass: () => void;
   onSimulate: () => void;
 }
 
@@ -32,18 +34,18 @@ export function BuildStep({
   seed,
   step,
   lineup,
+  passes,
   formation,
   onPick,
   onSkip,
+  onPass,
   onSimulate,
 }: Props) {
   const slots = FORMATIONS[formation].slots;
   const team = draftTeamAt(seed, step);
   const [pending, setPending] = useState<Player | null>(null);
 
-  const taken = new Set(
-    lineup.filter((c): c is Player => c !== null).map((p) => p.i),
-  );
+  const taken = new Set(lineup.filter((c): c is Player => c !== null).map((p) => p.i));
   const eligible = team.players.filter(
     (p) => !taken.has(p.i) && openSlotsFor(p, lineup, formation).length > 0,
   );
@@ -54,7 +56,6 @@ export function BuildStep({
     : 0;
   const ready = lineupFilled(lineup);
 
-  // Box-score attack/defense = average rating of the placed players by line.
   const lineAvg = (set: Set<Pos>) => {
     const rs = slots
       .map((s, i) => (set.has(s.pos) && lineup[i] ? lineup[i]!.r : null))
@@ -78,24 +79,23 @@ export function BuildStep({
     setPending(null);
   };
 
-  const bannerStyle = { '--club': team.color } as CSSProperties;
+  // Team identity: left accent uses the primary color; the bar shows all 1–3.
+  const bannerStyle = { '--club': team.colors[0] } as CSSProperties;
 
   return (
-    <section className="draft">
-      {/* ── Left: team + picks ── */}
-      <div className="draft-side">
+    <section className="board3">
+      {/* ── Left: champion on offer + picks ── */}
+      <div className="b3-pick">
         <header className="draft-head">
           <span className="draft-step">{placed.length} de 11</span>
           <span className="overall-inline">Media {overall}</span>
         </header>
 
-        {!ready && (
+        {!ready ? (
           <div className="draft-pick" style={bannerStyle}>
             {pending ? (
               <div className="draft-none">
-                <p className="choose-hint">
-                  ¿Dónde ponés a {pending.n}? Tocá un puesto en la cancha.
-                </p>
+                <p className="choose-hint">¿Dónde ponés a {pending.n}? Tocá un puesto.</p>
                 <button className="cta cta--ghost" onClick={() => setPending(null)}>
                   Cancelar
                 </button>
@@ -103,52 +103,61 @@ export function BuildStep({
             ) : (
               <>
                 <header className="draft-champ" key={team.id}>
+                  <div className="club-colors">
+                    {team.colors.map((c, k) => (
+                      <span key={k} style={{ background: c }} />
+                    ))}
+                  </div>
                   <h2 className="club-name">{team.name}</h2>
                   <p className="club-edition">{team.edition}</p>
                 </header>
 
                 {eligible.length > 0 ? (
-                  <ul className="players">
-                    {eligible.map((p) => (
-                      <li key={p.i}>
-                        <button
-                          className={`player ${p.r >= 88 ? 'player--crack' : ''}`}
-                          onClick={() => handlePick(p)}
-                        >
-                          <span className="player-name">
-                            {p.r >= 88 ? '★ ' : ''}
-                            {p.n}
-                          </span>
-                          <span className="player-pos">
-                            {p.pos.map((x) => POS_LABEL[x]).join('/')}
-                          </span>
-                          <span className="player-rating">{p.r}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="players">
+                      {eligible.map((p) => (
+                        <li key={p.i}>
+                          <button
+                            className={`player ${p.r >= 88 ? 'player--crack' : ''}`}
+                            onClick={() => handlePick(p)}
+                          >
+                            <span className="player-name">
+                              {p.r >= 88 ? '★ ' : ''}
+                              {p.n}
+                            </span>
+                            <span className="player-pos">{p.pos.map((x) => POS_LABEL[x]).join('/')}</span>
+                            <span className="player-rating">{p.r}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="passes">
+                      <span className="passes-count">Descartes: {passes}</span>
+                      <button className="cta cta--ghost" disabled={passes <= 0} onClick={onPass}>
+                        Pasar campeón
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <div className="draft-none">
                     <p>No te sirve nadie de este campeón.</p>
                     <button className="cta cta--ghost" onClick={onSkip}>
-                      Sortear otro
+                      Sortear otro (gratis)
                     </button>
                   </div>
                 )}
               </>
             )}
           </div>
-        )}
-
-        {ready && (
+        ) : (
           <button className="cta" onClick={onSimulate}>
             Simular partido
           </button>
         )}
       </div>
 
-      {/* ── Right: the board + box score (stays in place) ── */}
-      <div className="draft-board">
+      {/* ── Center: the board ── */}
+      <div className="b3-board">
         <div className="pitch">
           {slots.map((slot, i) => {
             const player = lineup[i];
@@ -175,8 +184,10 @@ export function BuildStep({
             );
           })}
         </div>
+      </div>
 
-        {/* box score */}
+      {/* ── Right: box score ── */}
+      <div className="b3-list">
         <div className="bs-summary">
           <span>Ataque <b>{attack || '—'}</b></span>
           <span>Defensa <b>{defense || '—'}</b></span>

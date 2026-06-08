@@ -9,15 +9,13 @@ interface Props {
   onStart: () => void;
 }
 
-/* Formation + seed on the left; a preview of the chosen formation's
-   empty board on the right, so you see the shape before starting. */
 export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: Props) {
   const names = Object.keys(FORMATIONS) as FormationName[];
   const slots = FORMATIONS[formation].slots;
 
   return (
-    <section className="draft">
-      <div className="draft-side">
+    <section className="setup">
+      <div className="setup-side">
         <h2 className="step-title">1 · Formación</h2>
         <div className="formation-grid">
           {names.map((name) => (
@@ -44,7 +42,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: 
         </button>
       </div>
 
-      <div className="draft-board">
+      <div className="setup-board">
         <div className="pitch">
           {slots.map((slot, i) => (
             <div
