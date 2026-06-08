@@ -47,27 +47,43 @@ export interface Slot {
 /* Formations are ORDERED slot layouts now (not just counts), so the
    board can draw the XI in its real shape. Add more here freely. */
 export const FORMATIONS = {
-  '4-3-3': {
-    slots: [
-      { pos: 'GK', x: 50, y: 92 },
-      { pos: 'LB', x: 14, y: 70 }, { pos: 'CB', x: 38, y: 76 },
-      { pos: 'CB', x: 62, y: 76 }, { pos: 'RB', x: 86, y: 70 },
-      { pos: 'CM', x: 30, y: 50 }, { pos: 'CM', x: 50, y: 56 },
-      { pos: 'CM', x: 70, y: 50 },
-      { pos: 'LW', x: 20, y: 26 }, { pos: 'ST', x: 50, y: 20 },
-      { pos: 'RW', x: 80, y: 26 },
-    ],
-  },
-  '4-4-2': {
-    slots: [
-      { pos: 'GK', x: 50, y: 92 },
-      { pos: 'LB', x: 14, y: 72 }, { pos: 'CB', x: 38, y: 76 },
-      { pos: 'CB', x: 62, y: 76 }, { pos: 'RB', x: 86, y: 72 },
-      { pos: 'LM', x: 16, y: 48 }, { pos: 'CM', x: 38, y: 52 },
-      { pos: 'CM', x: 62, y: 52 }, { pos: 'RM', x: 84, y: 48 },
-      { pos: 'ST', x: 38, y: 22 }, { pos: 'ST', x: 62, y: 22 },
-    ],
-  },
+  '4-3-3': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'LB', x: 14, y: 70 }, { pos: 'CB', x: 38, y: 76 }, { pos: 'CB', x: 62, y: 76 }, { pos: 'RB', x: 86, y: 70 },
+    { pos: 'CM', x: 30, y: 50 }, { pos: 'CM', x: 50, y: 56 }, { pos: 'CM', x: 70, y: 50 },
+    { pos: 'LW', x: 20, y: 26 }, { pos: 'ST', x: 50, y: 20 }, { pos: 'RW', x: 80, y: 26 },
+  ] },
+  '4-4-2': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'LB', x: 14, y: 72 }, { pos: 'CB', x: 38, y: 76 }, { pos: 'CB', x: 62, y: 76 }, { pos: 'RB', x: 86, y: 72 },
+    { pos: 'LM', x: 16, y: 48 }, { pos: 'CM', x: 38, y: 52 }, { pos: 'CM', x: 62, y: 52 }, { pos: 'RM', x: 84, y: 48 },
+    { pos: 'ST', x: 38, y: 22 }, { pos: 'ST', x: 62, y: 22 },
+  ] },
+  '4-2-3-1': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'LB', x: 14, y: 72 }, { pos: 'CB', x: 38, y: 76 }, { pos: 'CB', x: 62, y: 76 }, { pos: 'RB', x: 86, y: 72 },
+    { pos: 'CM', x: 36, y: 58 }, { pos: 'CM', x: 64, y: 58 },
+    { pos: 'LW', x: 18, y: 34 }, { pos: 'AM', x: 50, y: 40 }, { pos: 'RW', x: 82, y: 34 },
+    { pos: 'ST', x: 50, y: 18 },
+  ] },
+  '3-5-2': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'CB', x: 28, y: 76 }, { pos: 'CB', x: 50, y: 78 }, { pos: 'CB', x: 72, y: 76 },
+    { pos: 'LM', x: 12, y: 52 }, { pos: 'CM', x: 35, y: 54 }, { pos: 'CM', x: 50, y: 58 }, { pos: 'CM', x: 65, y: 54 }, { pos: 'RM', x: 88, y: 52 },
+    { pos: 'ST', x: 38, y: 22 }, { pos: 'ST', x: 62, y: 22 },
+  ] },
+  '5-3-2': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'LB', x: 10, y: 68 }, { pos: 'CB', x: 30, y: 78 }, { pos: 'CB', x: 50, y: 80 }, { pos: 'CB', x: 70, y: 78 }, { pos: 'RB', x: 90, y: 68 },
+    { pos: 'CM', x: 30, y: 52 }, { pos: 'CM', x: 50, y: 54 }, { pos: 'CM', x: 70, y: 52 },
+    { pos: 'ST', x: 38, y: 24 }, { pos: 'ST', x: 62, y: 24 },
+  ] },
+  '3-4-3': { slots: [
+    { pos: 'GK', x: 50, y: 92 },
+    { pos: 'CB', x: 28, y: 76 }, { pos: 'CB', x: 50, y: 78 }, { pos: 'CB', x: 72, y: 76 },
+    { pos: 'LM', x: 14, y: 52 }, { pos: 'CM', x: 38, y: 54 }, { pos: 'CM', x: 62, y: 54 }, { pos: 'RM', x: 86, y: 52 },
+    { pos: 'LW', x: 20, y: 24 }, { pos: 'ST', x: 50, y: 20 }, { pos: 'RW', x: 80, y: 24 },
+  ] },
 } as const;
 
 export type FormationName = keyof typeof FORMATIONS;
@@ -253,6 +269,26 @@ export const TEAMS: Team[] = [
       { i: 311, n: 'Guillermo B. Schelotto', pos: ['RW', 'AM'], r: 84 },
       { i: 312, n: 'Martín Palermo',         pos: ['ST'],       r: 87 }, // beat Real Madrid
       { i: 313, n: 'Marcelo Delgado',        pos: ['ST', 'LW'], r: 82 },
+    ],
+  },
+
+/* ── Santos · Libertadores 2011 ── Muricy Ramalho; Neymar + Ganso; beat Peñarol in the final. */
+  {
+    id: 'san11', name: 'Santos', edition: 'Libertadores 2011', color: '#13202b',
+    players: [
+      { i: 1300, n: 'Rafael',        pos: ['GK'],       r: 80 },
+      { i: 1301, n: 'Danilo',        pos: ['RB'],       r: 83 },
+      { i: 1302, n: 'Edu Dracena',   pos: ['CB'],       r: 80 },
+      { i: 1303, n: 'Durval',        pos: ['CB'],       r: 78 },
+      { i: 1304, n: 'Léo',           pos: ['LB', 'LM'], r: 79 },
+      { i: 1305, n: 'Pará',          pos: ['RB', 'CB'], r: 77 },
+      { i: 1306, n: 'Arouca',        pos: ['DM', 'CM'], r: 80 },
+      { i: 1307, n: 'Ibson',         pos: ['CM', 'DM'], r: 78 },
+      { i: 1308, n: 'Elano',         pos: ['AM', 'RM'], r: 82 },
+      { i: 1309, n: 'Ganso',         pos: ['AM', 'CM'], r: 84 },
+      { i: 1310, n: 'Neymar',        pos: ['LW', 'ST'], r: 90 }, // crack, figura del torneo
+      { i: 1311, n: 'Borges',        pos: ['ST'],       r: 80 },
+      { i: 1312, n: 'Alan Kardec',   pos: ['ST'],       r: 76 },
     ],
   },
 

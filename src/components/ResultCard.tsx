@@ -7,6 +7,19 @@ interface Props {
   onReset: () => void;
 }
 
+// A bit of flavour based on the scoreline.
+function verdict(r: MatchResult): string {
+  if (r.isPerfect) return '7–0. Pintura. Sos leyenda.';
+  const diff = r.gf - r.ga;
+  if (r.gf === 0 && r.ga === 0) return 'Cero a cero. Faltó puntería.';
+  if (diff >= 4) return '¡Goleada histórica!';
+  if (diff >= 2) return 'Victoria con autoridad.';
+  if (diff === 1) return 'Ganaste sufriendo. Vale igual.';
+  if (diff === 0) return 'Empate. Se definía por penales...';
+  if (diff <= -3) return 'Baile en contra. A rearmar el once.';
+  return 'Derrota. Otra semilla será.';
+}
+
 export function ResultCard({ seed, result, scorers, onReset }: Props) {
   const tally = scorers.reduce<Record<string, number>>((acc, s) => {
     acc[s.n] = (acc[s.n] ?? 0) + 1;
@@ -26,6 +39,8 @@ export function ResultCard({ seed, result, scorers, onReset }: Props) {
       <p className="vs">Tu once vs {result.opp}</p>
 
       {result.isPerfect && <p className="perfect-tag">7–0 Místico</p>}
+
+      <p className="verdict">{verdict(result)}</p>
 
       <div className="scorers">
         <h3 className="scorers-title">Goleadores</h3>

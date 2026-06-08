@@ -48,12 +48,12 @@ body { margin: 0; }
   color: var(--tomato);
   margin: 4px 0 -4px;
 }
-.formation-grid { display: flex; gap: 10px; }
+/* formation chips: a grid so 6+ formations wrap cleanly (like 7a0) */
+.formation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .chip {
-  flex: 1;
   font-family: var(--font-display);
-  font-size: 20px;
-  padding: 16px;
+  font-size: 16px;
+  padding: 12px 6px;
   background: transparent;
   border: 2px solid var(--ink);
   cursor: pointer;
@@ -121,15 +121,20 @@ body { margin: 0; }
   );
   overflow: hidden;
 }
-.pitch::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid rgba(255,255,255,0.35); }
+/* decorative lines must NOT capture clicks (this was the MC-central bug) */
+.pitch::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  border-top: 2px solid rgba(255,255,255,0.35); pointer-events: none;
+}
 .pitch::after {
   content: ''; position: absolute; left: 50%; top: 50%;
   width: 26%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  border: 2px solid rgba(255,255,255,0.35); border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35); border-radius: 50%; pointer-events: none;
 }
 
 .pslot {
   position: absolute;
+  z-index: 1; /* above the field lines */
   transform: translate(-50%, -50%);
   width: 60px; height: 60px;
   border-radius: 50%;
@@ -154,6 +159,24 @@ body { margin: 0; }
   background: rgba(200, 147, 42, 0.15);
   animation: pulse 1s ease-in-out infinite;
 }
+
+/* ── Box score (the detailed list, like 7a0) ── */
+.bs-summary {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px;
+  font-size: 12px; color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 2px 6px;
+}
+.bs-summary b { color: var(--ink); font-size: 14px; margin-left: 4px; }
+.boxscore { list-style: none; margin: 4px 0 0; padding: 0; }
+.bs-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 2px; border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.bs-pos { font-family: var(--font-display); width: 38px; color: var(--muted); letter-spacing: 1px; }
+.bs-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bs-rat { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
 
 /* ── The champion on offer ── */
 .draft-pick { border-left: 6px solid var(--club, var(--ink)); padding-left: 14px; }
@@ -194,6 +217,7 @@ body { margin: 0; }
 .score--away { color: var(--ink); }
 .score-sep { font-family: var(--font-display); font-size: 56px; color: var(--line); }
 .vs { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; }
+.verdict { font-style: italic; color: var(--ink); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--tomato); margin: 0; }
 .scorers { text-align: left; }
 .scorers-title {
@@ -210,14 +234,8 @@ body { margin: 0; }
   from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
   to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
 }
-@keyframes pop {
-  from { transform: scale(0.4); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: none; }
-}
+@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(200, 147, 42, 0.5); }
   50%      { box-shadow: 0 0 0 5px rgba(200, 147, 42, 0); }

@@ -1,5 +1,10 @@
 import { type CSSProperties, useState } from 'react';
-import { FORMATIONS, type FormationName, type Player } from '../data/players';
+import {
+  FORMATIONS,
+  type FormationName,
+  type Player,
+  type Pos,
+} from '../data/players';
 import { POS_LABEL } from '../labels';
 import {
   type Lineup,
@@ -48,6 +53,16 @@ export function BuildStep({
     ? Math.round(placed.reduce((s, p) => s + p.r, 0) / placed.length)
     : 0;
   const ready = lineupFilled(lineup);
+
+  // Box-score attack/defense = average rating of the placed players by line.
+  const lineAvg = (set: Set<Pos>) => {
+    const rs = slots
+      .map((s, i) => (set.has(s.pos) && lineup[i] ? lineup[i]!.r : null))
+      .filter((x): x is number => x !== null);
+    return rs.length ? Math.round(rs.reduce((a, b) => a + b, 0) / rs.length) : 0;
+  };
+  const attack = lineAvg(new Set<Pos>(['RW', 'LW', 'ST']));
+  const defense = lineAvg(new Set<Pos>(['GK', 'RB', 'CB', 'LB']));
 
   const choosable = pending ? openSlotsFor(pending, lineup, formation) : [];
 
@@ -132,7 +147,7 @@ export function BuildStep({
         )}
       </div>
 
-      {/* ── Right: the board (stays in place) ── */}
+      {/* ── Right: the board + box score (stays in place) ── */}
       <div className="draft-board">
         <div className="pitch">
           {slots.map((slot, i) => {
@@ -160,6 +175,24 @@ export function BuildStep({
             );
           })}
         </div>
+
+        {/* box score */}
+        <div className="bs-summary">
+          <span>Ataque <b>{attack || '—'}</b></span>
+          <span>Defensa <b>{defense || '—'}</b></span>
+        </div>
+        <ul className="boxscore">
+          {slots.map((slot, i) => {
+            const pl = lineup[i];
+            return (
+              <li key={i} className="bs-row">
+                <span className="bs-pos">{POS_LABEL[slot.pos]}</span>
+                <span className="bs-name">{pl ? surname(pl.n) : '—'}</span>
+                <span className="bs-rat">{pl ? pl.r : ''}</span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );
