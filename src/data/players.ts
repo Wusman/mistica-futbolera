@@ -218,6 +218,118 @@ export const TEAMS: Team[] = [
     ],
   },
 
+/* ── Real Madrid · Champions 2014 ── "La Décima"; Bale + BBC; beat Atlético. */
+  {
+    id: 'rma14', name: 'Real Madrid', edition: 'Champions 2014', colors: ['#e9e9e9', '#1d2b6b', '#c8a24a'],
+    players: [
+      { i: 900, n: 'Iker Casillas',     pos: ['GK'],             r: 85 },
+      { i: 901, n: 'Dani Carvajal',     pos: ['RB'],             r: 82 },
+      { i: 902, n: 'Sergio Ramos',      pos: ['CB'],             r: 89 }, // the 92:48 header
+      { i: 903, n: 'Pepe',              pos: ['CB'],             r: 84 },
+      { i: 904, n: 'Marcelo',           pos: ['LB'],             r: 86 },
+      { i: 905, n: 'Xabi Alonso',       pos: ['DM', 'CM'],       r: 86 },
+      { i: 906, n: 'Luka Modrić',       pos: ['CM', 'AM'],       r: 88 },
+      { i: 907, n: 'Ángel Di María',    pos: ['CM', 'LW'],       r: 87 },
+      { i: 908, n: 'Gareth Bale',       pos: ['RW', 'ST'],       r: 88 },
+      { i: 909, n: 'Karim Benzema',     pos: ['ST'],             r: 87 },
+      { i: 910, n: 'Cristiano Ronaldo', pos: ['LW', 'ST'],       r: 97 },
+      { i: 911, n: 'Isco',              pos: ['AM', 'CM'],       r: 83 },
+    ],
+  },
+
+  /* ── Barcelona · Champions 2015 ── the MSN; Luis Enrique; beat Juventus. */
+  {
+    id: 'bar15', name: 'Barcelona', edition: 'Champions 2015', colors: ['#a50044', '#004d98', '#edbb00'],
+    players: [
+      { i: 1000, n: 'Marc-André ter Stegen', pos: ['GK'],             r: 86 },
+      { i: 1001, n: 'Dani Alves',            pos: ['RB'],             r: 85 },
+      { i: 1002, n: 'Gerard Piqué',          pos: ['CB'],             r: 86 },
+      { i: 1003, n: 'Javier Mascherano',     pos: ['CB', 'DM'],       r: 83 },
+      { i: 1004, n: 'Jordi Alba',            pos: ['LB'],             r: 85 },
+      { i: 1005, n: 'Sergio Busquets',       pos: ['DM'],             r: 87 },
+      { i: 1006, n: 'Ivan Rakitić',          pos: ['CM'],             r: 84 },
+      { i: 1007, n: 'Andrés Iniesta',        pos: ['AM', 'CM'],       r: 90 },
+      { i: 1008, n: 'Lionel Messi',          pos: ['RW', 'AM'],       r: 99 },
+      { i: 1009, n: 'Luis Suárez',           pos: ['ST'],             r: 91 },
+      { i: 1010, n: 'Neymar',                pos: ['LW', 'ST'],       r: 90 },
+    ],
+  },
+
+  /* ── Porto · Champions 2004 ── Mourinho's surprise; Deco the star, the rest of-trade. */
+  {
+    id: 'por04', name: 'Porto', edition: 'Champions 2004', colors: ['#02488f', '#ffffff'],
+    players: [
+      { i: 1100, n: 'Vítor Baía',        pos: ['GK'],       r: 80 },
+      { i: 1101, n: 'Paulo Ferreira',    pos: ['RB'],       r: 79 },
+      { i: 1102, n: 'Jorge Costa',       pos: ['CB'],       r: 80 },
+      { i: 1103, n: 'Ricardo Carvalho',  pos: ['CB'],       r: 85 },
+      { i: 1104, n: 'Nuno Valente',      pos: ['LB'],       r: 77 },
+      { i: 1105, n: 'Costinha',          pos: ['DM'],       r: 80 },
+      { i: 1106, n: 'Maniche',           pos: ['CM', 'DM'], r: 83 },
+      { i: 1107, n: 'Deco',              pos: ['AM'],       r: 88 }, // MOTM in the final
+      { i: 1108, n: 'Pedro Mendes',      pos: ['CM'],       r: 77 },
+      { i: 1109, n: 'Carlos Alberto',    pos: ['AM', 'ST'], r: 78 }, // scored in the final
+      { i: 1110, n: 'Derlei',            pos: ['ST'],       r: 79 },
+      { i: 1111, n: 'Benni McCarthy',    pos: ['ST'],       r: 80 },
+    ],
+  },
+
+  /* ── Liverpool · Champions 2005 ── the Istanbul miracle; Gerrard carries a workmanlike side. */
+  {
+    id: 'liv05', name: 'Liverpool', edition: 'Champions 2005', colors: ['#c8102e', '#ffffff'],
+    players: [
+      { i: 1200, n: 'Jerzy Dudek',       pos: ['GK'],       r: 78 }, // the spaghetti-legs saves
+      { i: 1201, n: 'Steve Finnan',      pos: ['RB'],       r: 78 },
+      { i: 1202, n: 'Jamie Carragher',   pos: ['CB'],       r: 82 },
+      { i: 1203, n: 'Sami Hyypiä',       pos: ['CB'],       r: 81 },
+      { i: 1204, n: 'Djimi Traoré',      pos: ['LB', 'CB'], r: 74 },
+      { i: 1205, n: 'Steven Gerrard',    pos: ['CM', 'AM'], r: 89 }, // captain, dragged them back
+      { i: 1206, n: 'Xabi Alonso',       pos: ['CM', 'DM'], r: 85 },
+      { i: 1207, n: 'Dietmar Hamann',    pos: ['DM'],       r: 80 },
+      { i: 1208, n: 'Luis García',       pos: ['AM', 'RW'], r: 80 },
+      { i: 1209, n: 'John Arne Riise',   pos: ['LM', 'LB'], r: 79 },
+      { i: 1210, n: 'Milan Baroš',       pos: ['ST'],       r: 78 },
+      { i: 1211, n: 'Djibril Cissé',     pos: ['ST'],       r: 78 },
+    ],
+  },
+
+  /* ── Chelsea · Champions 2012 ── Di Matteo; an aging, defiant machine; beat Bayern on pens. */
+  {
+    id: 'che12', name: 'Chelsea', edition: 'Champions 2012', colors: ['#034694', '#ffffff'],
+    players: [
+      { i: 1300, n: 'Petr Čech',          pos: ['GK'],       r: 85 }, // shootout hero
+      { i: 1301, n: 'Branislav Ivanović', pos: ['RB', 'CB'], r: 81 },
+      { i: 1302, n: 'David Luiz',         pos: ['CB'],       r: 82 },
+      { i: 1303, n: 'John Terry',         pos: ['CB'],       r: 84 }, // captain
+      { i: 1304, n: 'Ashley Cole',        pos: ['LB'],       r: 84 },
+      { i: 1305, n: 'John Obi Mikel',     pos: ['DM'],       r: 79 },
+      { i: 1306, n: 'Frank Lampard',      pos: ['CM'],       r: 86 },
+      { i: 1307, n: 'Ramires',            pos: ['CM', 'RM'], r: 80 },
+      { i: 1308, n: 'Juan Mata',          pos: ['AM'],       r: 85 },
+      { i: 1309, n: 'Salomon Kalou',      pos: ['RW', 'LW'], r: 78 },
+      { i: 1310, n: 'Didier Drogba',      pos: ['ST'],       r: 86 }, // the equalizer + winning pen
+      { i: 1311, n: 'Fernando Torres',    pos: ['ST'],       r: 80 },
+    ],
+  },
+
+  /* ── Marseille · Champions 1993 ── first French winner; beat Milan. */
+  {
+    id: 'om93', name: 'Marseille', edition: 'Champions 1993', colors: ['#2faee0', '#ffffff'],
+    players: [
+      { i: 1400, n: 'Fabien Barthez',     pos: ['GK'],       r: 80 },
+      { i: 1401, n: 'Jocelyn Angloma',    pos: ['RB'],       r: 78 },
+      { i: 1402, n: 'Basile Boli',        pos: ['CB'],       r: 80 }, // scored the winner
+      { i: 1403, n: 'Marcel Desailly',    pos: ['CB', 'DM'], r: 84 },
+      { i: 1404, n: 'Éric Di Meco',       pos: ['LB'],       r: 78 },
+      { i: 1405, n: 'Didier Deschamps',   pos: ['DM', 'CM'], r: 83 }, // captain
+      { i: 1406, n: 'Franck Sauzée',      pos: ['CM'],       r: 80 },
+      { i: 1407, n: 'Jean-Jacques Eydelie', pos: ['CM'],     r: 75 },
+      { i: 1408, n: 'Abedi Pelé',         pos: ['AM', 'LW'], r: 85 },
+      { i: 1409, n: 'Rudi Völler',        pos: ['ST'],       r: 84 },
+      { i: 1410, n: 'Alen Bokšić',        pos: ['ST'],       r: 81 },
+    ],
+  },
+
   /* ── Manchester United · Champions 2008 ── Ferguson; Ronaldo's year; beat Chelsea on pens. */
   {
     id: 'mun08', name: 'Manchester United', edition: 'Champions 2008', colors: ['#da020e', '#f5f5f5', '#0a0a0a'],

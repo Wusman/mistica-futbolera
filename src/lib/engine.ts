@@ -40,7 +40,7 @@ export function rollTeam(rng: () => number, teams: Team[] = TEAMS): Team {
   return teams[Math.floor(rng() * teams.length)];
 }
 
-const avg = (ps: Player[]) => ps.reduce((s, p) => s + p.r, 0) / ps.length;
+export const avg = (ps: Player[]) => ps.reduce((s, p) => s + p.r, 0) / ps.length;
 
 /* ════════ LINEUP — the XI as positioned slots ════════ */
 export type Lineup = (Player | null)[];
@@ -48,32 +48,23 @@ export type Lineup = (Player | null)[];
 export function emptyLineup(formation: FormationName): Lineup {
   return FORMATIONS[formation].slots.map(() => null);
 }
-
 export function fitsSlot(player: Player, slotPos: Pos): boolean {
   return player.pos.includes(slotPos);
 }
-
 export function firstOpenSlotFor(player: Player, lineup: Lineup, formation: FormationName): number {
   const slots = FORMATIONS[formation].slots;
-  for (let i = 0; i < slots.length; i++) {
-    if (lineup[i] === null && fitsSlot(player, slots[i].pos)) return i;
-  }
+  for (let i = 0; i < slots.length; i++) if (lineup[i] === null && fitsSlot(player, slots[i].pos)) return i;
   return -1;
 }
-
 export function openSlotsFor(player: Player, lineup: Lineup, formation: FormationName): number[] {
   const slots = FORMATIONS[formation].slots;
   const out: number[] = [];
-  for (let i = 0; i < slots.length; i++) {
-    if (lineup[i] === null && fitsSlot(player, slots[i].pos)) out.push(i);
-  }
+  for (let i = 0; i < slots.length; i++) if (lineup[i] === null && fitsSlot(player, slots[i].pos)) out.push(i);
   return out;
 }
-
 export function lineupFilled(lineup: Lineup): boolean {
   return lineup.every((cell) => cell !== null);
 }
-
 export function lineupXI(lineup: Lineup): Player[] {
   return lineup.filter((cell): cell is Player => cell !== null);
 }
@@ -91,10 +82,7 @@ export function draftTeamAt(seed: number, step: number, teams: Team[] = TEAMS): 
 }
 
 /* ════════ SCORERS ════════ */
-export interface Scorer {
-  i: number;
-  n: string;
-}
+export interface Scorer { i: number; n: string; }
 
 function lineOf(pos: Pos): 'GK' | 'DF' | 'MF' | 'FW' {
   if (pos === 'GK') return 'GK';
@@ -102,53 +90,35 @@ function lineOf(pos: Pos): 'GK' | 'DF' | 'MF' | 'FW' {
   if (pos === 'RW' || pos === 'LW' || pos === 'ST') return 'FW';
   return 'MF';
 }
-
 const ATTACK_WEIGHT: Record<'GK' | 'DF' | 'MF' | 'FW', number> = { FW: 3, MF: 1.5, DF: 0.5, GK: 0.05 };
 
 export function pickScorers(goals: number, picks: Player[], rng: () => number): Scorer[] {
   if (goals <= 0) return [];
   const weighted = picks.map((p) => ({ p, w: ATTACK_WEIGHT[lineOf(p.pos[0])] * p.r }));
   const total = weighted.reduce((sum, x) => sum + x.w, 0);
-  const scorers: Scorer[] = [];
+  const out: Scorer[] = [];
   for (let g = 0; g < goals; g++) {
     let ticket = rng() * total;
     let chosen = weighted[weighted.length - 1].p;
     for (const { p, w } of weighted) {
       ticket -= w;
-      if (ticket <= 0) {
-        chosen = p;
-        break;
-      }
+      if (ticket <= 0) { chosen = p; break; }
     }
-    scorers.push({ i: chosen.i, n: chosen.n });
+    out.push({ i: chosen.i, n: chosen.n });
   }
-  return scorers;
+  return out;
 }
 
-/* ════════ RIVAL — scouteable, drawn from the seed ════════ */
-export interface Rival {
-  name: string;
-  edition: string;
-  atk: number; // attacking strength (its best XI)
-  def: number; // defensive strength
-  overall: number;
-}
+/* ════════ OPPONENT scouting ════════ */
+export interface Rival { name: string; edition: string; atk: number; def: number; overall: number; }
 
-export function rivalFor(seed: number): Rival {
-  const rng = mulberry32(seed);
-  const opp = rollTeam(rng);
-  const best = [...opp.players].sort((a, b) => b.r - a.r).slice(0, 11);
-  const atkers = best.filter((p) => {
-    const l = lineOf(p.pos[0]);
-    return l === 'FW' || l === 'MF';
-  });
-  const backs = best.filter((p) => {
-    const l = lineOf(p.pos[0]);
-    return l === 'DF' || l === 'GK';
-  });
+export function rivalOf(team: Team): Rival {
+  const best = [...team.players].sort((a, b) => b.r - a.r).slice(0, 11);
+  const atkers = best.filter((p) => { const l = lineOf(p.pos[0]); return l === 'FW' || l === 'MF'; });
+  const backs = best.filter((p) => { const l = lineOf(p.pos[0]); return l === 'DF' || l === 'GK'; });
   return {
-    name: opp.name,
-    edition: opp.edition,
+    name: team.name,
+    edition: team.edition,
     atk: Math.round(avg(atkers.length ? atkers : best)),
     def: Math.round(avg(backs.length ? backs : best)),
     overall: Math.round(avg(best)),
@@ -157,44 +127,58 @@ export function rivalFor(seed: number): Rival {
 
 /* ════════ MATCH — two halves, one halftime decision ════════ */
 export type Attitude = 'def' | 'eq' | 'off';
+export interface HalfOutcome { gf: number; ga: number; scorers: Scorer[]; }
 
-export interface HalfOutcome {
-  gf: number;
-  ga: number;
-  scorers: Scorer[];
-}
-
-export interface MatchResult {
-  gf: number;
-  ga: number;
-  power: number;
-  isPerfect: boolean;
-  opp: string;
-}
+/* Kept for the standalone result card type. */
+export interface MatchResult { gf: number; ga: number; power: number; isPerfect: boolean; opp: string; }
 
 const clampHalf = (n: number) => Math.max(0, Math.min(6, Math.round(n)));
-
-// Attitude tilts the goals-for / goals-against trade-off (the 50/50).
 const ATT: Record<Attitude, { gf: number; ga: number }> = {
-  def: { gf: -0.4, ga: -0.6 }, // fewer conceded, fewer scored
+  def: { gf: -0.4, ga: -0.6 },
   eq: { gf: 0, ga: 0 },
-  off: { gf: 0.6, ga: 0.5 }, // more scored, more exposed
+  off: { gf: 0.6, ga: 0.5 },
 };
 
-/* One half. The dice are fixed by (seed, half); your attitude shifts the
-   expected outcome. First half is always played 'eq'; the 2nd uses the
-   halftime decision. Deterministic from (seed, half, attitude). */
-export function playHalf(seed: number, half: 1 | 2, xi: Player[], attitude: Attitude): HalfOutcome {
-  const rng = mulberry32((seed ^ (half * 0x9e3779b1)) >>> 0);
-  const rival = rivalFor(seed);
-
+/* One half vs an opponent of strength `oppOverall`. Deterministic from
+   (matchSeed, half, attitude). First half is played 'eq'. */
+export function playHalf(
+  matchSeed: number,
+  half: 1 | 2,
+  xi: Player[],
+  oppOverall: number,
+  attitude: Attitude,
+): HalfOutcome {
+  const rng = mulberry32((matchSeed ^ (half * 0x9e3779b1)) >>> 0);
   const yourPow = avg(xi) + (rng() - 0.5) * 10;
-  const oppPow = rival.overall + (rng() - 0.5) * 10;
+  const oppPow = oppOverall + (rng() - 0.5) * 10;
   const margin = yourPow - oppPow;
   const a = ATT[attitude];
-
   const gf = clampHalf(0.8 + margin / 10 + a.gf + rng() * 1.4);
   const ga = clampHalf(0.7 - margin / 14 + a.ga + rng() * 1.2);
-  const scorers = pickScorers(gf, xi, rng);
-  return { gf, ga, scorers };
+  return { gf, ga, scorers: pickScorers(gf, xi, rng) };
+}
+
+/* ════════ Penalties (knockout draws) ════════ */
+export interface Shootout { you: number; opp: number; }
+
+export function penalties(matchSeed: number, xiAvg: number, oppOverall: number): Shootout {
+  const rng = mulberry32((matchSeed ^ 0x50656e21) >>> 0);
+  const edge = (xiAvg - oppOverall) / 400;
+  const youP = Math.min(0.92, Math.max(0.55, 0.75 + edge));
+  const oppP = Math.min(0.92, Math.max(0.55, 0.75 - edge));
+  let you = 0, opp = 0;
+  for (let i = 0; i < 5; i++) { if (rng() < youP) you++; if (rng() < oppP) opp++; }
+  while (you === opp) {
+    const y = rng() < youP ? 1 : 0;
+    const o = rng() < oppP ? 1 : 0;
+    you += y; opp += o;
+    if (y !== o) break;
+  }
+  return { you, opp };
+}
+
+/* ════════ Tournament opponent draw (deterministic) ════════ */
+export function pickOpponent(matchSeed: number, candidates: string[]): string {
+  const rng = mulberry32((matchSeed ^ 0x4f707021) >>> 0);
+  return candidates[Math.floor(rng() * candidates.length)];
 }
