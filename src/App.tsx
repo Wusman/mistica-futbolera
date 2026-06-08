@@ -18,7 +18,7 @@ import {
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
 import { MatchStep } from './components/MatchStep';
-import { TournamentStep } from './components/Tournamentstep';
+import { TournamentStep } from './components/TournamentStep';
 
 const newSeed = () => Math.floor(Math.random() * 0xffffffff);
 const STARTING_PASSES = 3;
