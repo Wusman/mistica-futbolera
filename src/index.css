@@ -279,3 +279,32 @@ body { margin: 0; background: var(--bg); }
 .verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 .flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
+
+/* ══ Fondo: foto de estadio (con blur) ══
+   Imagen en  public/stadium.jpg . Este bloque va AL FINAL: pisa el backdrop anterior. */
+:root { --bg-image: url('/stadium.jpg'); }
+
+.backdrop { background: #070b1c; }                 /* fallback si la foto no carga */
+.backdrop::before {
+  content: '';
+  position: absolute;
+  inset: -14px;                                    /* overscan: el blur no deja borde */
+  background: var(--bg-image, none) center / cover no-repeat;
+  filter: blur(6px) brightness(0.82) saturate(1.06);
+  animation: stadiumLights 10s ease-in-out infinite alternate;
+}
+.backdrop::after {                                 /* tinte por semilla + scrim para que la UI se lea */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(72% 48% at 50% 0%, hsl(var(--seed-hue) 85% 60% / 0.22), transparent 70%),
+    linear-gradient(180deg, rgba(8, 12, 30, 0.45), rgba(6, 10, 26, 0.82));
+}
+@keyframes stadiumLights {
+  from { filter: blur(6px) brightness(0.78) saturate(1.04); }
+  to   { filter: blur(6px) brightness(0.96) saturate(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop::before { animation: none !important; }
+}
