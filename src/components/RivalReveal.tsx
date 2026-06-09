@@ -27,11 +27,11 @@ const container = {
 };
 const focusIn = {
   hidden: { opacity: 0, y: 8, filter: `blur(${REVEAL.blur}px)` },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: REVEAL.focus, ease: 'easeOut' } },
+  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: REVEAL.focus, ease: 'easeOut' as const } },
 };
 const riseIn = {
   hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
 };
 const barsContainer = {
   hidden: {},

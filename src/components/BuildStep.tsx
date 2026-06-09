@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FORMATIONS,
@@ -55,13 +55,17 @@ export function BuildStep({
   const slots = FORMATIONS[formation].slots;
   const team = draftTeamAt(seed, step);
   const [pending, setPending] = useState<Player | null>(null);
-
-  // Each new champion draw spins the reel before revealing the squad.
   const [spinning, setSpinning] = useState(true);
-  useEffect(() => {
+
+  // Reset the reel + pending whenever a new champion is drawn (step changes).
+  // Adjusting state during render on a prop change is React's recommended
+  // alternative to calling setState inside an effect.
+  const [prevStep, setPrevStep] = useState(step);
+  if (prevStep !== step) {
+    setPrevStep(step);
     setSpinning(true);
     setPending(null);
-  }, [step]);
+  }
 
   const taken = new Set(lineup.filter((c): c is Player => c !== null).map((p) => p.i));
   const eligible = team.players.filter(
