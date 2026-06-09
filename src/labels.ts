@@ -1,7 +1,8 @@
 import { type Pos } from './data/players';
+import { type Locale } from './i18n';
 
-/* UI-only Spanish labels for the fine positions. The engine and data
-   keep the canonical codes (GK, RB, ...); this is just what the player sees. */
+/* Etiquetas de posición. 'es' usa las abreviaturas en español; el resto de
+   los idiomas usan el código canónico (GK, CB, ...), que ya es estándar. */
 export const POS_LABEL: Record<Pos, string> = {
   GK: 'ARQ',
   RB: 'LD',
@@ -16,3 +17,7 @@ export const POS_LABEL: Record<Pos, string> = {
   LW: 'EI',
   ST: 'DC',
 };
+
+export function posLabel(pos: Pos, locale: Locale): string {
+  return locale === 'es' ? POS_LABEL[pos] : pos;
+}

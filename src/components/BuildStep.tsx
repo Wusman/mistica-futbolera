@@ -7,7 +7,8 @@ import {
   type Player,
   type Pos,
 } from '../data/players';
-import { POS_LABEL } from '../labels';
+import { posLabel } from '../labels';
+import { useT, useLocale } from '../i18n';
 import {
   type Lineup,
   draftTeamAt,
@@ -48,6 +49,8 @@ export function BuildStep({
   onPass,
   onSimulate,
 }: Props) {
+  const t = useT();
+  const { locale } = useLocale();
   const slots = FORMATIONS[formation].slots;
   const team = draftTeamAt(seed, step);
   const [pending, setPending] = useState<Player | null>(null);
@@ -102,8 +105,8 @@ export function BuildStep({
       {/* ── Left: champion on offer + picks ── */}
       <div className="b3-pick">
         <header className="draft-head">
-          <span className="draft-step">{placed.length} de 11</span>
-          <span className="overall-inline">Media {overall}</span>
+          <span className="draft-step">{placed.length} {t('draft.of')}</span>
+          <span className="overall-inline">{t('common.avg')} {overall}</span>
         </header>
 
         {!ready ? (
@@ -113,14 +116,14 @@ export function BuildStep({
                 teams={TEAMS}
                 target={team}
                 spinKey={`${seed}:${step}`}
-                label="Sorteando campeón…"
+                label={t('draft.spinning')}
                 onDone={() => setSpinning(false)}
               />
             ) : pending ? (
               <div className="draft-none">
-                <p className="choose-hint">¿Dónde ponés a {pending.n}? Tocá un puesto.</p>
+                <p className="choose-hint">{t('draft.choose', { n: pending.n })}</p>
                 <motion.button className="cta cta--ghost" {...tap} onClick={() => setPending(null)}>
-                  Cancelar
+                  {t('common.cancel')}
                 </motion.button>
               </div>
             ) : (
@@ -145,24 +148,24 @@ export function BuildStep({
                               {p.r >= 88 ? '★ ' : ''}
                               {p.n}
                             </span>
-                            <span className="player-pos">{p.pos.map((x) => POS_LABEL[x]).join('/')}</span>
+                            <span className="player-pos">{p.pos.map((x) => posLabel(x, locale)).join('/')}</span>
                             <span className="player-rating">{p.r}</span>
                           </motion.button>
                         </motion.li>
                       ))}
                     </motion.ul>
                     <div className="passes">
-                      <span className="passes-count">Descartes: {passes}</span>
+                      <span className="passes-count">{t('draft.passes')}: {passes}</span>
                       <motion.button className="cta cta--ghost" {...tap} disabled={passes <= 0} onClick={onPass}>
-                        Pasar campeón
+                        {t('draft.pass')}
                       </motion.button>
                     </div>
                   </>
                 ) : (
                   <div className="draft-none">
-                    <p>No te sirve nadie de este campeón.</p>
+                    <p>{t('draft.none')}</p>
                     <motion.button className="cta cta--ghost" {...tap} onClick={onSkip}>
-                      Sortear otro (gratis)
+                      {t('draft.reroll')}
                     </motion.button>
                   </div>
                 )}
@@ -171,7 +174,7 @@ export function BuildStep({
           </div>
         ) : (
           <motion.button className="cta" {...tap} onClick={onSimulate}>
-            Simular partido
+            {t('draft.simulate')}
           </motion.button>
         )}
       </div>
@@ -199,7 +202,7 @@ export function BuildStep({
                     <span className="pslot-rating">{player.r}</span>
                   </>
                 ) : (
-                  <span className="pslot-pos">{POS_LABEL[slot.pos]}</span>
+                  <span className="pslot-pos">{posLabel(slot.pos, locale)}</span>
                 )}
               </motion.div>
             );
@@ -210,15 +213,15 @@ export function BuildStep({
       {/* ── Right: box score ── */}
       <div className="b3-list">
         <div className="bs-summary">
-          <span>Ataque <b>{attack || '—'}</b></span>
-          <span>Defensa <b>{defense || '—'}</b></span>
+          <span>{t('common.attack')} <b>{attack || '—'}</b></span>
+          <span>{t('common.defense')} <b>{defense || '—'}</b></span>
         </div>
         <ul className="boxscore">
           {slots.map((slot, i) => {
             const pl = lineup[i];
             return (
               <li key={i} className="bs-row">
-                <span className="bs-pos">{POS_LABEL[slot.pos]}</span>
+                <span className="bs-pos">{posLabel(slot.pos, locale)}</span>
                 <span className="bs-name">{pl ? surname(pl.n) : '—'}</span>
                 <span className="bs-rat">{pl ? pl.r : ''}</span>
               </li>

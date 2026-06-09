@@ -19,10 +19,11 @@ import {
   type MatchView,
   type Campaign,
   LADDER,
-  STAGE_LABEL,
   isGroup,
   emptyStats,
 } from './lib/tournament';
+import { useT } from './i18n';
+import { LangSwitch } from './components/LangSwitch';
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
 import { MatchStep } from './components/MatchStep';
@@ -183,6 +184,7 @@ function reducer(state: GameState, action: Action): GameState {
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, init);
+  const t = useT();
   const rootStyle = { '--seed-hue': String(state.seed % 360) } as CSSProperties;
 
   const phase = state.phase;
@@ -193,7 +195,10 @@ export default function App() {
 
       <header className="masthead">
         <h1>Mística Futbolera</h1>
-        <p className="tagline">Convertite en el rey de Europa.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+          <LangSwitch />
+          <p className="tagline">{t('tagline')}</p>
+        </div>
       </header>
 
       {phase.kind === 'setup' && (
@@ -232,7 +237,7 @@ export default function App() {
       {phase.kind === 'campaign' && phase.c.sub.k !== 'half' && (
         <TournamentStep
           campaign={phase.c}
-          stageLabel={STAGE_LABEL[LADDER[phase.c.stageIdx]]}
+          stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
           xiAvg={Math.round(avg(phase.c.xi))}
           opp={teamById(phase.c.oppId)}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
