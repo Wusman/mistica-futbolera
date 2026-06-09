@@ -267,3 +267,8 @@ body { margin: 0; background: var(--bg); }
   .score,
   .draft-champ { animation: none !important; }
 }
+/* ── Reel skip + rival reveal ── */
+.reel { cursor: pointer; }
+.reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
+.reveal { display: flex; flex-direction: column; gap: 16px; }
+.reveal-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0; }

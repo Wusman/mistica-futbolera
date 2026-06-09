@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   FORMATIONS,
   TEAMS,
@@ -31,6 +32,14 @@ const surname = (name: string) => {
   const parts = name.replace(/"/g, '').split(' ');
   return parts[parts.length - 1];
 };
+
+/* ── Tunables de la lista de jugadores (entrada escalonada) ──
+   staggerChildren: ritmo entre cada jugador que aparece.
+   y: cuántos px sube cada uno al entrar. */
+const listV = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
+const itemV = { hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } };
+/* Respuesta táctil reutilizable: pegásela a cualquier <motion.button>. */
+const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
 export function BuildStep({
   seed,
@@ -113,9 +122,9 @@ export function BuildStep({
             ) : pending ? (
               <div className="draft-none">
                 <p className="choose-hint">¿Dónde ponés a {pending.n}? Tocá un puesto.</p>
-                <button className="cta cta--ghost" onClick={() => setPending(null)}>
+                <motion.button className="cta cta--ghost" {...tap} onClick={() => setPending(null)}>
                   Cancelar
-                </button>
+                </motion.button>
               </div>
             ) : (
               <>
@@ -131,11 +140,18 @@ export function BuildStep({
 
                 {eligible.length > 0 ? (
                   <>
-                    <ul className="players">
+                    <motion.ul
+                      className="players"
+                      key={team.id}
+                      variants={listV}
+                      initial="hidden"
+                      animate="show"
+                    >
                       {eligible.map((p) => (
-                        <li key={p.i}>
-                          <button
+                        <motion.li key={p.i} variants={itemV}>
+                          <motion.button
                             className={`player ${p.r >= 88 ? 'player--crack' : ''}`}
+                            {...tap}
                             onClick={() => handlePick(p)}
                           >
                             <span className="player-name">
@@ -144,32 +160,32 @@ export function BuildStep({
                             </span>
                             <span className="player-pos">{p.pos.map((x) => POS_LABEL[x]).join('/')}</span>
                             <span className="player-rating">{p.r}</span>
-                          </button>
-                        </li>
+                          </motion.button>
+                        </motion.li>
                       ))}
-                    </ul>
+                    </motion.ul>
                     <div className="passes">
                       <span className="passes-count">Descartes: {passes}</span>
-                      <button className="cta cta--ghost" disabled={passes <= 0} onClick={onPass}>
+                      <motion.button className="cta cta--ghost" {...tap} disabled={passes <= 0} onClick={onPass}>
                         Pasar campeón
-                      </button>
+                      </motion.button>
                     </div>
                   </>
                 ) : (
                   <div className="draft-none">
                     <p>No te sirve nadie de este campeón.</p>
-                    <button className="cta cta--ghost" onClick={onSkip}>
+                    <motion.button className="cta cta--ghost" {...tap} onClick={onSkip}>
                       Sortear otro (gratis)
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </>
             )}
           </div>
         ) : (
-          <button className="cta" onClick={onSimulate}>
+          <motion.button className="cta" {...tap} onClick={onSimulate}>
             Simular partido
-          </button>
+          </motion.button>
         )}
       </div>
 
