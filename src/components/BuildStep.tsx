@@ -1,6 +1,7 @@
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import {
   FORMATIONS,
+  TEAMS,
   type FormationName,
   type Player,
   type Pos,
@@ -12,6 +13,7 @@ import {
   openSlotsFor,
   lineupFilled,
 } from '../lib/engine';
+import { TeamReel } from './TeamReel';
 
 interface Props {
   seed: number;
@@ -44,6 +46,13 @@ export function BuildStep({
   const slots = FORMATIONS[formation].slots;
   const team = draftTeamAt(seed, step);
   const [pending, setPending] = useState<Player | null>(null);
+
+  // Each new champion draw spins the reel before revealing the squad.
+  const [spinning, setSpinning] = useState(true);
+  useEffect(() => {
+    setSpinning(true);
+    setPending(null);
+  }, [step]);
 
   const taken = new Set(lineup.filter((c): c is Player => c !== null).map((p) => p.i));
   const eligible = team.players.filter(
@@ -93,7 +102,15 @@ export function BuildStep({
 
         {!ready ? (
           <div className="draft-pick" style={bannerStyle}>
-            {pending ? (
+            {spinning ? (
+              <TeamReel
+                teams={TEAMS}
+                target={team}
+                spinKey={`${seed}:${step}`}
+                label="Sorteando campeón…"
+                onDone={() => setSpinning(false)}
+              />
+            ) : pending ? (
               <div className="draft-none">
                 <p className="choose-hint">¿Dónde ponés a {pending.n}? Tocá un puesto.</p>
                 <button className="cta cta--ghost" onClick={() => setPending(null)}>

@@ -1,7 +1,8 @@
-import { type CSSProperties } from 'react';
-import { type Team } from '../data/players';
+import { type CSSProperties, useEffect, useState } from 'react';
+import { TEAMS, type Team } from '../data/players';
 import { type Campaign, type Stage } from '../lib/tournament';
 import { scaledRivalOf } from '../lib/engine';
+import { TeamReel } from './TeamReel';
 
 interface Props {
   campaign: Campaign;
@@ -28,6 +29,13 @@ function topScorer(goals: Record<string, number>): string {
 }
 
 export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff, onNext, onReset }: Props) {
+  // Each round draws (and reveals) its rival with a spin. The bracket itself
+  // is deterministic — the reel only animates a result the seed already fixed.
+  const [spinning, setSpinning] = useState(true);
+  useEffect(() => {
+    setSpinning(true);
+  }, [c.stageIdx, c.oppId]);
+
   const s = c.stats;
   const record = `PJ ${s.pj} · ${s.w}G ${s.d}E ${s.l}P · GF ${s.gf} GA ${s.ga}`;
 
@@ -91,24 +99,36 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
       <p className="match-tag">{stageLabel}</p>
       <p className="tour-record">{record}</p>
 
-      <div className="scout" style={bars}>
-        <div className="club-colors">
-          {opp.colors.map((col, k) => <span key={k} style={{ background: col }} />)}
-        </div>
-        <span className="scout-name">{opp.name} · {opp.edition}</span>
-        <div className="scout-bars">
-          <span>Ataque <b>{r.atk}</b></span>
-          <span>Defensa <b>{r.def}</b></span>
-          <span>Media <b>{r.overall}</b></span>
-        </div>
-      </div>
+      {spinning ? (
+        <TeamReel
+          teams={TEAMS}
+          target={opp}
+          spinKey={`${c.stageIdx}:${c.oppId}`}
+          label="Sorteando rival…"
+          onDone={() => setSpinning(false)}
+        />
+      ) : (
+        <>
+          <div className="scout" style={bars}>
+            <div className="club-colors">
+              {opp.colors.map((col, k) => <span key={k} style={{ background: col }} />)}
+            </div>
+            <span className="scout-name">{opp.name} · {opp.edition}</span>
+            <div className="scout-bars">
+              <span>Ataque <b>{r.atk}</b></span>
+              <span>Defensa <b>{r.def}</b></span>
+              <span>Media <b>{r.overall}</b></span>
+            </div>
+          </div>
 
-      <p className="match-note">
-        Tu media: <b>{xiAvg}</b>
-        {inGroup ? ` · Puntos: ${c.groupPts} (necesitás 3 para avanzar)` : ''}
-      </p>
+          <p className="match-note">
+            Tu media: <b>{xiAvg}</b>
+            {inGroup ? ` · Puntos: ${c.groupPts} (necesitás 3 para avanzar)` : ''}
+          </p>
 
-      <button className="cta" onClick={onKickoff}>Jugar partido</button>
+          <button className="cta" onClick={onKickoff}>Jugar partido</button>
+        </>
+      )}
     </section>
   );
 }
