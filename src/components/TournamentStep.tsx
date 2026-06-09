@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { type Team } from '../data/players';
-import { type Campaign, type Stage, type MatchView, LADDER } from '../lib/tournament';
+import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
 import { scaledRivalOf } from '../lib/engine';
 import { flavor, type Cat } from '../messages';
 import { RivalReveal } from './RivalReveal';
@@ -29,12 +29,29 @@ const cardV = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayCh
 const riseIn = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
-function matchCat(m: MatchView): Cat {
-  if (m.pens) return m.outcome === 'W' ? 'pens_win' : 'pens_loss';
+/* Cláusula de avance: nombra la ronda a la que pasás (solo eliminación). */
+function advanceTo(stage: Stage): string {
+  if (stage === 'r16') return 'A Cuartos.';
+  if (stage === 'qf') return 'A Semifinal.';
+  if (stage === 'sf') return '¡A la FINAL!';
+  return '';
+}
+
+/* Categoría de grupo (puntos): victoria por margen, empate o derrota. */
+function groupVerdictCat(m: MatchView): Cat {
   if (m.outcome === 'D') return 'draw';
   const d = m.gf - m.ga;
-  if (m.outcome === 'W') return d >= 4 ? 'win_rout' : d >= 2 ? 'win_clear' : 'win_narrow';
-  return d <= -3 ? 'loss_heavy' : 'loss';
+  if (m.outcome === 'L') return d <= -3 ? 'loss_heavy' : 'loss';
+  return d >= 4 ? 'win_rout' : d >= 2 ? 'win_clear' : 'win_narrow';
+}
+
+/* Frase situacional de la card de partido (no terminal). */
+function verdictLine(m: MatchView, stage: Stage, idx: number): string {
+  if (isGroup(stage)) return flavor(groupVerdictCat(m), idx);
+  // Eliminación que avanza: penales o triunfo, + a qué ronda pasás.
+  const d = m.gf - m.ga;
+  const koCat: Cat = m.pens ? 'pens_win' : d >= 4 ? 'ko_rout' : d >= 2 ? 'ko_clear' : 'ko_narrow';
+  return `${flavor(koCat, idx)} ${advanceTo(stage)}`.trim();
 }
 
 function topScorer(goals: Record<string, number>): string {
@@ -44,6 +61,7 @@ function topScorer(goals: Record<string, number>): string {
 
 export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff, onNext, onReset }: Props) {
   const s = c.stats;
+  const stage = LADDER[c.stageIdx];
 
   /* ── Campaign over (eliminated or champion) — shows the deciding scoreline ── */
   if (c.sub.k === 'fulltime' && c.done) {
@@ -80,7 +98,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
   if (c.sub.k === 'fulltime') {
     const m = c.sub.m;
     const label = m.outcome === 'W' ? 'Victoria' : m.outcome === 'L' ? 'Derrota' : 'Empate';
-    const line = flavor(matchCat(m), m.gf * 31 + m.ga * 17 + c.stageIdx * 7);
+    const line = verdictLine(m, stage, m.gf * 31 + m.ga * 17 + c.stageIdx * 7);
     const lost = m.outcome === 'L';
     return (
       <motion.section className={`card ${lost ? 'card--out' : ''}`} variants={cardV} initial="hidden" animate="show">
@@ -107,9 +125,9 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
 
   /* ── Preview / scouting before kickoff ── */
   const r = scaledRivalOf(opp, c.stageIdx);
-  const inGroup = stageLabel.startsWith('Grupo');
+  const inGroup = isGroup(stage);
   const gap = xiAvg - r.overall;
-  const mustWin = LADDER[c.stageIdx] === 'g2' && c.groupPts < 3;
+  const mustWin = stage === 'g2' && c.groupPts < 3;
   const tensionCat: Cat = mustWin
     ? 'group_must_win'
     : gap >= 5 ? 'scout_fav' : gap <= -5 ? 'scout_dog' : 'scout_even';

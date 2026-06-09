@@ -3,64 +3,85 @@
    Flavor / verdict text. UI-only, deterministic selection (no Math.random).
    Spanish for now; the shape is i18n-ready — añadir 'en' | 'pt' | 'fr' es
    sumar claves al DICT, sin tocar la lógica.
+
+   CONTEXTO: las frases de victoria/empate/derrota (win_*, draw, loss*) son de
+   FASE DE GRUPOS (hablan de puntos). Las ko_* son de ELIMINACIÓN (avance, sin
+   puntos). pens_win también es de eliminación.
 ══════════════════════════════════════════ */
 
 export type Locale = 'es'; // luego: 'es' | 'en' | 'pt' | 'fr'
 
 export type Cat =
   | 'win_rout' | 'win_clear' | 'win_narrow' | 'draw' | 'loss' | 'loss_heavy'
-  | 'pens_win' | 'pens_loss'
+  | 'ko_rout' | 'ko_clear' | 'ko_narrow' | 'pens_win'
   | 'group_must_win'
   | 'out_g' | 'out_r16' | 'out_qf' | 'out_sf' | 'out_final' | 'champion'
   | 'scout_fav' | 'scout_even' | 'scout_dog';
 
 const DICT: Record<Locale, Record<Cat, string[]>> = {
   es: {
+    /* ── Fase de grupos (puntos) ── */
     win_rout: [
-      '¡Baile! Les pasaron por arriba.',
-      'Goleada de época. No la vieron venir.',
-      'Festival de goles. El rival pidió la hora.',
+      '¡Baile! Tres puntos y festejo.',
+      'Goleada. El grupo, bien encaminado.',
+      'Festival de goles. Suman de a tres.',
+      'Pasaron por arriba. Puntazo enorme.',
     ],
     win_clear: [
-      'Victoria con autoridad.',
-      'Lo controlaron de principio a fin.',
-      'Triunfo sólido, sin sobresaltos.',
+      'Triunfo claro. Tres puntos al bolsillo.',
+      'Victoria sólida para el grupo.',
+      'Ganaron bien y suman de a tres.',
     ],
     win_narrow: [
-      'Ganaron sufriendo. Vale igual.',
-      'Por un pelo, pero adentro.',
-      'Sufrido, pero los tres puntos quedan en casa.',
+      'Ganaron sufriendo, pero suman tres.',
+      'Por poco, pero los tres puntos quedan.',
+      'Sufrido. En el grupo lo que importa es ganar.',
     ],
     draw: [
-      'Empate. Faltó el golpe final.',
-      'Igualados. Se reparten todo.',
-      'Empate trabado. Cada uno por su lado.',
+      'Empate. Un punto y a seguir.',
+      'Igualados. Reparto de puntos.',
+      'Empate trabado. Suma, pero poco.',
     ],
     loss: [
-      'Derrota. Otra semilla será.',
-      'Cayeron. A levantar la cabeza.',
-      'No alcanzó. Duele, pero sigue.',
+      'Tropezón en el grupo. A recuperarse.',
+      'Derrota. Se complica el grupo.',
+      'Cayeron. Hay que reaccionar ya.',
     ],
     loss_heavy: [
-      'Baile en contra. A rearmar el once.',
-      'Goleada en contra. Para el olvido.',
-      'Los pasaron por arriba. Lección dura.',
+      'Baile en contra. El grupo, en rojo.',
+      'Goleada en contra. Mal momento.',
+      'Los pasaron por arriba. A levantarse.',
+    ],
+
+    /* ── Eliminación directa (avance, sin puntos) ── */
+    ko_rout: [
+      'Goleada y a otra cosa.',
+      'Paliza. Ni se presentaron.',
+      'Festival. Sin discusión.',
+    ],
+    ko_clear: [
+      'Trámite resuelto.',
+      'Con autoridad, sin sustos.',
+      'Lo controlaron de punta a punta.',
+    ],
+    ko_narrow: [
+      'Sufrido, pero lo sacaron adelante.',
+      'Por un pelo, pero alcanzó.',
+      'Agónico. Aguantaron como leones.',
     ],
     pens_win: [
       '¡Penales! Aguantaron los nervios.',
       'Desde los doce pasos, heroicos.',
-      'Tanda dramática, pero adentro.',
+      'Tanda dramática, y la metieron.',
     ],
-    pens_loss: [
-      'Penales fatales. Tan cerca.',
-      'Cayeron en la lotería de los doce pasos.',
-      'La tanda fue cruel. Se va así.',
-    ],
+
     group_must_win: [
       'Hay que ganar para seguir vivos.',
       'Sin victoria, no hay mañana.',
       'Final anticipada: o ganan, o afuera.',
     ],
+
+    /* ── Eliminación de campaña (por etapa) ── */
     out_g: [
       'Afuera en fase de grupos. Papelón.',
       'Eliminados en la fase de grupos. Para el olvido.',
@@ -87,6 +108,8 @@ const DICT: Record<Locale, Record<Cat, string[]>> = {
       '¡La gloria es tuya! Campeón.',
       '¡Lo lograste! Campeón de Europa.',
     ],
+
+    /* ── Tensión previa (tu media vs el rival) ── */
     scout_fav: [
       'Sos amplio favorito. No te relajes.',
       'En los papeles, paliza tuya. A confirmarlo.',
