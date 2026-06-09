@@ -299,7 +299,7 @@ body { margin: 0; background: var(--bg); }
   inset: 0;
   background:
     radial-gradient(72% 48% at 50% 0%, hsl(var(--seed-hue) 85% 60% / 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(8, 12, 30, 0.45), rgba(6, 10, 26, 0.82));
+    linear-gradient(180deg, rgba(8, 12, 30, 0.30), rgba(6, 10, 26, 0.68));
 }
 @keyframes stadiumLights {
   from { filter: blur(6px) brightness(0.78) saturate(1.04); }
@@ -308,3 +308,32 @@ body { margin: 0; background: var(--bg); }
 @media (prefers-reduced-motion: reduce) {
   .backdrop::before { animation: none !important; }
 }
+
+/* ══ Home / setup rediseño ══ */
+.setup { display: flex; flex-direction: column; gap: 24px; max-width: 1000px; margin: 0 auto; }
+.setup-main { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 820px) { .setup-main { grid-template-columns: 340px 320px; justify-content: center; align-items: start; } }
+
+.panel {
+  background: rgba(17, 25, 60, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.setup-side { display: flex; flex-direction: column; gap: 16px; }
+.setup-board { max-width: 360px; margin: 0 auto; }
+.setup-board .pitch { margin: 0; }
+
+.cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
+
+.howto { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 820px) { .howto { grid-template-columns: repeat(3, 1fr); } }
+.howto li { display: flex; align-items: center; gap: 12px; background: rgba(17, 25, 60, 0.55); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.howto-n { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--gold); line-height: 1; }
+.howto-txt { display: flex; flex-direction: column; gap: 2px; }
+.howto b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
+.howto small { color: var(--muted); font-size: 13px; }
+
+.setup-stats { text-align: center; color: var(--muted); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 12px; margin: 0; }
