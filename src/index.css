@@ -3,24 +3,22 @@
 
 /* ──────────────────────────────────────────────────────────────
    THEME — Mística Futbolera · "European night"
-   Midnight navy + silver/white + electric blue accent, gold for the
-   score. Original identity — no UEFA/Champions/club marks.
+   Identidad propia. Sin marcas UEFA/Champions/clubes.
 ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #0a1024;
-  --panel: #131d44;       /* cards / surfaces */
+  --bg: #0a1024,
+  --panel: #131d44;
   --panel-2: #0f1838;
-  --text: #eef2ff;        /* silver-white ink */
+  --text: #eef2ff;
   --muted: #93a0c8;
   --line: rgba(255, 255, 255, 0.14);
-  --accent: #3d7bff;      /* electric blue — CTAs */
-  --gold: #f2c14e;        /* score / cracks */
+  --accent: #3d7bff;
+  --gold: #f2c14e;
   --pitch: #1d5836;
   --pitch-dark: #184b2f;
 
-  /* per-seed accent hue (set on .app from the seed) + optional photo hook */
   --seed-hue: 220;
-  --bg-image: none;
+  --bg-image: url('/stadium.jpg');   /* foto de estadio en public/stadium.jpg */
 
   --font-display: 'Oswald', 'Arial Narrow', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -33,49 +31,41 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }
 
-/* ── Seed-tied stadium backdrop (CSS art, IP-free) ── */
+/* ── Backdrop ÚNICO: foto de estadio con blur + tinte por semilla ──
+   ::before = la foto (blur). ::after = tinte de semilla + scrim legible.
+   Si la foto no carga, queda el color sólido de .backdrop como fallback. */
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  background:
-    var(--bg-image, none),
-    radial-gradient(1200px 600px at 18% -12%, hsl(var(--seed-hue) 75% 32% / 0.45), transparent 60%),
-    radial-gradient(1100px 560px at 92% -6%, hsl(calc(var(--seed-hue) + 45) 75% 36% / 0.38), transparent 60%),
-    radial-gradient(1000px 760px at 50% 120%, #0c1a44, transparent 70%),
-    linear-gradient(180deg, #0a1024 0%, #0a1230 55%, #070b1c 100%);
-  background-size: cover;
-  background-position: center;
+  background: #070b1c;
 }
-/* starfield */
 .backdrop::before {
   content: '';
   position: absolute;
-  inset: 0;
-  opacity: 0.55;
-  background-image:
-    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(1.5px 1.5px at 30% 48%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(2px 2px at 70% 14%, rgba(255, 255, 255, 0.75), transparent),
-    radial-gradient(1.5px 1.5px at 85% 38%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 55% 28%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 45% 8%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(2px 2px at 18% 64%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 78% 60%, rgba(255, 255, 255, 0.5), transparent);
+  inset: -16px;                         /* overscan: el blur no deja borde */
+  background: var(--bg-image, none) center / cover no-repeat;
+  filter: blur(5px) brightness(0.9) saturate(1.05);
+  animation: stadiumLights 12s ease-in-out infinite alternate;
 }
-/* floodlight glow tinted by the seed */
 .backdrop::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(62% 42% at 50% -6%, hsl(var(--seed-hue) 85% 62% / 0.12), transparent 70%);
+  background:
+    radial-gradient(70% 50% at 50% -5%, hsl(var(--seed-hue) 85% 60% / 0.20), transparent 70%),
+    linear-gradient(180deg, rgba(8, 12, 30, 0.28), rgba(6, 10, 26, 0.62));
+}
+@keyframes stadiumLights {
+  from { filter: blur(5px) brightness(0.82) saturate(1.03); }
+  to   { filter: blur(5px) brightness(1) saturate(1.10); }
 }
 
 .app { position: relative; max-width: 1040px; margin: 0 auto; padding: 24px 20px 64px; }
 
 /* ── Masthead ── */
-.masthead { border-bottom: 2px solid var(--line); padding-bottom: 12px; margin-bottom: 28px; }
+.masthead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--line); padding-bottom: 12px; margin-bottom: 28px; }
 .masthead h1 {
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
   letter-spacing: -0.5px; font-size: clamp(34px, 9vw, 52px); line-height: 0.95; margin: 0;
@@ -111,15 +101,34 @@ body { margin: 0; background: var(--bg); }
 .cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; }
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
+.cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
 
-/* ── Setup: controls left, board preview right ── */
-.setup { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 760px; margin: 0 auto; }
-.setup-side { display: flex; flex-direction: column; gap: 16px; }
-.setup-board { width: 100%; max-width: 440px; margin: 0 auto; }
-@media (min-width: 760px) {
-  .setup { grid-template-columns: 300px 1fr; align-items: start; }
-  .setup-board { margin: 0; }
+/* ── Frosted panel (deja ver el estadio detrás) ── */
+.panel {
+  background: rgba(17, 25, 60, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
+
+/* ── Home / setup ── */
+.setup { display: flex; flex-direction: column; gap: 24px; max-width: 1000px; margin: 0 auto; }
+.setup-main { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 820px) { .setup-main { grid-template-columns: 340px 320px; justify-content: center; align-items: start; } }
+.setup-side { display: flex; flex-direction: column; gap: 16px; }
+.setup-board { max-width: 360px; margin: 0 auto; width: 100%; }
+.setup-board .pitch { margin: 0; }
+
+.howto { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 820px) { .howto { grid-template-columns: repeat(3, 1fr); } }
+.howto li { display: flex; align-items: center; gap: 12px; background: rgba(17, 25, 60, 0.55); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.howto-n { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--gold); line-height: 1; }
+.howto-txt { display: flex; flex-direction: column; gap: 2px; }
+.howto b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
+.howto small { color: var(--muted); font-size: 13px; }
+.setup-stats { text-align: center; color: var(--muted); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 12px; margin: 0; }
 
 /* ── Draft: 3 columns (champion · board · box score) ── */
 .board3 { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -152,7 +161,7 @@ body { margin: 0; background: var(--bg); }
 }
 .pslot--empty { border: 2px dashed rgba(255, 255, 255, 0.55); color: rgba(255, 255, 255, 0.85); }
 .pslot-pos { font-family: var(--font-display); letter-spacing: 1px; }
-.pslot--filled { background: #eef2ff; border: 2px solid #0a1024; color: #0a1024; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); animation: popSlot 0.22s ease; }
+.pslot--filled { background: #eef2ff; border: 2px solid #0a1024; color: #0a1024; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
 .pslot-name { max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .pslot-rating { font-family: var(--font-display); font-weight: 700; color: #b8860b; }
 .pslot--choose { cursor: pointer; border-color: var(--gold); color: var(--gold); background: hsl(45 80% 55% / 0.15); animation: pulse 1s ease-in-out infinite; }
@@ -168,7 +177,7 @@ body { margin: 0; background: var(--bg); }
 
 /* ── The champion on offer ── */
 .draft-pick { border-left: 6px solid var(--club, var(--accent)); padding: 12px 0 12px 14px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 60%); }
-.draft-champ { margin-bottom: 10px; animation: fadeUp 0.25s ease; }
+.draft-champ { margin-bottom: 10px; }
 .club-colors { display: flex; gap: 3px; margin-bottom: 8px; }
 .club-colors span { width: 22px; height: 6px; display: block; border: 1px solid rgba(255, 255, 255, 0.25); }
 .club-name { font-family: var(--font-display); font-size: 28px; text-transform: uppercase; margin: 0; color: var(--text); }
@@ -180,9 +189,9 @@ body { margin: 0; background: var(--bg); }
 .player {
   display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
   background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; cursor: pointer;
-  font-size: 14px; color: var(--text); transition: border-color 0.12s ease, transform 0.12s ease;
+  font-size: 14px; color: var(--text); transition: border-color 0.12s ease;
 }
-.player:hover { border-color: var(--accent); transform: translateX(2px); }
+.player:hover { border-color: var(--accent); }
 .player--crack { border-color: var(--gold); }
 .player-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .player-pos { font-family: var(--font-display); font-size: 11px; letter-spacing: 1px; color: var(--muted); }
@@ -208,38 +217,34 @@ body { margin: 0; background: var(--bg); }
 .att-btn span { font-size: 13px; color: var(--muted); }
 .att-btn:hover { border-color: var(--accent); background: rgba(61, 123, 255, 0.12); }
 
-/* ── Result card ── */
-.card { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 28px 24px; text-align: center; display: flex; flex-direction: column; gap: 14px; max-width: 460px; margin: 0 auto; box-shadow: 0 12px 50px rgba(0, 0, 0, 0.5); }
+/* ── Result / campaign card ── */
+.card { border: 1px solid var(--line); background: rgba(19, 29, 68, 0.82); border-radius: 10px; padding: 28px 24px; text-align: center; display: flex; flex-direction: column; gap: 14px; max-width: 460px; margin: 0 auto; box-shadow: 0 12px 50px rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 .card--perfect { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 12px 50px hsl(45 80% 55% / 0.25); }
+.card--out { border-color: rgba(220, 90, 90, 0.5); box-shadow: 0 0 0 1px rgba(220, 90, 90, 0.3), 0 12px 50px rgba(0, 0, 0, 0.5); }
 .card-club { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--muted); margin: 0; }
 .scoreline { display: flex; justify-content: center; align-items: center; gap: 14px; }
-.score { font-family: var(--font-display); font-weight: 700; font-size: 88px; line-height: 1; color: var(--gold); animation: pop 0.35s ease; }
+.score { font-family: var(--font-display); font-weight: 700; font-size: 88px; line-height: 1; color: var(--gold); }
 .score--away { color: var(--text); }
 .score-sep { font-family: var(--font-display); font-size: 56px; color: var(--muted); }
 .vs { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; }
 .verdict { font-style: italic; color: var(--text); margin: 0; }
+.verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
+.flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--gold); margin: 0; }
 .scorers { text-align: left; }
 .scorers-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 0 0 8px; }
 .scorers ul { list-style: none; padding: 0; margin: 0; }
 .scorers li { padding: 3px 0; }
 .scorers-empty { color: var(--muted); font-style: italic; }
-.power { color: var(--muted); font-size: 13px; margin: 0; }
 
-/* ── Juice ── */
-@keyframes popSlot { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 hsl(45 80% 55% / 0.5); } 50% { box-shadow: 0 0 0 5px hsl(45 80% 55% / 0); } }
-
-/* ── Tournament ── */
+/* ── Tournament preview ── */
 .tour-record { font-family: var(--font-display); letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; text-align: center; }
+.reveal { display: flex; flex-direction: column; gap: 16px; }
+.reveal-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0; }
+.tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
 
-/* ══════════════════════════════════════════════════════════════
-   REEL — casino-style team draw (TeamReel.tsx)
-   Pure presentation; lands on a team the seed already decided.
-══════════════════════════════════════════════════════════════ */
-.reel { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 14px; }
+/* ── Reel (casino-style draw) ── */
+.reel { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 14px; cursor: pointer; }
 .reel-label { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0 0 12px; text-align: center; }
 .reel-window { position: relative; overflow: hidden; height: 92px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .reel-window::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 2px hsl(var(--seed-hue) 80% 60% / 0.22); }
@@ -248,92 +253,13 @@ body { margin: 0; background: var(--bg); }
 .reel-cell .club-colors { margin-bottom: 6px; }
 .reel-name { font-family: var(--font-display); font-weight: 700; font-size: 26px; text-transform: uppercase; color: var(--text); line-height: 1; }
 .reel-ed { font-size: 12px; color: var(--muted); }
+.reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
 
-/* ══════════════════════════════════════════════════════════════
-   AMBIANCE — subtle "European night" life (CSS-only, no JS)
-══════════════════════════════════════════════════════════════ */
-.backdrop::before { animation: twinkle 7s ease-in-out infinite alternate; }
-.backdrop::after { animation: flood 11s ease-in-out infinite alternate; }
-@keyframes twinkle { from { opacity: 0.38; } to { opacity: 0.72; } }
-@keyframes flood { from { opacity: 0.65; } to { opacity: 1; } }
+/* ── Keyframes ── */
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 hsl(45 80% 55% / 0.5); } 50% { box-shadow: 0 0 0 5px hsl(45 80% 55% / 0); } }
 
-/* Respect users who ask for less motion. */
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .backdrop::before,
-  .backdrop::after,
-  .reel-strip,
-  .pslot--filled,
-  .pslot--choose,
-  .score,
-  .draft-champ { animation: none !important; }
+  .pslot--choose { animation: none !important; }
 }
-
-/* ── Reel skip + rival reveal ── */
-.reel { cursor: pointer; }
-.reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
-.reveal { display: flex; flex-direction: column; gap: 16px; }
-.reveal-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0; }
-
-/* ── Loss / verdict flavor ── */
-.card--out { border-color: rgba(220, 90, 90, 0.5); box-shadow: 0 0 0 1px rgba(220, 90, 90, 0.3), 0 12px 50px rgba(0, 0, 0, 0.5); }
-.verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
-.flavor-line { font-style: italic; color: var(--text); margin: 0; }
-.tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
-
-/* ══ Fondo: foto de estadio (con blur) ══
-   Imagen en  public/stadium.jpg . Este bloque va AL FINAL: pisa el backdrop anterior. */
-:root { --bg-image: url('/stadium.jpg'); }
-
-.backdrop { background: #070b1c; }                 /* fallback si la foto no carga */
-.backdrop::before {
-  content: '';
-  position: absolute;
-  inset: -14px;                                    /* overscan: el blur no deja borde */
-  background: var(--bg-image, none) center / cover no-repeat;
-  filter: blur(6px) brightness(0.82) saturate(1.06);
-  animation: stadiumLights 10s ease-in-out infinite alternate;
-}
-.backdrop::after {                                 /* tinte por semilla + scrim para que la UI se lea */
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(72% 48% at 50% 0%, hsl(var(--seed-hue) 85% 60% / 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(8, 12, 30, 0.30), rgba(6, 10, 26, 0.68));
-}
-@keyframes stadiumLights {
-  from { filter: blur(6px) brightness(0.78) saturate(1.04); }
-  to   { filter: blur(6px) brightness(0.96) saturate(1.12); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .backdrop::before { animation: none !important; }
-}
-
-/* ══ Home / setup rediseño ══ */
-.setup { display: flex; flex-direction: column; gap: 24px; max-width: 1000px; margin: 0 auto; }
-.setup-main { display: grid; grid-template-columns: 1fr; gap: 20px; }
-@media (min-width: 820px) { .setup-main { grid-template-columns: 340px 320px; justify-content: center; align-items: start; } }
-
-.panel {
-  background: rgba(17, 25, 60, 0.72);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-.setup-side { display: flex; flex-direction: column; gap: 16px; }
-.setup-board { max-width: 360px; margin: 0 auto; }
-.setup-board .pitch { margin: 0; }
-
-.cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
-
-.howto { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
-@media (min-width: 820px) { .howto { grid-template-columns: repeat(3, 1fr); } }
-.howto li { display: flex; align-items: center; gap: 12px; background: rgba(17, 25, 60, 0.55); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-.howto-n { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--gold); line-height: 1; }
-.howto-txt { display: flex; flex-direction: column; gap: 2px; }
-.howto b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
-.howto small { color: var(--muted); font-size: 13px; }
-
-.setup-stats { text-align: center; color: var(--muted); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 12px; margin: 0; }

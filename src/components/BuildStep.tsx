@@ -33,12 +33,8 @@ const surname = (name: string) => {
   return parts[parts.length - 1];
 };
 
-/* ── Tunables de la lista de jugadores (entrada escalonada) ──
-   staggerChildren: ritmo entre cada jugador que aparece.
-   y: cuántos px sube cada uno al entrar. */
 const listV = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const itemV = { hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } };
-/* Respuesta táctil reutilizable: pegásela a cualquier <motion.button>. */
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
 export function BuildStep({
@@ -57,9 +53,7 @@ export function BuildStep({
   const [pending, setPending] = useState<Player | null>(null);
   const [spinning, setSpinning] = useState(true);
 
-  // Reset the reel + pending whenever a new champion is drawn (step changes).
-  // Adjusting state during render on a prop change is React's recommended
-  // alternative to calling setState inside an effect.
+  // Reset reel + pending when a new champion is drawn (prop-change-in-render).
   const [prevStep, setPrevStep] = useState(step);
   if (prevStep !== step) {
     setPrevStep(step);
@@ -101,7 +95,6 @@ export function BuildStep({
     setPending(null);
   };
 
-  // Team identity: left accent uses the primary color; the bar shows all 1–3.
   const bannerStyle = { '--club': team.colors[0] } as CSSProperties;
 
   return (
@@ -144,20 +137,10 @@ export function BuildStep({
 
                 {eligible.length > 0 ? (
                   <>
-                    <motion.ul
-                      className="players"
-                      key={team.id}
-                      variants={listV}
-                      initial="hidden"
-                      animate="show"
-                    >
+                    <motion.ul className="players" key={team.id} variants={listV} initial="hidden" animate="show">
                       {eligible.map((p) => (
                         <motion.li key={p.i} variants={itemV}>
-                          <motion.button
-                            className={`player ${p.r >= 88 ? 'player--crack' : ''}`}
-                            {...tap}
-                            onClick={() => handlePick(p)}
-                          >
+                          <motion.button className={`player ${p.r >= 88 ? 'player--crack' : ''}`} {...tap} onClick={() => handlePick(p)}>
                             <span className="player-name">
                               {p.r >= 88 ? '★ ' : ''}
                               {p.n}
@@ -193,21 +176,22 @@ export function BuildStep({
         )}
       </div>
 
-      {/* ── Center: the board ── */}
+      {/* ── Center: the board (slots pop in with a spring when filled) ── */}
       <div className="b3-board">
         <div className="pitch">
           {slots.map((slot, i) => {
             const player = lineup[i];
             const isChoosable = choosable.includes(i);
-            const style: CSSProperties = { left: `${slot.x}%`, top: `${slot.y}%` };
             return (
-              <div
-                key={i}
-                className={`pslot ${player ? 'pslot--filled' : 'pslot--empty'} ${
-                  isChoosable ? 'pslot--choose' : ''
-                }`}
-                style={style}
+              <motion.div
+                key={`${i}-${player ? player.i : 'empty'}`}
+                className={`pslot ${player ? 'pslot--filled' : 'pslot--empty'} ${isChoosable ? 'pslot--choose' : ''}`}
+                style={{ left: `${slot.x}%`, top: `${slot.y}%`, x: '-50%', y: '-50%' }}
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 20 }}
                 onClick={isChoosable ? () => placeAt(i) : undefined}
+                {...(isChoosable ? { whileHover: { scale: 1.08 }, whileTap: { scale: 0.95 } } : {})}
               >
                 {player ? (
                   <>
@@ -217,7 +201,7 @@ export function BuildStep({
                 ) : (
                   <span className="pslot-pos">{POS_LABEL[slot.pos]}</span>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>
