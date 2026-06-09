@@ -267,8 +267,15 @@ body { margin: 0; background: var(--bg); }
   .score,
   .draft-champ { animation: none !important; }
 }
+
 /* ── Reel skip + rival reveal ── */
 .reel { cursor: pointer; }
 .reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
 .reveal { display: flex; flex-direction: column; gap: 16px; }
 .reveal-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0; }
+
+/* ── Loss / verdict flavor ── */
+.card--out { border-color: rgba(220, 90, 90, 0.5); box-shadow: 0 0 0 1px rgba(220, 90, 90, 0.3), 0 12px 50px rgba(0, 0, 0, 0.5); }
+.verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
+.flavor-line { font-style: italic; color: var(--text); margin: 0; }
+.tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }

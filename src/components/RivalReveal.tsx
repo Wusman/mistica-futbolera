@@ -18,6 +18,7 @@ interface Props {
   inGroup: boolean;
   groupPts: number;
   xiAvg: number;
+  tension: string;
   onKickoff: () => void;
 }
 
@@ -38,7 +39,7 @@ const barsContainer = {
   show: { transition: { staggerChildren: 0.06 } },
 };
 
-export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, onKickoff }: Props) {
+export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, tension, onKickoff }: Props) {
   const bars = { '--club': colors[0] } as CSSProperties;
 
   return (
@@ -61,6 +62,8 @@ export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, onKickoff
           <motion.span variants={riseIn}>Media <b>{rival.overall}</b></motion.span>
         </motion.div>
       </motion.div>
+
+      <motion.p className="tension" variants={riseIn}>{tension}</motion.p>
 
       <motion.p className="match-note" variants={riseIn}>
         Tu media: <b>{xiAvg}</b>
