@@ -81,6 +81,34 @@ export function draftTeamAt(seed: number, step: number, teams: Team[] = TEAMS): 
   return team;
 }
 
+/* ── Showcase XI (HOME) — pure eye-candy, deterministic from the seed. ──
+   Fills a formation with big names from the dataset so the home shows the
+   carrot ("look what you could draft") instead of an empty board. For each
+   slot it picks among the top-rated eligible players, seeded by the seed,
+   so every seed shows a slightly different dream XI. Presentation-only:
+   it does NOT touch the draft, the campaign, or the share-code. */
+export function showcaseXI(
+  seed: number,
+  formation: FormationName,
+  teams: Team[] = TEAMS,
+): (Player | null)[] {
+  const rng = mulberry32((seed ^ 0x53484f57) >>> 0); // ^ "SHOW"
+  const all = teams.flatMap((t) => t.players);
+  const usedIds = new Set<number>();
+  const usedNames = new Set<string>(); // avoid two Messis (bar11 + bar15)
+  return FORMATIONS[formation].slots.map((slot) => {
+    const cands = all
+      .filter((p) => p.pos.includes(slot.pos) && !usedIds.has(p.i) && !usedNames.has(p.n))
+      .sort((a, b) => b.r - a.r)
+      .slice(0, 5);
+    if (cands.length === 0) return null;
+    const pick = cands[Math.floor(rng() * cands.length)];
+    usedIds.add(pick.i);
+    usedNames.add(pick.n);
+    return pick;
+  });
+}
+
 /* ════════ SCORERS ════════ */
 export interface Scorer { i: number; n: string; }
 

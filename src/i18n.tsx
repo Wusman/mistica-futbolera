@@ -19,6 +19,12 @@ type Dict = Record<string, string>;
 const STRINGS: Record<Locale, Dict> = {
   es: {
     'tagline': 'Convertite en el rey de Europa.',
+    'home.eyebrow': '14 campeones de Europa · 1993 — 2023',
+    'home.h1': 'Drafteá leyendas.',
+    'home.sub': 'La semilla sortea campeones históricos. De cada uno elegís un crack, llenás tu once y vas por la copa: grupo, eliminatorias y la gran final.',
+    'home.showcase': 'Un once posible. El tuyo lo armás vos.',
+    'home.seedHint': 'Misma semilla, mismo torneo. Compartila y desafiá.',
+    'home.copy': 'Copiar', 'home.copied': '¡Copiada!',
     'common.attack': 'Ataque', 'common.defense': 'Defensa', 'common.avg': 'Media', 'common.cancel': 'Cancelar',
     'setup.formation': 'Formación', 'setup.seed': 'Semilla', 'setup.new': 'Nueva', 'setup.start': 'Empezar draft',
     'setup.stats': '14 campeones · 6 formaciones · determinista por semilla',
@@ -52,6 +58,12 @@ const STRINGS: Record<Locale, Dict> = {
   },
   en: {
     'tagline': 'Become the king of Europe.',
+    'home.eyebrow': '14 European champions · 1993 — 2023',
+    'home.h1': 'Draft legends.',
+    'home.sub': 'The seed draws historic champions. Pick a star from each, fill your XI and go win the cup: group stage, knockouts and the grand final.',
+    'home.showcase': 'One possible XI. Yours is up to you.',
+    'home.seedHint': 'Same seed, same run. Share it and challenge.',
+    'home.copy': 'Copy', 'home.copied': 'Copied!',
     'common.attack': 'Attack', 'common.defense': 'Defense', 'common.avg': 'Avg', 'common.cancel': 'Cancel',
     'setup.formation': 'Formation', 'setup.seed': 'Seed', 'setup.new': 'New', 'setup.start': 'Start draft',
     'setup.stats': '14 champions · 6 formations · seed-deterministic',

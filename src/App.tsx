@@ -32,6 +32,11 @@ import { TournamentStep } from './components/TournamentStep';
 const newSeed = () => Math.floor(Math.random() * 0xffffffff);
 const STARTING_PASSES = 3;
 
+/* Seed tint, constrained to the "European night" band (azul → violeta).
+   Full 0–360 produced greens/reds that broke the identity; this keeps every
+   seed inside the brand while still feeling unique. Deterministic. */
+const seedHue = (seed: number) => 205 + (seed % 61);
+
 type Phase =
   | { kind: 'setup' }
   | { kind: 'drafting'; step: number; lineup: Lineup; passes: number }
@@ -185,7 +190,7 @@ function reducer(state: GameState, action: Action): GameState {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const t = useT();
-  const rootStyle = { '--seed-hue': String(state.seed % 360) } as CSSProperties;
+  const rootStyle = { '--seed-hue': String(seedHue(state.seed)) } as CSSProperties;
 
   const phase = state.phase;
 
@@ -195,9 +200,9 @@ export default function App() {
 
       <header className="masthead">
         <h1>Mística Futbolera</h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+        <div className="masthead-side">
           <LangSwitch />
-          <p className="tagline">{t('tagline')}</p>
+          {phase.kind !== 'setup' && <p className="tagline">{t('tagline')}</p>}
         </div>
       </header>
 
