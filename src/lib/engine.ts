@@ -61,8 +61,23 @@ export type Lineup = (Player | null)[];
 export function emptyLineup(formation: FormationName): Lineup {
   return FORMATIONS[formation].slots.map(() => null);
 }
+/* Compatibilidad de puestos: cada puesto de la cancha acepta sus vecinos
+   naturales (un wing juega de volante por la banda y viceversa; un volante
+   central baja a 5 o sube a enganche). Evita drafts trabados cuando el
+   dataset es corto en un rol puro (ej.: pocos MD/MI) sin romper las líneas:
+   defensa y arco no se mezclan con el medio. */
+const SLOT_COMPAT: Partial<Record<Pos, Pos[]>> = {
+  RM: ['RM', 'RW'],
+  LM: ['LM', 'LW'],
+  RW: ['RW', 'RM'],
+  LW: ['LW', 'LM'],
+  DM: ['DM', 'CM'],
+  AM: ['AM', 'CM'],
+};
+
 export function fitsSlot(player: Player, slotPos: Pos): boolean {
-  return player.pos.includes(slotPos);
+  const ok = SLOT_COMPAT[slotPos] ?? [slotPos];
+  return player.pos.some((p) => (ok as Pos[]).includes(p));
 }
 export function firstOpenSlotFor(player: Player, lineup: Lineup, formation: FormationName): number {
   const slots = FORMATIONS[formation].slots;
@@ -111,7 +126,7 @@ export function showcaseXI(
   const usedNames = new Set<string>(); // avoid two Messis (bar11 + bar15)
   return FORMATIONS[formation].slots.map((slot) => {
     const cands = all
-      .filter((p) => p.pos.includes(slot.pos) && !usedIds.has(p.i) && !usedNames.has(p.n))
+      .filter((p) => fitsSlot(p, slot.pos) && !usedIds.has(p.i) && !usedNames.has(p.n))
       .sort((a, b) => b.r - a.r)
       .slice(0, 5);
     if (cands.length === 0) return null;

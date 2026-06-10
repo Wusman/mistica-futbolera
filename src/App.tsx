@@ -344,8 +344,14 @@ export default function App() {
           stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
           xiAvg={Math.round(avg(phase.c.xi))}
           opp={teamById(phase.c.oppId)}
+          seed={state.seed}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
           onNext={() => dispatch({ type: 'NEXT' })}
+          onRetry={() => {
+            /* Revancha: misma semilla, directo al draft (cero fricción). */
+            dispatch({ type: 'RESET', seed: state.seed });
+            dispatch({ type: 'START' });
+          }}
           onReset={() => dispatch({ type: 'RESET', seed: newSeed() })}
         />
       )}

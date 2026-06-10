@@ -1,42 +1,51 @@
 # Mística Futbolera
 
-Juego viral de fútbol, 100% client-side. Drafteás un once mítico cruzando glorias de
-**campeones de la Champions League** y disputás un torneo contra otros campeones.
-Sesión corta, **determinista por semilla** (misma semilla + mismas decisiones → mismo
-torneo) para compartir y desafiar.
+**Drafteá leyendas. Convertite en el rey de Europa.**
 
+Juego web gratuito y 100% client-side: la semilla sortea campeones de Europa de
+distintas épocas, de cada uno elegís un crack hasta completar tu once, y salís a
+ganar el torneo — fase de grupos, eliminatorias y la gran final, con relato
+minuto a minuto, decisión táctica en el entretiempo y tandas de penales donde el
+palo lo elegís vos.
+
+🎮 **Jugá ahora:** [misticafutbolera.wusman.com](https://misticafutbolera.wusman.com)
+
+## La gracia: las semillas
+
+Cada torneo nace de una **semilla**. Misma semilla + mismas decisiones = mismo
+torneo, gol por gol. Eso convierte cada corrida en un desafío:
+
+- Copiá tu semilla desde el inicio o desde la carta final y pasásela a un amigo:
+  juega tus mismas cartas.
+- Cualquier palabra sirve como semilla: probá `messi`.
+- ¿Perdiste la final? **Revancha**: misma semilla, a ver si esta vez decidís mejor.
 
 ## Cómo se juega
-1. **Setup** — elegí formación y mirá la semilla.
-2. **Draft** — la semilla sortea campeones de a uno; de cada uno elegís un jugador para un puesto libre. Tenés 3 descartes.
-3. **Torneo** — tu once juega Grupo → Octavos → Cuartos → Semi → Final. En cada partido decidís la actitud en el entretiempo (Defensivo / Equilibrado / Ofensivo). Empate en eliminatorias → penales.
-4. **Fin** — campeón o eliminado, con las estadísticas de tu campaña.
+
+1. **Drafteá** — el tambor sortea un campeón histórico; elegí un jugador que te
+   sirva (tenés 3 descartes) hasta llenar el once de tu formación.
+2. **Competí** — grupo (2 fechas, necesitás 3 puntos), octavos, cuartos, semifinal
+   y final. En el entretiempo decidís: ¿defensivo, equilibrado u ofensivo?
+3. **Desafiá** — compartí la semilla. Mismo torneo, mismas cartas, otro DT.
 
 ## Stack
-- **Vite + React + TypeScript** (mobile-first).
-- **Cloudflare** (Workers static assets, deploy automático al pushear a `main`).
-- Arquitectura **funcional core / imperative shell**: motor puro y determinista; React solo guarda estado y dispara eventos.
 
-## Estructura
-```
-src/
-  data/players.ts        # campeones + posiciones + colores + formaciones
-  labels.ts              # etiquetas de posición (UI en español)
-  lib/engine.ts          # PRNG, draft, partido, penales, scouting
-  lib/tournament.ts      # tipos y constantes del torneo
-  App.tsx                # máquina de estados
-  components/            # SetupStep, BuildStep, MatchStep, TournamentStep
-  index.css              # tema oscuro + fondo por semilla
-```
+- [Vite](https://vitejs.dev) + [React](https://react.dev) + TypeScript
+- [Framer Motion](https://www.framer.com/motion/) para las animaciones
+- Núcleo de juego **puro y determinista** (sin servidor: todo corre en tu navegador)
+- Español rioplatense + inglés; `prefers-reduced-motion` respetado
 
 ## Desarrollo
+
 ```bash
 npm install
-npm run dev      # local
-npm run build    # producción
+npm run dev      # entorno local
+npm run build    # build de producción
 ```
 
-## Identidad e IP
-Identidad visual **100% propia**. Solo se usan nombres, ratings y hechos históricos:
-**nunca** escudos, camisetas ni marcas de UEFA/Champions o clubes. Los equipos se
-distinguen por 1-3 colores propios, no por escudos.
+El deploy es automático al pushear a `main`.
+
+## Privacidad
+
+Sin cuentas, sin datos personales, sin cookies de seguimiento. Detalle completo
+en [/privacidad.html](https://misticafutbolera.wusman.com/privacidad.html).

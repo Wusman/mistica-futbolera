@@ -13,8 +13,10 @@ interface Props {
   stageLabel: string;
   xiAvg: number;
   opp: Team;
+  seed: number;
   onKickoff: () => void;
   onNext: () => void;
+  onRetry: () => void;
   onReset: () => void;
 }
 
@@ -76,7 +78,7 @@ function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
   );
 }
 
-export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff, onNext, onReset }: Props) {
+export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKickoff, onNext, onRetry, onReset }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const s = c.stats;
@@ -86,6 +88,13 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
      Se rearma al cambiar de etapa (prop-change-in-render). Si el partido fue
      a penales, el relato ya corrió en la tanda y no se repite. */
   const [live2, setLive2] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const copySeed = () => {
+    navigator.clipboard?.writeText(seed.toString(36)).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600); // UI-only
+    });
+  };
   const [prevIdx, setPrevIdx] = useState(c.stageIdx);
   if (prevIdx !== c.stageIdx) {
     setPrevIdx(c.stageIdx);
@@ -142,7 +151,17 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
             <li>{t('stats.topScorer')}: {topScorer(s.goals)}</li>
           </ul>
         </motion.div>
-        <motion.button className="cta" variants={riseIn} {...tap} onClick={onReset}>{t('card.again')}</motion.button>
+        <motion.div className="seed-mini" variants={riseIn}>
+          <code className="seed-chip">{seed.toString(36)}</code>
+          <motion.button className={`btn-mini ${copied ? 'btn-mini--ok' : ''}`} {...tap} onClick={copySeed}>
+            {copied ? t('home.copied') : t('home.copy')}
+          </motion.button>
+        </motion.div>
+        <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
+        <motion.div className="card-ctas" variants={riseIn}>
+          <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
+          <motion.button className="cta" {...tap} onClick={onReset}>{t('card.again')}</motion.button>
+        </motion.div>
       </motion.section>
     );
   }
