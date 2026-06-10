@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
@@ -5,6 +6,7 @@ import { scaledRivalOf } from '../lib/engine';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
 import { RivalReveal } from './RivalReveal';
+import { MatchTicker } from './MatchTicker';
 
 interface Props {
   campaign: Campaign;
@@ -42,7 +44,36 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
   const s = c.stats;
   const stage = LADDER[c.stageIdx];
 
+  /* Relato del segundo tiempo: corre 45' → 90' antes de mostrar el veredicto.
+     Se rearma al cambiar de etapa (prop-change-in-render). */
+  const [live2, setLive2] = useState(true);
+  const [prevIdx, setPrevIdx] = useState(c.stageIdx);
+  if (prevIdx !== c.stageIdx) {
+    setPrevIdx(c.stageIdx);
+    setLive2(true);
+  }
+
   const record = t('stats.record', { pj: s.pj, w: s.w, d: s.d, l: s.l, gf: s.gf, ga: s.ga });
+
+  if (c.sub.k === 'fulltime' && live2) {
+    const m = c.sub.m;
+    return (
+      <section className="match">
+        <p className="match-tag">{stageLabel}</p>
+        <MatchTicker
+          from={45}
+          to={90}
+          events={m.ev.filter((e) => e.min > 45)}
+          baseGf={m.ev.filter((e) => e.min <= 45 && e.side === 'you').length}
+          baseGa={m.ev.filter((e) => e.min <= 45 && e.side === 'opp').length}
+          oppName={m.oppName}
+          halfLabel={t('ticker.second')}
+          endLabel={t('ticker.ft')}
+          onDone={() => setLive2(false)}
+        />
+      </section>
+    );
+  }
 
   /* ── Campaign over (eliminated or champion) — shows the deciding scoreline ── */
   if (c.sub.k === 'fulltime' && c.done) {

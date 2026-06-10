@@ -1,15 +1,38 @@
-import { type Attitude, type Rival } from '../lib/engine';
+import { useState } from 'react';
+import { type Attitude, type Rival, type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
+import { MatchTicker } from './MatchTicker';
 
 interface Props {
   rival: Rival;
   gf1: number;
   ga1: number;
+  ev1: TickerEvent[];
   onDecide: (a: Attitude) => void;
 }
 
-export function MatchStep({ rival, gf1, ga1, onDecide }: Props) {
+export function MatchStep({ rival, gf1, ga1, ev1, onDecide }: Props) {
   const t = useT();
+
+  /* Relato del primer tiempo: corre 0' → 45' y recién ahí se decide. */
+  const [live, setLive] = useState(true);
+
+  if (live) {
+    return (
+      <section className="match">
+        <MatchTicker
+          from={0}
+          to={45}
+          events={ev1}
+          oppName={rival.name}
+          halfLabel={t('ticker.first')}
+          endLabel={t('ticker.ht')}
+          onDone={() => setLive(false)}
+        />
+      </section>
+    );
+  }
+
   const lead = gf1 - ga1;
   const note = lead > 0 ? t('match.lead.win') : lead < 0 ? t('match.lead.lose') : t('match.lead.draw');
 

@@ -1,5 +1,5 @@
 import { type Player } from '../data/players';
-import { type Scorer, type Shootout } from './engine';
+import { type Scorer, type Shootout, type TickerEvent } from './engine';
 
 /* ── Tournament ladder ── */
 export type Stage = 'g1' | 'g2' | 'r16' | 'qf' | 'sf' | 'final';
@@ -30,6 +30,7 @@ export const emptyStats = (): Stats => ({ pj: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0,
 export interface MatchView {
   oppId: string; oppName: string; oppEdition: string;
   gf: number; ga: number; scorers: Scorer[];
+  ev: TickerEvent[];   // goles con minuto (relato); derivado del matchSeed
   pens?: Shootout;
   outcome: 'W' | 'D' | 'L';
 }
@@ -37,7 +38,7 @@ export interface MatchView {
 /* ── The interactive sub-state of the current match ── */
 export type Sub =
   | { k: 'preview' }
-  | { k: 'half'; gf1: number; ga1: number; sc1: Scorer[] }
+  | { k: 'half'; gf1: number; ga1: number; sc1: Scorer[]; ev1: TickerEvent[] }
   | { k: 'fulltime'; m: MatchView };
 
 /* ── The whole run ── */

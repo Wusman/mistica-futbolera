@@ -36,6 +36,19 @@ export function dailySeed(date = new Date()): number {
   return hashSeed(date.toISOString().slice(0, 10));
 }
 
+/* ── Semilla desde texto (input del home). Puro. ──
+   Round-trip exacto de semillas generadas (base36 ≤ 0xffffffff) y cualquier
+   palabra como semilla custom vía hash ("messi" siempre da el mismo torneo). */
+export function seedFromInput(raw: string): number | null {
+  const v = raw.trim().toLowerCase();
+  if (!v) return null;
+  if (/^[0-9a-z]{1,7}$/.test(v)) {
+    const n = parseInt(v, 36);
+    if (n <= 0xffffffff) return n >>> 0;
+  }
+  return hashSeed(v);
+}
+
 export function rollTeam(rng: () => number, teams: Team[] = TEAMS): Team {
   return teams[Math.floor(rng() * teams.length)];
 }
@@ -204,6 +217,29 @@ export function playHalf(
   const gf = clampHalf(0.8 + margin / 10 + a.gf + rng() * 1.4);
   const ga = clampHalf(0.7 - margin / 14 + a.ga + rng() * 1.2);
   return { gf, ga, scorers: pickScorers(gf, xi, rng) };
+}
+
+/* ════════ RELATO — minutos de gol (deterministas) ════════
+   Los goles ya están decididos por playHalf; esto solo les asigna un minuto
+   dentro de su mitad para el ticker. Presentación derivada del matchSeed:
+   no agrega azar nuevo ni toca el share-code. */
+export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; }
+
+export function halfEvents(matchSeed: number, half: 1 | 2, out: HalfOutcome): TickerEvent[] {
+  const base = half === 1 ? 1 : 46;
+  const minutesFor = (salt: number, count: number) => {
+    const rng = mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ salt) >>> 0);
+    const mins: number[] = [];
+    for (let i = 0; i < count; i++) mins.push(base + Math.floor(rng() * 44));
+    return mins.sort((a, b) => a - b);
+  };
+  const yours = minutesFor(0x474f4c21, out.gf);
+  const theirs = minutesFor(0x474f4c32, out.ga);
+  const ev: TickerEvent[] = [
+    ...yours.map((min, i) => ({ min, side: 'you' as const, n: out.scorers[i]?.n })),
+    ...theirs.map((min) => ({ min, side: 'opp' as const })),
+  ];
+  return ev.sort((a, b) => a.min - b.min);
 }
 
 /* ════════ Penalties (knockout draws) ════════ */

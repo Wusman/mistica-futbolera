@@ -11,6 +11,7 @@ import {
   penalties,
   pickOpponent,
   scaledRivalOf,
+  halfEvents,
   avg,
 } from './lib/engine';
 import {
@@ -55,6 +56,7 @@ type Action =
   | { type: 'KICKOFF' }
   | { type: 'DECIDE'; attitude: Attitude }
   | { type: 'NEXT' }
+  | { type: 'GO_HOME' }
   | { type: 'RESET'; seed: number };
 
 const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' } });
@@ -106,14 +108,15 @@ function reducer(state: GameState, action: Action): GameState {
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
-      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers } } } };
+      const ev1 = halfEvents(ms, 1, h1);
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1 } } } };
     }
 
     case 'DECIDE': {
       if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
       if (c.sub.k !== 'half') return state;
-      const { gf1, ga1, sc1 } = c.sub;
+      const { gf1, ga1, sc1, ev1 } = c.sub;
 
       const stage: Stage = LADDER[c.stageIdx];
       const opp = teamById(c.oppId);
@@ -124,6 +127,13 @@ function reducer(state: GameState, action: Action): GameState {
       const gf = Math.min(9, gf1 + h2.gf);
       const ga = Math.min(9, ga1 + h2.ga);
       const scorers = [...sc1, ...h2.scorers];
+
+      /* Eventos del relato (con minuto). Si el tope de 9 recortó goles,
+         recortamos los eventos sobrantes para que relato y marcador coincidan. */
+      let cy = 0, co = 0;
+      const ev = [...ev1, ...halfEvents(ms, 2, h2)].filter((e) =>
+        e.side === 'you' ? ++cy <= gf : ++co <= ga,
+      );
 
       let outcome: 'W' | 'D' | 'L';
       let pens: Shootout | undefined;
@@ -165,7 +175,7 @@ function reducer(state: GameState, action: Action): GameState {
         else if (stage === 'final') done = { champion: true, stage };
       }
 
-      const m: MatchView = { oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition, gf, ga, scorers, pens, outcome };
+      const m: MatchView = { oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition, gf, ga, scorers, ev, pens, outcome };
       return { ...state, phase: { kind: 'campaign', c: { ...c, pool, groupPts, stats, sub: { k: 'fulltime', m }, done } } };
     }
 
@@ -179,6 +189,11 @@ function reducer(state: GameState, action: Action): GameState {
       const oppId = pickOpponent(ms, candidates.length ? candidates : c.pool);
       return { ...state, phase: { kind: 'campaign', c: { ...c, stageIdx: nextIdx, oppId, sub: { k: 'preview' } } } };
     }
+
+    case 'GO_HOME':
+      /* Conserva semilla y formación: por determinismo, la misma semilla +
+         las mismas decisiones reproducen la corrida si querés volver. */
+      return { ...state, phase: { kind: 'setup' } };
 
     case 'RESET':
       return { seed: action.seed, formation: state.formation, phase: { kind: 'setup' } };
@@ -194,24 +209,38 @@ export default function App() {
 
   const phase = state.phase;
 
+  const goHome = () => {
+    if (phase.kind === 'setup') return;
+    if (window.confirm(t('nav.leave'))) dispatch({ type: 'GO_HOME' });
+  };
+
+  const playNow = () => {
+    if (phase.kind !== 'setup' && !window.confirm(t('nav.leave'))) return;
+    dispatch({ type: 'START' });
+  };
+
   return (
     <div className="app" style={rootStyle}>
       <div className="backdrop" aria-hidden="true" />
 
       <header className="masthead">
-        <h1>Mística Futbolera</h1>
+        <h1>
+          <button className="brand" onClick={goHome}>Mística Futbolera</button>
+        </h1>
         <div className="masthead-side">
           <LangSwitch />
           {phase.kind !== 'setup' && <p className="tagline">{t('tagline')}</p>}
         </div>
       </header>
 
-      {phase.kind === 'setup' && (
+      <main className="stage">
+        {phase.kind === 'setup' && (
         <SetupStep
           formation={state.formation}
           seed={state.seed}
           onFormation={(formation) => dispatch({ type: 'SET_FORMATION', formation })}
           onNewSeed={() => dispatch({ type: 'NEW_SEED', seed: newSeed() })}
+          onSetSeed={(seed) => dispatch({ type: 'NEW_SEED', seed })}
           onStart={() => dispatch({ type: 'START' })}
         />
       )}
@@ -232,9 +261,11 @@ export default function App() {
 
       {phase.kind === 'campaign' && phase.c.sub.k === 'half' && (
         <MatchStep
+          key={phase.c.stageIdx}
           rival={scaledRivalOf(teamById(phase.c.oppId), phase.c.stageIdx)}
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
+          ev1={phase.c.sub.ev1}
           onDecide={(attitude) => dispatch({ type: 'DECIDE', attitude })}
         />
       )}
@@ -250,6 +281,15 @@ export default function App() {
           onReset={() => dispatch({ type: 'RESET', seed: newSeed() })}
         />
       )}
+      </main>
+
+      <footer className="footer">
+        <button className="footer-brand" onClick={goHome}>Mística Futbolera</button>
+        <button className="footer-tag" onClick={playNow}>{t('footer.tag')}</button>
+        <nav className="footer-links">
+          <a href="/privacidad.html">{t('footer.privacy')}</a>
+        </nav>
+      </footer>
     </div>
   );
 }

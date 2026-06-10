@@ -16,6 +16,7 @@ import {
   lineupFilled,
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
+import { PitchMarkings } from './PitchMarkings';
 
 interface Props {
   seed: number;
@@ -182,6 +183,7 @@ export function BuildStep({
       {/* ── Center: the board (slots pop in with a spring when filled) ── */}
       <div className="b3-board">
         <div className="pitch">
+          <PitchMarkings />
           {slots.map((slot, i) => {
             const player = lineup[i];
             const isChoosable = choosable.includes(i);

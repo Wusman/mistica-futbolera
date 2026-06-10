@@ -8,7 +8,7 @@
    así cada semilla tiñe distinto sin salirse de la marca.
 ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #0a102444;
+  --bg: #0a1024;
   --panel: #131d44;
   --panel-2: #0f1838;
   --text: #eef2ff;
@@ -31,9 +31,14 @@
 }
 
 * { box-sizing: border-box; }
+html, body, #root { height: 100%; }
 body { margin: 0; background: var(--bg); }
 
-/* Foco de teclado visible en toda la app (a11y). */  
+/* Página completa: el contenido crece y el footer queda abajo. */
+.app { position: relative; max-width: 1040px; margin: 0 auto; padding: 20px 20px 28px; min-height: 100%; display: flex; flex-direction: column; }
+.stage { flex: 1; }
+
+/* Foco de teclado visible en toda la app (a11y). */
 button:focus-visible,
 [role='button']:focus-visible {
   outline: 2px solid var(--gold);
@@ -71,16 +76,17 @@ button:focus-visible,
   to   { filter: blur(5px) brightness(1) saturate(1.10); }
 }
 
-.app { position: relative; max-width: 1040px; margin: 0 auto; padding: 20px 20px 64px; }
-
-/* ── Masthead ── marca chica y firme; el protagonismo es del hero. */
+/* ── Masthead ── marca chica, firme y clickeable; el protagonismo es del hero. */
 .masthead { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--line); padding-bottom: 10px; margin-bottom: 24px; }
-.masthead h1 {
+.masthead h1 { margin: 0; line-height: 1; }
+.brand {
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px; font-size: clamp(20px, 5vw, 30px); line-height: 1; margin: 0;
-  color: var(--text);
+  letter-spacing: 0.5px; font-size: clamp(20px, 5vw, 30px);
+  color: var(--text); background: none; border: none; padding: 0; cursor: pointer;
   text-shadow: 0 2px 24px hsl(var(--seed-hue) 80% 60% / 0.25);
+  border-bottom: 2px solid transparent; transition: border-color 0.15s ease, color 0.15s ease;
 }
+.brand:hover { border-bottom-color: var(--gold); }
 .masthead-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .tagline { font-style: italic; color: var(--muted); font-size: 13px; margin: 0; }
 
@@ -169,23 +175,19 @@ button:focus-visible,
 .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; }
 
 .hero-board { padding: 14px 14px 16px; }
-.hero-ball {
-  position: absolute; z-index: 2; left: 50%; top: 50%;
-  width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffffff 0 38%, #c9d2ee 60%, #8f9cc4 100%);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.45), inset -2px -3px 4px rgba(10, 16, 36, 0.35);
-  pointer-events: none;
-}
 .board-caption { font-style: italic; color: var(--muted); font-size: 13px; text-align: center; margin: 12px 0 0; }
 
 /* Semilla: presente pero discreta. El gancho de desafío vive acá. */
 .seed-mini { display: flex; align-items: stretch; gap: 8px; margin-top: 12px; }
 .seed-chip {
-  flex: 1; display: flex; align-items: center; justify-content: center;
+  flex: 1; min-width: 0; text-align: center;
   font-family: var(--font-display); letter-spacing: 2px; font-size: 15px;
   background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
   color: var(--text); padding: 10px 12px; min-height: 44px;
+  transition: border-color 0.12s ease;
 }
+.seed-chip:hover { border-color: var(--accent); }
+.seed-chip:focus { outline: none; border-color: var(--gold); }
 .btn-mini {
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
   background: transparent; border: 1.5px solid var(--line); border-radius: 6px; color: var(--text);
@@ -224,15 +226,22 @@ button:focus-visible,
 .draft-step { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 14px; }
 .overall-inline { font-family: var(--font-display); font-size: 16px; color: var(--gold); }
 
-/* ── The pitch board ── */
+/* ── The pitch board ── marcas en SVG (PitchMarkings), nítidas a todo tamaño. */
 .pitch {
   position: relative; width: 100%; aspect-ratio: 68 / 100;
   border: 1px solid var(--line); border-radius: 4px;
   background: repeating-linear-gradient(0deg, var(--pitch) 0, var(--pitch) 10%, var(--pitch-dark) 10%, var(--pitch-dark) 20%);
   overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
 }
-.pitch::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid rgba(255, 255, 255, 0.30); pointer-events: none; }
-.pitch::after { content: ''; position: absolute; left: 50%; top: 50%; width: 26%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 2px solid rgba(255, 255, 255, 0.30); border-radius: 50%; pointer-events: none; }
+.pitch-markings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pitch-markings rect,
+.pitch-markings line,
+.pitch-markings circle,
+.pitch-markings path {
+  fill: none; stroke: rgba(255, 255, 255, 0.34); stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.pitch-markings .mk-fill { fill: rgba(255, 255, 255, 0.34); stroke: none; }
 .pslot {
   position: absolute; z-index: 1; transform: translate(-50%, -50%);
   width: 60px; height: 60px; border-radius: 50%;
@@ -334,6 +343,40 @@ button:focus-visible,
 .reel-name { font-family: var(--font-display); font-weight: 700; font-size: 26px; text-transform: uppercase; color: var(--text); line-height: 1; }
 .reel-ed { font-size: 12px; color: var(--muted); }
 .reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }
+
+/* ── Relato del partido (ticker) ── el reloj corre, los goles aparecen. */
+.ticker {
+  border: 1px solid var(--line); background: rgba(15, 24, 56, 0.85); border-radius: 10px;
+  padding: 22px 18px 14px; cursor: pointer; text-align: center;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.ticker-half { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0 0 10px; }
+.ticker-score { display: flex; justify-content: center; align-items: baseline; gap: 12px; }
+.ticker-gf, .ticker-ga { font-family: var(--font-display); font-weight: 700; font-size: 64px; line-height: 1; }
+.ticker-gf { color: var(--gold); }
+.ticker-ga { color: var(--text); }
+.ticker-sep { font-family: var(--font-display); font-size: 40px; color: var(--muted); }
+.ticker-min { font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--muted); letter-spacing: 1px; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
+.ticker-events { list-style: none; margin: 0; padding: 0; min-height: 24px; display: flex; flex-direction: column; gap: 4px; }
+.ticker-ev { font-family: var(--font-display); letter-spacing: 0.5px; font-size: 15px; color: var(--muted); }
+.ticker-ev--you { color: var(--gold); }
+
+/* ── Footer del sitio ── cierra la página en todas las fases. */
+.footer {
+  margin-top: 56px; border-top: 1px solid var(--line); padding-top: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-size: 12px; color: var(--muted);
+}
+.footer-brand, .footer-tag {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 12px;
+  transition: color 0.15s ease;
+}
+.footer-brand { color: var(--text); }
+.footer-brand:hover, .footer-tag:hover { color: var(--gold); }
+.footer-tag { color: var(--muted); opacity: 0.9; }
+.footer-links a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); transition: color 0.15s ease, border-color 0.15s ease; }
+.footer-links a:hover { color: var(--gold); border-bottom-color: var(--gold); }
 
 /* ── Keyframes ── */
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 hsl(45 80% 55% / 0.5); } 50% { box-shadow: 0 0 0 5px hsl(45 80% 55% / 0); } }

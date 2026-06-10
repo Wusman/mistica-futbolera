@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FORMATIONS, type FormationName } from '../data/players';
 import { posLabel } from '../labels';
-import { showcaseXI } from '../lib/engine';
+import { showcaseXI, seedFromInput } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
+import { PitchMarkings } from './PitchMarkings';
 
 interface Props {
   formation: FormationName;
   seed: number;
   onFormation: (f: FormationName) => void;
   onNewSeed: () => void;
+  onSetSeed: (seed: number) => void;
   onStart: () => void;
 }
 
@@ -24,7 +26,7 @@ const pitchC = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const slotV = { hidden: { opacity: 0, scale: 0.5 }, show: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
-export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: Props) {
+export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const names = Object.keys(FORMATIONS) as FormationName[];
@@ -32,6 +34,23 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: 
 
   /* Eye-candy XI from the engine: deterministic per (seed, formation). */
   const xi = showcaseXI(seed, formation);
+
+  /* Semilla editable: escribí la de un amigo (o cualquier palabra) y jugás
+     SU torneo. Sincronizada con la prop vía prop-change-in-render. */
+  const [seedText, setSeedText] = useState(seed.toString(36));
+  const [prevSeed, setPrevSeed] = useState(seed);
+  if (prevSeed !== seed) {
+    setPrevSeed(seed);
+    setSeedText(seed.toString(36));
+  }
+  const commitSeed = () => {
+    const n = seedFromInput(seedText);
+    if (n === null || n === seed) {
+      setSeedText(seed.toString(36));
+      return;
+    }
+    onSetSeed(n);
+  };
 
   const [copied, setCopied] = useState(false);
   const copySeed = () => {
@@ -68,6 +87,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: 
             initial="hidden"
             animate="show"
           >
+            <PitchMarkings />
             {slots.map((slot, i) => {
               const p = xi[i];
               return (
@@ -88,23 +108,22 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: 
                 </motion.div>
               );
             })}
-
-            {/* ── Firma: la pelota cae del cielo y pica en el punto central.
-                 Animación pura (Framer); MotionConfig la apaga si el usuario
-                 pide movimiento reducido. No toca semilla ni estado. ── */}
-            <motion.div
-              className="hero-ball"
-              aria-hidden="true"
-              initial={{ y: -340, opacity: 0, scale: 0.8 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 130, damping: 9, mass: 0.9, delay: 0.55 }}
-            />
           </motion.div>
           <p className="board-caption">{t('home.showcase')}</p>
 
-          {/* ── Seed: present but discreet. The challenge hook lives here. ── */}
+          {/* ── Seed: discreta pero editable — pegá la de un amigo y jugá SU torneo. ── */}
           <div className="seed-mini">
-            <code className="seed-chip">{seed.toString(36)}</code>
+            <input
+              className="seed-chip"
+              value={seedText}
+              onChange={(e) => setSeedText(e.target.value)}
+              onBlur={commitSeed}
+              onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+              aria-label={t('setup.seed')}
+              spellCheck={false}
+              autoComplete="off"
+              maxLength={24}
+            />
             <motion.button className="btn-mini" {...tap} onClick={onNewSeed}>
               {t('setup.new')}
             </motion.button>
