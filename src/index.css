@@ -8,7 +8,7 @@
    así cada semilla tiñe distinto sin salirse de la marca.
 ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #0a102433;
+  --bg: #0a102444;
   --panel: #131d44;
   --panel-2: #0f1838;
   --text: #eef2ff;
@@ -33,7 +33,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }
 
-/* Foco de teclado visible en toda la app (a11y). */
+/* Foco de teclado visible en toda la app (a11y). */  
 button:focus-visible,
 [role='button']:focus-visible {
   outline: 2px solid var(--gold);
@@ -169,6 +169,13 @@ button:focus-visible,
 .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; }
 
 .hero-board { padding: 14px 14px 16px; }
+.hero-ball {
+  position: absolute; z-index: 2; left: 50%; top: 50%;
+  width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0 38%, #c9d2ee 60%, #8f9cc4 100%);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.45), inset -2px -3px 4px rgba(10, 16, 36, 0.35);
+  pointer-events: none;
+}
 .board-caption { font-style: italic; color: var(--muted); font-size: 13px; text-align: center; margin: 12px 0 0; }
 
 /* Semilla: presente pero discreta. El gancho de desafío vive acá. */

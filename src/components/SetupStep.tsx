@@ -88,6 +88,17 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onStart }: 
                 </motion.div>
               );
             })}
+
+            {/* ── Firma: la pelota cae del cielo y pica en el punto central.
+                 Animación pura (Framer); MotionConfig la apaga si el usuario
+                 pide movimiento reducido. No toca semilla ni estado. ── */}
+            <motion.div
+              className="hero-ball"
+              aria-hidden="true"
+              initial={{ y: -340, opacity: 0, scale: 0.8 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 130, damping: 9, mass: 0.9, delay: 0.55 }}
+            />
           </motion.div>
           <p className="board-caption">{t('home.showcase')}</p>
 
