@@ -29,13 +29,20 @@
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   color: var(--text);
-  background: var(--bg);
   font-family: var(--font-body);
 }
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { margin: 0; background: var(--bg); }
+
+/* ── EL BUG DEL FONDO, explicado ──
+   La foto vive en .backdrop (fixed, z-index: -1). Los elementos con z
+   negativo se pintan DEBAJO del fondo del body: si el body es opaco, tapa
+   la foto en toda la página (menos donde termina su caja: el footer).
+   Fix: el html pinta el color de fallback (debajo de todo) y el body va
+   TRANSPARENTE. La foto se ve siempre; el velo se regula solo con --scrim. */
+html { background: #070b1c; }
+body { margin: 0; background: transparent; }
 
 /* Página completa: el contenido crece y el footer queda abajo. */
 .app { position: relative; max-width: 1040px; margin: 0 auto; padding: 20px 20px 28px; min-height: 100%; display: flex; flex-direction: column; }
@@ -117,6 +124,7 @@ button:focus-visible,
   margin-top: 6px; transition: filter 0.12s ease;
 }
 .cta:hover { filter: brightness(1.12); }
+.cta:not(.cta--ghost) { clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
 .cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; }
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
@@ -139,6 +147,11 @@ button:focus-visible,
   padding: 20px;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+}
+
+/* Rayado diagonal finísimo: textura de camiseta, mata el "flat de IA". */
+.panel, .card, .ticker, .scout {
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 7px);
 }
 
 /* ── HOME / hero ──
@@ -297,7 +310,15 @@ button:focus-visible,
 
 /* ── Halftime / match decision ── */
 .match { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; text-align: center; }
-.match-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--accent); margin: 0; }
+/* Placa estilo "lower-third" de transmisión: corte diagonal, fondo vivo. */
+.match-tag {
+  display: inline-block; align-self: center;
+  font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2px; font-size: 13px; color: #fff;
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  padding: 5px 18px 4px; margin: 0;
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
 .match-note { font-style: italic; color: var(--muted); margin: 0; }
 .scout { border: 1px solid var(--line); background: var(--panel); padding: 12px 16px; border-radius: 4px; }
 .scout-name { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 14px; }
@@ -315,9 +336,22 @@ button:focus-visible,
 .card-stripe span { flex: 1; display: block; }
 .card--perfect { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 12px 50px hsl(45 80% 55% / 0.25); }
 .card--out { border-color: rgba(220, 90, 90, 0.5); box-shadow: 0 0 0 1px rgba(220, 90, 90, 0.3), 0 12px 50px rgba(0, 0, 0, 0.5); }
-.card-club { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--muted); margin: 0; }
+.card-club {
+  display: inline-block; align-self: center;
+  font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2px; font-size: 12px; color: #fff;
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  padding: 5px 18px 4px; margin: 2px 0 0;
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
 .scoreline { display: flex; justify-content: center; align-items: center; gap: 14px; }
-.score { font-family: var(--font-display); font-weight: 700; font-size: clamp(80px, 26vw, 116px); line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
+.score {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(80px, 26vw, 116px); line-height: 1; color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0.05em 0.05em 0 hsl(45 85% 55% / 0.22);
+}
+.score--away { text-shadow: 0.05em 0.05em 0 hsl(var(--seed-hue) 80% 60% / 0.25); }
 .score--away { color: var(--text); }
 .score-sep { font-family: var(--font-display); font-size: clamp(48px, 14vw, 64px); color: var(--muted); }
 .vs { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; }
@@ -325,7 +359,7 @@ button:focus-visible,
 .verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 .flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--gold); margin: 0; }
-.outcome { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 6px; font-size: clamp(20px, 6vw, 26px); margin: 0; }
+.outcome { display: inline-block; align-self: center; transform: skewX(-8deg); font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 6px; font-size: clamp(20px, 6vw, 26px); margin: 0; }
 .outcome--win { color: var(--gold); }
 .outcome--lose { color: #ff9b9b; }
 .goals-min { list-style: none; margin: 0; padding: 0; text-align: left; }
@@ -340,7 +374,14 @@ button:focus-visible,
 /* ── Tournament preview ── */
 .tour-record { font-family: var(--font-display); letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; text-align: center; }
 .reveal { display: flex; flex-direction: column; gap: 16px; }
-.reveal-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0; }
+.reveal-tag {
+  display: inline-block; align-self: center;
+  font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2px; font-size: 12px; color: #fff;
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  padding: 4px 16px 3px; margin: 0;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
 .tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
 
 /* ── Reel (casino-style draw) ── */
@@ -361,9 +402,16 @@ button:focus-visible,
   padding: 22px 18px 14px; cursor: pointer; text-align: center;
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
-.ticker-half { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0 0 10px; }
+.ticker-half {
+  display: inline-block;
+  font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 2px; font-size: 12px; color: #fff;
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  padding: 4px 16px 3px; margin: 0 0 12px;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
 .ticker-score { display: flex; justify-content: center; align-items: baseline; gap: 12px; }
-.ticker-gf, .ticker-ga { font-family: var(--font-display); font-weight: 700; font-size: clamp(64px, 20vw, 84px); line-height: 1; }
+.ticker-gf, .ticker-ga { font-family: var(--font-display); font-weight: 700; font-size: clamp(64px, 20vw, 84px); line-height: 1; text-shadow: 0.05em 0.05em 0 rgba(255, 255, 255, 0.10); }
 .ticker-gf { color: var(--gold); }
 .ticker-ga { color: var(--text); }
 .ticker-sep { font-family: var(--font-display); font-size: 40px; color: var(--muted); }
