@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { mulberry32, hashSeed } from '../lib/engine';
@@ -40,15 +40,15 @@ function buildSeq(teams: Team[], target: Team, spinKey: string): Team[] {
 export function TeamReel({ teams, target, spinKey, label, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
-  const doneRef = useRef(false);
   const [skipped, setSkipped] = useState(false);
+  const [done, setDone] = useState(false);
 
-  /* Reset al cambiar de sorteo (prop-change-in-render). */
+  /* Reset al cambiar de sorteo (prop-change-in-render: solo setState). */
   const [prevKey, setPrevKey] = useState(spinKey);
   if (prevKey !== spinKey) {
     setPrevKey(spinKey);
     setSkipped(false);
-    doneRef.current = false;
+    setDone(false);
   }
 
   const seq = buildSeq(teams, target, spinKey);
@@ -56,13 +56,13 @@ export function TeamReel({ teams, target, spinKey, label, onDone }: Props) {
   const instant = reduce || skipped;
 
   const finish = () => {
-    if (doneRef.current) return;
-    doneRef.current = true;
+    if (done) return;
+    setDone(true);
     window.setTimeout(onDone, instant ? 80 : 260); // micro-pausa al clavar
   };
 
   const skip = () => {
-    if (doneRef.current) return;
+    if (done) return;
     setSkipped(true);
   };
 

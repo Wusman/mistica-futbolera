@@ -44,13 +44,13 @@ function topScorer(goals: Record<string, number>): string {
    con movimiento reducido). El número real ya está decidido por el engine. */
 function CountScore({ n, away }: { n: number; away?: boolean }) {
   const reduce = useReducedMotion();
-  const [v, setV] = useState(reduce ? n : 0);
+  const [v, setV] = useState(0);
   useEffect(() => {
-    if (reduce) { setV(n); return; }
+    if (reduce) return; // con movimiento reducido el valor se deriva, sin animar
     const c = animate(0, n, { duration: 0.55, ease: 'easeOut', onUpdate: (x) => setV(Math.round(x)) });
     return () => c.stop();
   }, [n, reduce]);
-  return <span className={`score ${away ? 'score--away' : ''}`}>{v}</span>;
+  return <span className={`score ${away ? 'score--away' : ''}`}>{reduce ? n : v}</span>;
 }
 
 /* Franja superior con los colores del rival: cada tarjeta "es" del partido. */

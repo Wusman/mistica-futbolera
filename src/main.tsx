@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
-import { LocaleProvider } from './i18n';
+import { LocaleProvider } from './components/LocaleProvider';
 import './index.css';
 import App from './App';
 

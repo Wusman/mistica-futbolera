@@ -39,8 +39,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
       window.setTimeout(() => { if (!cancelled) onDone(); }, TICK.holdEnd * 1000);
     };
     if (reduce) {
-      setMin(to);
-      finish();
+      finish(); // el valor mostrado se deriva (ver shownMin); solo programamos el cierre
       return;
     }
     const ctrl = animate(from, to, {
@@ -62,8 +61,9 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
     onDone();
   };
 
-  const ended = min >= to;
-  const visible = events.filter((e) => e.min <= min);
+  const shownMin = reduce ? to : min;
+  const ended = shownMin >= to;
+  const visible = events.filter((e) => e.min <= shownMin);
   const gf = baseGf + visible.filter((e) => e.side === 'you').length;
   const ga = baseGa + visible.filter((e) => e.side === 'opp').length;
 
@@ -82,7 +82,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
         <span className="ticker-sep">–</span>
         <span className="ticker-ga">{ga}</span>
       </div>
-      <p className="ticker-min">{min}&rsquo;</p>
+      <p className="ticker-min">{shownMin}&rsquo;</p>
       <ul className="ticker-events">
         {visible.map((e, k) => (
           <motion.li

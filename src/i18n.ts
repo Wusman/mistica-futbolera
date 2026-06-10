@@ -1,10 +1,12 @@
 /* ══════════════════════════════════════════
-   i18n.tsx — internacionalización
+   i18n.ts — internacionalización (sin JSX)
    'es' (rioplatense) y 'en' (registro futbolero británico, NO traducción
    literal) completos. 'pt'/'fr' caen a 'es' hasta traducirlos.
    El nombre de marca "Mística Futbolera" NO se traduce.
+   El componente <LocaleProvider> vive en components/LocaleProvider.tsx
+   (react-refresh exige que los archivos con componentes solo exporten eso).
 ══════════════════════════════════════════ */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 
 export type Locale = 'es' | 'en' | 'pt' | 'fr';
 
@@ -135,15 +137,11 @@ export function tr(locale: Locale, key: string): string {
   return STRINGS[locale][key] ?? STRINGS.es[key] ?? key;
 }
 
-interface LocaleCtx { locale: Locale; setLocale: (l: Locale) => void; }
-const Ctx = createContext<LocaleCtx>({ locale: 'es', setLocale: () => {} });
+export interface LocaleCtx { locale: Locale; setLocale: (l: Locale) => void; }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>('es');
-  return <Ctx.Provider value={{ locale, setLocale }}>{children}</Ctx.Provider>;
-}
+export const LocaleContext = createContext<LocaleCtx>({ locale: 'es', setLocale: () => {} });
 
-export const useLocale = () => useContext(Ctx);
+export const useLocale = () => useContext(LocaleContext);
 
 export type T = (key: string, vars?: Record<string, string | number>) => string;
 
