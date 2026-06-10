@@ -17,13 +17,14 @@ interface Props {
   oppName: string;
   halfLabel: string;
   endLabel: string;
+  duration?: number;       // seg que corre el reloj (grupos vs eliminatorias)
   onDone: () => void;
 }
 
 /* Presentación pura: los goles ya están decididos por el engine; esto solo
    los "transmite" con un reloj que corre. Tocá para saltar; con movimiento
    reducido va directo al final. No toca semilla ni estado del juego. */
-export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, onDone }: Props) {
+export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
   const [min, setMin] = useState(from);
@@ -43,7 +44,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
       return;
     }
     const ctrl = animate(from, to, {
-      duration: TICK.duration,
+      duration,
       ease: 'linear',
       onUpdate: (v) => setMin(Math.floor(v)),
       onComplete: finish,

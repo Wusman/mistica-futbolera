@@ -55,7 +55,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
 
   const record = t('stats.record', { pj: s.pj, w: s.w, d: s.d, l: s.l, gf: s.gf, ga: s.ga });
 
-  if (c.sub.k === 'fulltime' && live2) {
+  if (c.sub.k === 'fulltime' && live2 && !c.sub.m.pens) {
     const m = c.sub.m;
     return (
       <section className="match">
@@ -69,6 +69,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
           oppName={m.oppName}
           halfLabel={t('ticker.second')}
           endLabel={t('ticker.ft')}
+          duration={isGroup(stage) ? 4.2 : 5.4}
           onDone={() => setLive2(false)}
         />
       </section>

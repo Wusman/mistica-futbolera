@@ -4,11 +4,14 @@ import {
   type Lineup,
   type Attitude,
   type Shootout,
+  type PenAim,
   emptyLineup,
   lineupFilled,
   lineupXI,
   playHalf,
-  penalties,
+  penKick,
+  oppPenKick,
+  shootoutWinner,
   pickOpponent,
   scaledRivalOf,
   halfEvents,
@@ -19,6 +22,7 @@ import {
   type Stats,
   type MatchView,
   type Campaign,
+  type Sub,
   LADDER,
   isGroup,
   emptyStats,
@@ -29,9 +33,13 @@ import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
 import { MatchStep } from './components/MatchStep';
 import { TournamentStep } from './components/TournamentStep';
+import { PenaltyShootout } from './components/PenaltyShootout';
 
 const newSeed = () => Math.floor(Math.random() * 0xffffffff);
 const STARTING_PASSES = 3;
+
+/* Ritmo del relato: grupos ágiles, eliminatorias con más drama. */
+const tickerSecsFor = (stage: Stage) => (isGroup(stage) ? 4.2 : 5.4);
 
 /* Seed tint, constrained to the "European night" band (azul → violeta).
    Full 0–360 produced greens/reds that broke the identity; this keeps every
@@ -55,6 +63,8 @@ type Action =
   | { type: 'ENTER' }
   | { type: 'KICKOFF' }
   | { type: 'DECIDE'; attitude: Attitude }
+  | { type: 'KICK'; aim: PenAim }
+  | { type: 'PENS_DONE' }
   | { type: 'NEXT' }
   | { type: 'GO_HOME' }
   | { type: 'RESET'; seed: number };
@@ -63,6 +73,40 @@ const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { k
 
 const teamById = (id: string) => TEAMS.find((t) => t.id === id)!;
 const matchSeedFor = (seed: number, stageIdx: number) => (seed ^ ((stageIdx + 1) * 0x85ebca6b)) >>> 0;
+
+/* Liquidar un partido decidido: stats, pool vivo, puntos de grupo y done.
+   Lo usan DECIDE (resultados directos) y PENS_DONE (tras la tanda). */
+function settleMatch(
+  c: Campaign,
+  stage: Stage,
+  m: MatchView,
+): Pick<Campaign, 'pool' | 'groupPts' | 'stats' | 'sub' | 'done'> {
+  const goals = { ...c.stats.goals };
+  for (const s of m.scorers) goals[s.n] = (goals[s.n] ?? 0) + 1;
+  const stats: Stats = {
+    pj: c.stats.pj + 1,
+    w: c.stats.w + (m.outcome === 'W' ? 1 : 0),
+    d: c.stats.d + (m.outcome === 'D' ? 1 : 0),
+    l: c.stats.l + (m.outcome === 'L' ? 1 : 0),
+    gf: c.stats.gf + m.gf,
+    ga: c.stats.ga + m.ga,
+    cs: c.stats.cs + (m.ga === 0 ? 1 : 0),
+    goals,
+  };
+
+  const pool = m.outcome === 'W' ? c.pool.filter((id) => id !== c.oppId) : c.pool;
+  const groupPts = c.groupPts + (isGroup(stage) ? (m.outcome === 'W' ? 3 : m.outcome === 'D' ? 1 : 0) : 0);
+
+  let done: Campaign['done'];
+  if (stage === 'g2') {
+    if (groupPts < 3) done = { champion: false, stage };
+  } else if (!isGroup(stage)) {
+    if (m.outcome === 'L') done = { champion: false, stage };
+    else if (stage === 'final') done = { champion: true, stage };
+  }
+
+  return { pool, groupPts, stats, sub: { k: 'fulltime', m }, done };
+}
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
@@ -135,48 +179,53 @@ function reducer(state: GameState, action: Action): GameState {
         e.side === 'you' ? ++cy <= gf : ++co <= ga,
       );
 
-      let outcome: 'W' | 'D' | 'L';
-      let pens: Shootout | undefined;
-      let beatOpp = false;
-      if (isGroup(stage)) {
-        outcome = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
-        if (outcome === 'W') beatOpp = true;
-      } else if (gf > ga) {
-        outcome = 'W'; beatOpp = true;
-      } else if (gf < ga) {
-        outcome = 'L';
-      } else {
-        pens = penalties(ms, avg(c.xi), ov);
-        outcome = pens.you > pens.opp ? 'W' : 'L';
-        if (outcome === 'W') beatOpp = true;
+      /* Empate en eliminatorias → tanda interactiva: el partido queda
+         congelado en 'pens' y NO se liquida hasta que la tanda termine. */
+      if (!isGroup(stage) && gf === ga) {
+        const sub: Sub = { k: 'pens', gf, ga, scorers, ev, you: [], opp: [] };
+        return { ...state, phase: { kind: 'campaign', c: { ...c, sub } } };
       }
 
-      const goals = { ...c.stats.goals };
-      for (const s of scorers) goals[s.n] = (goals[s.n] ?? 0) + 1;
-      const stats: Stats = {
-        pj: c.stats.pj + 1,
-        w: c.stats.w + (outcome === 'W' ? 1 : 0),
-        d: c.stats.d + (outcome === 'D' ? 1 : 0),
-        l: c.stats.l + (outcome === 'L' ? 1 : 0),
-        gf: c.stats.gf + gf,
-        ga: c.stats.ga + ga,
-        cs: c.stats.cs + (ga === 0 ? 1 : 0),
-        goals,
+      const outcome: 'W' | 'D' | 'L' = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
+      const m: MatchView = { oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition, gf, ga, scorers, ev, outcome };
+      return { ...state, phase: { kind: 'campaign', c: { ...c, ...settleMatch(c, stage, m) } } };
+    }
+
+    case 'KICK': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'pens' || c.sub.winner) return state;
+      const opp = teamById(c.oppId);
+      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
+      const xa = avg(c.xi);
+
+      const you = [...c.sub.you, penKick(ms, c.sub.you.length, action.aim, xa, ov)];
+      let oppArr = c.sub.opp;
+      let winner = shootoutWinner(you.map((k) => k.scored), oppArr) ?? undefined;
+      if (!winner) {
+        oppArr = [...oppArr, oppPenKick(ms, oppArr.length, xa, ov)];
+        winner = shootoutWinner(you.map((k) => k.scored), oppArr) ?? undefined;
+      }
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, you, opp: oppArr, winner } } } };
+    }
+
+    case 'PENS_DONE': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'pens' || !c.sub.winner) return state;
+      const stage: Stage = LADDER[c.stageIdx];
+      const opp = teamById(c.oppId);
+      const pens: Shootout = {
+        you: c.sub.you.filter((k) => k.scored).length,
+        opp: c.sub.opp.filter(Boolean).length,
       };
-
-      const pool = beatOpp ? c.pool.filter((id) => id !== c.oppId) : c.pool;
-      const groupPts = c.groupPts + (isGroup(stage) ? (outcome === 'W' ? 3 : outcome === 'D' ? 1 : 0) : 0);
-
-      let done: Campaign['done'];
-      if (stage === 'g2') {
-        if (groupPts < 3) done = { champion: false, stage };
-      } else if (!isGroup(stage)) {
-        if (outcome === 'L') done = { champion: false, stage };
-        else if (stage === 'final') done = { champion: true, stage };
-      }
-
-      const m: MatchView = { oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition, gf, ga, scorers, ev, pens, outcome };
-      return { ...state, phase: { kind: 'campaign', c: { ...c, pool, groupPts, stats, sub: { k: 'fulltime', m }, done } } };
+      const outcome: 'W' | 'L' = c.sub.winner === 'you' ? 'W' : 'L';
+      const m: MatchView = {
+        oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition,
+        gf: c.sub.gf, ga: c.sub.ga, scorers: c.sub.scorers, ev: c.sub.ev, pens, outcome,
+      };
+      return { ...state, phase: { kind: 'campaign', c: { ...c, ...settleMatch(c, stage, m) } } };
     }
 
     case 'NEXT': {
@@ -266,11 +315,29 @@ export default function App() {
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
           ev1={phase.c.sub.ev1}
+          tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
           onDecide={(attitude) => dispatch({ type: 'DECIDE', attitude })}
         />
       )}
 
-      {phase.kind === 'campaign' && phase.c.sub.k !== 'half' && (
+      {phase.kind === 'campaign' && phase.c.sub.k === 'pens' && (
+        <PenaltyShootout
+          key={phase.c.stageIdx}
+          stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
+          oppName={teamById(phase.c.oppId).name}
+          gf={phase.c.sub.gf}
+          ga={phase.c.sub.ga}
+          ev={phase.c.sub.ev}
+          you={phase.c.sub.you}
+          opp={phase.c.sub.opp}
+          winner={phase.c.sub.winner}
+          tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
+          onKick={(aim) => dispatch({ type: 'KICK', aim })}
+          onDone={() => dispatch({ type: 'PENS_DONE' })}
+        />
+      )}
+
+      {phase.kind === 'campaign' && (phase.c.sub.k === 'preview' || phase.c.sub.k === 'fulltime') && (
         <TournamentStep
           campaign={phase.c}
           stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}

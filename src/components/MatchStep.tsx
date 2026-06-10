@@ -8,10 +8,11 @@ interface Props {
   gf1: number;
   ga1: number;
   ev1: TickerEvent[];
+  tickerSecs: number;
   onDecide: (a: Attitude) => void;
 }
 
-export function MatchStep({ rival, gf1, ga1, ev1, onDecide }: Props) {
+export function MatchStep({ rival, gf1, ga1, ev1, tickerSecs, onDecide }: Props) {
   const t = useT();
 
   /* Relato del primer tiempo: corre 0' → 45' y recién ahí se decide. */
@@ -27,6 +28,7 @@ export function MatchStep({ rival, gf1, ga1, ev1, onDecide }: Props) {
           oppName={rival.name}
           halfLabel={t('ticker.first')}
           endLabel={t('ticker.ht')}
+          duration={tickerSecs}
           onDone={() => setLive(false)}
         />
       </section>

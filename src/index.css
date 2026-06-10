@@ -8,7 +8,7 @@
    así cada semilla tiñe distinto sin salirse de la marca.
 ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #0a102444;
+  --bg: #0a1024;
   --panel: #131d44;
   --panel-2: #0f1838;
   --text: #eef2ff;
@@ -21,6 +21,10 @@
 
   --seed-hue: 220;
   --bg-image: url('/stadium.jpg');   /* foto de estadio en public/stadium.jpg */
+  /* Cuánto tapa el velo oscuro sobre la foto (0 = nada, 1 = todo).
+     Knob OFICIAL del fondo: tocá esto, no hackees hex con alfa. */
+  --scrim-top: 0.16;
+  --scrim-bottom: 0.45;
 
   --font-display: 'Oswald', 'Arial Narrow', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -69,7 +73,7 @@ button:focus-visible,
   inset: 0;
   background:
     radial-gradient(70% 50% at 50% -5%, hsl(var(--seed-hue) 85% 60% / 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(8, 12, 30, 0.30), rgba(6, 10, 26, 0.64));
+    linear-gradient(180deg, rgba(8, 12, 30, var(--scrim-top)), rgba(6, 10, 26, var(--scrim-bottom)));
 }
 @keyframes stadiumLights {
   from { filter: blur(5px) brightness(0.82) saturate(1.03); }
@@ -360,6 +364,38 @@ button:focus-visible,
 .ticker-events { list-style: none; margin: 0; padding: 0; min-height: 24px; display: flex; flex-direction: column; gap: 4px; }
 .ticker-ev { font-family: var(--font-display); letter-spacing: 0.5px; font-size: 15px; color: var(--muted); }
 .ticker-ev--you { color: var(--gold); }
+
+/* ── Tanda de penales ── arco SVG propio + arquero abstracto. */
+.goalbox { position: relative; }
+.goal { width: 100%; display: block; background: linear-gradient(180deg, rgba(10, 18, 40, 0.0), rgba(13, 36, 24, 0.55) 86%); border: 1px solid var(--line); border-radius: 8px; }
+.goal .net-line { stroke: rgba(255, 255, 255, 0.14); stroke-width: 0.35; }
+.goal .goal-frame { fill: none; stroke: #eef2ff; stroke-width: 2; stroke-linecap: round; }
+.goal .goal-ground { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.8; }
+.goal .keeper circle, .goal .keeper rect { fill: hsl(var(--seed-hue) 70% 62%); stroke: #0a1024; stroke-width: 0.7; }
+.goal .pen-ball { fill: #eef2ff; stroke: #0a1024; stroke-width: 0.6; }
+.pen-result {
+  position: absolute; top: 26%; left: 0; right: 0; margin: 0; text-align: center;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 3px; font-size: 30px; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.pen-result--goal { color: var(--gold); }
+.pen-result--miss { color: #ff9b9b; }
+.pen-opp {
+  position: absolute; bottom: 8%; left: 0; right: 0; margin: 0; text-align: center;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px;
+  font-size: 14px; color: var(--muted); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.pen-board { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 6px; padding: 10px 14px; }
+.pen-row { display: flex; justify-content: space-between; align-items: center; }
+.pen-side { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 12px; color: var(--muted); }
+.pen-dots { font-family: var(--font-display); letter-spacing: 4px; font-size: 16px; color: var(--text); }
+.pen-dots--you { color: var(--gold); }
+.pen-aims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pen-aim { text-align: center; min-height: 52px; }
+.pen-aim:disabled { opacity: 0.45; cursor: default; }
+.tension--bad { color: #ff9b9b; }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {

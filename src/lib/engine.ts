@@ -242,23 +242,51 @@ export function halfEvents(matchSeed: number, half: 1 | 2, out: HalfOutcome): Ti
   return ev.sort((a, b) => a.min - b.min);
 }
 
-/* ════════ Penalties (knockout draws) ════════ */
+/* ════════ PENALES interactivos (eliminatorias empatadas) ════════
+   Determinismo: la dirección del tiro es una DECISIÓN del jugador (como la
+   actitud del entretiempo) y entra al share-code. Todo el azar (atajada del
+   arquero, calidad del remate, penal rival) se deriva del matchSeed y del
+   índice del tiro — y NUNCA de la dirección elegida, así no hay forma de
+   "fishear" un palo mejor. Misma semilla + mismos tiros = misma tanda. */
 export interface Shootout { you: number; opp: number; }
 
-export function penalties(matchSeed: number, xiAvg: number, oppOverall: number): Shootout {
-  const rng = mulberry32((matchSeed ^ 0x50656e21) >>> 0);
-  const edge = (xiAvg - oppOverall) / 400;
-  const youP = Math.min(0.92, Math.max(0.55, 0.75 + edge));
-  const oppP = Math.min(0.92, Math.max(0.55, 0.75 - edge));
-  let you = 0, opp = 0;
-  for (let i = 0; i < 5; i++) { if (rng() < youP) you++; if (rng() < oppP) opp++; }
-  while (you === opp) {
-    const y = rng() < youP ? 1 : 0;
-    const o = rng() < oppP ? 1 : 0;
-    you += y; opp += o;
-    if (y !== o) break;
-  }
-  return { you, opp };
+export type PenAim = 'L' | 'C' | 'R';
+export interface PenKickResult { aim: PenAim; dive: PenAim; scored: boolean; }
+
+const PEN_DIRS: PenAim[] = ['L', 'C', 'R'];
+
+/* Tu tiro i (0-indexado). El arquero y el roll se sortean ANTES de mirar tu
+   dirección: elegir solo cambia el cruce, no la suerte. */
+export function penKick(matchSeed: number, i: number, aim: PenAim, xiAvg: number, oppOverall: number): PenKickResult {
+  const rng = mulberry32((matchSeed ^ 0x50454e4b ^ Math.imul(i + 1, 0x9e3779b1)) >>> 0);
+  const dive = PEN_DIRS[Math.floor(rng() * 3)];
+  const roll = rng();
+  const edge = (xiAvg - oppOverall) / 200;
+  const scored = dive === aim
+    ? roll < Math.min(0.55, Math.max(0.18, 0.32 + edge))   // te adivinó: casi siempre ataja
+    : roll < Math.min(0.98, Math.max(0.82, 0.93 + edge));  // palo equivocado: casi siempre gol
+  return { aim, dive, scored };
+}
+
+/* Penal rival i: se resuelve solo, misma familia de probabilidades que antes. */
+export function oppPenKick(matchSeed: number, i: number, xiAvg: number, oppOverall: number): boolean {
+  const rng = mulberry32((matchSeed ^ 0x4f50454e ^ Math.imul(i + 1, 0x85ebca6b)) >>> 0);
+  const edge = (oppOverall - xiAvg) / 400;
+  const p = Math.min(0.92, Math.max(0.55, 0.75 + edge));
+  return rng() < p;
+}
+
+/* Reglas de la tanda: mejor de 5 con corte anticipado, luego muerte súbita.
+   Orden fijo: pateás vos, después el rival. Puro. */
+export function shootoutWinner(you: boolean[], opp: boolean[]): 'you' | 'opp' | null {
+  const ys = you.filter(Boolean).length;
+  const os = opp.filter(Boolean).length;
+  const yPend = Math.max(5 - you.length, opp.length - you.length, 0);
+  const oPend = Math.max(5 - opp.length, you.length - opp.length, 0);
+  if (ys > os + oPend) return 'you';
+  if (os > ys + yPend) return 'opp';
+  if (you.length === opp.length && you.length >= 5 && ys !== os) return ys > os ? 'you' : 'opp';
+  return null;
 }
 
 /* ════════ Tournament opponent draw (deterministic) ════════ */
