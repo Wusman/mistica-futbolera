@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════
    MESSAGES — messages.ts
    Frases de veredicto. Selección determinista (sin Math.random).
-   'es' y 'en' completos; 'pt'/'fr' caen a 'es' hasta traducirlos.
-   win_()draw/loss* = fase de grupos (puntos). ko_pens_win = eliminación. 
+   'es' rioplatense; 'en' en registro futbolero británico (localizado, no
+   traducido literal). 'pt'/'fr' caen a 'es' hasta traducirlos.
 ══════════════════════════════════════════ */
 import { type Locale } from './i18n';
 
@@ -37,26 +37,26 @@ const DICT: Record<Locale, Partial<Record<Cat, string[]>>> = {
     scout_dog: ['David contra Goliat. A dar el batacazo.', 'Te tocó un monstruo. A meterla toda.'],
   },
   en: {
-    win_rout: ['Thrashing! Three points and a party.', 'Big win. Group on track.', 'Goal fest. Three points banked.', 'Steamrolled them. Huge points.'],
-    win_clear: ['Clear win. Three points pocketed.', 'Solid victory for the group.', 'Won well, three points.'],
-    win_narrow: ['Won the hard way, but three points.', 'Barely, but the three points stay.', 'Scrappy. In the group, winning is all.'],
-    draw: ['Draw. A point and on we go.', 'All square. Points shared.', 'Tight draw. Something, not much.'],
-    loss: ['Slip-up in the group. Regroup.', 'Defeat. The group gets tricky.', 'Lost it. React now.'],
-    loss_heavy: ['Hammered. Group in the red.', 'Heavy loss. Bad spell.', 'Steamrolled. Pick it up.'],
-    ko_rout: ['Thrashing, on to the next.', 'Demolition. They never showed up.', 'Goal fest. No debate.'],
-    ko_clear: ['Job done.', 'In control, no scares.', 'Bossed it end to end.'],
-    ko_narrow: ['Hard-fought, but through.', 'By a whisker, but enough.', 'Nail-biter. Held on heroically.'],
-    pens_win: ['Penalties! Nerves of steel.', 'From the spot, heroic.', 'Dramatic shootout, and through.'],
-    group_must_win: ['Win or go home.', 'No win, no tomorrow.', 'Do-or-die: win or out.'],
-    out_g: ['Out in the group stage. Embarrassing.', 'Eliminated in the group. Forgettable.', 'Couldn’t clear the group. Rethink it all.'],
-    out_r16: ['Out in the Round of 16. Short dream.', 'Round of 16 and home. Expected more.'],
-    out_qf: ['Quarters and out. So close.', 'Eliminated in the Quarters. So near the top.'],
-    out_sf: ['So close… Out in the Semis. Heartbreak on the doorstep.', 'Semis. One step from glory, nothing.'],
-    out_final: ['Runner-up. Lost THE final. Hurts like no other.', 'So close to it all… runner-up. Brutal.'],
-    champion: ['CHAMPION! King of Europe.', 'The glory is yours! Champion.', 'You did it! Champion of Europe.'],
-    scout_fav: ['You’re the clear favourite. Don’t relax.', 'On paper, a rout for you. Go prove it.'],
-    scout_even: ['Toss-up. A detail decides it.', 'Dead even. Anything can happen.'],
-    scout_dog: ['David vs Goliath. Pull off the upset.', 'You drew a monster. Throw everything at it.'],
+    win_rout: ['Battered them! Three points and a party.', 'Goal fest. The group’s looking rosy.', 'Ran riot. Massive three points.', 'Swept them aside. Statement win.'],
+    win_clear: ['Comfortable. Three points banked.', 'Won it well. Group on track.', 'Controlled from start to finish.'],
+    win_narrow: ['Ugly, but it’s three points.', 'Over the line by a whisker.', 'Squeaky-bum stuff — but winning is all that matters.'],
+    draw: ['A point apiece. On we go.', 'All square. Honours even.', 'Cagey draw. Something, not much.'],
+    loss: ['A slip-up. Time to regroup.', 'Beaten. The group just got nervy.', 'Lost it. React, now.'],
+    loss_heavy: ['Taken apart. Group in the red.', 'A proper hiding. Dark day.', 'Steamrolled. Pick yourselves up.'],
+    ko_rout: ['Demolition job. Next.', 'They never showed up. A stroll.', 'Ruthless. No arguments.'],
+    ko_clear: ['Job done.', 'In control, no scares.', 'Bossed it from first whistle to last.'],
+    ko_narrow: ['Dug it out the hard way.', 'Through by the skin of your teeth.', 'Heroic. Hung on for dear life.'],
+    pens_win: ['Nerves of steel from twelve yards.', 'Shootout drama — and you held your nerve.', 'Spot-kick heroes.'],
+    group_must_win: ['Win or go home.', 'No win, no tomorrow.', 'A cup final already: win or you’re out.'],
+    out_g: ['Out in the groups. Embarrassing.', 'Didn’t even clear the group. Back to the drawing board.', 'Group-stage exit. One to forget.'],
+    out_r16: ['Out in the last 16. Short-lived dream.', 'Last 16 and home. You expected more.'],
+    out_qf: ['Quarters and out. So close.', 'Knocked out in the quarters. Touching distance.'],
+    out_sf: ['Heartbreak in the semis. So near, so far.', 'One step from glory — and nothing.'],
+    out_final: ['Runners-up. Losing THE final hurts like nothing else.', 'So close to everything… second best. Brutal.'],
+    champion: ['CHAMPIONS! Kings of Europe.', 'Glory is yours. Champions!', 'You’ve done it. Champions of Europe!'],
+    scout_fav: ['You’re heavy favourites. Don’t switch off.', 'On paper it’s a stroll. Go prove it.'],
+    scout_even: ['A coin flip. One detail decides it.', 'Dead even. Anything can happen.'],
+    scout_dog: ['David vs Goliath. Go shock them.', 'You’ve drawn a monster. Empty the tank.'],
   },
   pt: {},
   fr: {},

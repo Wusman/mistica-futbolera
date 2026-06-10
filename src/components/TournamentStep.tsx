@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, animate, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
 import { scaledRivalOf } from '../lib/engine';
@@ -38,6 +38,44 @@ function topScorer(goals: Record<string, number>): string {
   return e ? `${e[0]} (${e[1]})` : '—';
 }
 
+/* Marcador que "cuenta" hasta el resultado (presentación pura; instantáneo
+   con movimiento reducido). El número real ya está decidido por el engine. */
+function CountScore({ n, away }: { n: number; away?: boolean }) {
+  const reduce = useReducedMotion();
+  const [v, setV] = useState(reduce ? n : 0);
+  useEffect(() => {
+    if (reduce) { setV(n); return; }
+    const c = animate(0, n, { duration: 0.55, ease: 'easeOut', onUpdate: (x) => setV(Math.round(x)) });
+    return () => c.stop();
+  }, [n, reduce]);
+  return <span className={`score ${away ? 'score--away' : ''}`}>{v}</span>;
+}
+
+/* Franja superior con los colores del rival: cada tarjeta "es" del partido. */
+function ClubStripe({ colors }: { colors: string[] }) {
+  return (
+    <div className="card-stripe" aria-hidden="true">
+      {colors.map((c, k) => <span key={k} style={{ background: c }} />)}
+    </div>
+  );
+}
+
+/* Tus goles con minuto (del relato): "23' Benzema" pega más que una lista. */
+function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
+  const yours = m.ev.filter((e) => e.side === 'you');
+  if (yours.length === 0) return null;
+  return (
+    <motion.div className="scorers" variants={riseIn}>
+      <h3 className="scorers-title">{title}</h3>
+      <ul className="goals-min">
+        {yours.map((e, k) => (
+          <li key={k}><span className="gm-min">{e.min}&rsquo;</span> {e.n}</li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}
+
 export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff, onNext, onReset }: Props) {
   const t = useT();
   const { locale } = useLocale();
@@ -45,7 +83,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
   const stage = LADDER[c.stageIdx];
 
   /* Relato del segundo tiempo: corre 45' → 90' antes de mostrar el veredicto.
-     Se rearma al cambiar de etapa (prop-change-in-render). */
+     Se rearma al cambiar de etapa (prop-change-in-render). Si el partido fue
+     a penales, el relato ya corrió en la tanda y no se repite. */
   const [live2, setLive2] = useState(true);
   const [prevIdx, setPrevIdx] = useState(c.stageIdx);
   if (prevIdx !== c.stageIdx) {
@@ -84,15 +123,16 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
     const headline = champ ? flavor('champion', idx, locale) : flavor(OUT_CAT[c.done.stage], idx, locale);
     return (
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
+        <ClubStripe colors={opp.colors} />
         <motion.p className="card-club" variants={riseIn}>{champ ? 'Mística Futbolera' : stageLabel}</motion.p>
         <motion.div className="scoreline" variants={riseIn}>
-          <span className="score">{m.gf}</span>
+          <CountScore n={m.gf} />
           <span className="score-sep">–</span>
-          <span className="score score--away">{m.ga}</span>
+          <CountScore n={m.ga} away />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
-        <motion.p className={champ ? 'perfect-tag' : 'verdict verdict--out'} variants={riseIn}>{headline}</motion.p>
+        <motion.p className={`outcome ${champ ? 'outcome--win' : 'outcome--lose'}`} variants={riseIn}>{headline}</motion.p>
         <motion.div className="scorers" variants={riseIn}>
           <h3 className="scorers-title">{t('card.campaign')}</h3>
           <ul>
@@ -110,7 +150,6 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
   /* ── Full-time of a non-terminal match (advance) ── */
   if (c.sub.k === 'fulltime') {
     const m = c.sub.m;
-    const label = t(`result.${m.outcome}`);
     const idx = m.gf * 31 + m.ga * 17 + c.stageIdx * 7;
     let line: string;
     if (isGroup(stage)) {
@@ -123,22 +162,18 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, onKickoff,
     const lost = m.outcome === 'L';
     return (
       <motion.section className={`card ${lost ? 'card--out' : ''}`} variants={cardV} initial="hidden" animate="show">
+        <ClubStripe colors={opp.colors} />
         <motion.p className="card-club" variants={riseIn}>{stageLabel}</motion.p>
         <motion.div className="scoreline" variants={riseIn}>
-          <span className="score">{m.gf}</span>
+          <CountScore n={m.gf} />
           <span className="score-sep">–</span>
-          <span className="score score--away">{m.ga}</span>
+          <CountScore n={m.ga} away />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
-        <motion.p className={`verdict ${lost ? 'verdict--out' : ''}`} variants={riseIn}>{label}</motion.p>
+        <motion.p className={`outcome ${lost ? 'outcome--lose' : 'outcome--win'}`} variants={riseIn}>{t(`result.${m.outcome}`)}</motion.p>
         <motion.p className="flavor-line" variants={riseIn}>{line}</motion.p>
-        {m.scorers.length > 0 && (
-          <motion.div className="scorers" variants={riseIn}>
-            <h3 className="scorers-title">{t('card.yourGoals')}</h3>
-            <ul>{m.scorers.map((sc, k) => <li key={k}>{sc.n}</li>)}</ul>
-          </motion.div>
-        )}
+        <GoalsWithMinutes m={m} title={t('card.yourGoals')} />
         <motion.button className="cta" variants={riseIn} {...tap} onClick={onNext}>{t('card.nextRound')}</motion.button>
       </motion.section>
     );

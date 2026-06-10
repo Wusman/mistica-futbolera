@@ -27,7 +27,7 @@ import {
   isGroup,
   emptyStats,
 } from './lib/tournament';
-import { useT } from './i18n';
+import { useT, useLocale } from './i18n';
 import { LangSwitch } from './components/LangSwitch';
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
@@ -254,6 +254,7 @@ function reducer(state: GameState, action: Action): GameState {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const t = useT();
+  const { locale } = useLocale();
   const rootStyle = { '--seed-hue': String(seedHue(state.seed)) } as CSSProperties;
 
   const phase = state.phase;
@@ -354,7 +355,7 @@ export default function App() {
         <button className="footer-brand" onClick={goHome}>Mística Futbolera</button>
         <button className="footer-tag" onClick={playNow}>{t('footer.tag')}</button>
         <nav className="footer-links">
-          <a href="/privacidad.html">{t('footer.privacy')}</a>
+          <a href={locale === 'es' ? '/privacidad.html' : '/privacidad.html#en'}>{t('footer.privacy')}</a>
         </nav>
       </footer>
     </div>
