@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { mulberry32, hashSeed } from '../lib/engine';
 import { useT } from '../i18n';
 
 /* ── Tunables del tambor ──
-   cells: cuántos equipos pasan antes de clavar el sorteado.
-   duration: seg del giro. cellH: alto de cada celda (px). */
-const REEL = { cells: 12, duration: 1.7, cellH: 92 };
+   cells: equipos que pasan antes de clavar el sorteado.
+   minTick/maxTick: ms entre saltos (arranca rápido, frena en seco).
+   hold: pausa al clavar antes de avanzar. */
+const REEL = { cells: 13, minTick: 55, maxTick: 380, hold: 420 };
 
 interface Props {
   teams: Team[];
@@ -17,8 +18,8 @@ interface Props {
   onDone: () => void;
 }
 
-/* Secuencia del tambor barajada DETERMINISTA desde spinKey (sin Math.random):
-   el campeón ya está decidido por el engine; esto es presentación pura. */
+/* Secuencia barajada DETERMINISTA desde spinKey (sin Math.random): el campeón
+   ya está decidido por el engine; esto es presentación pura. */
 function buildSeq(teams: Team[], target: Team, spinKey: string): Team[] {
   const rng = mulberry32(hashSeed(spinKey));
   const pool = teams.filter((t) => t.id !== target.id);
@@ -34,36 +35,63 @@ function buildSeq(teams: Team[], target: Team, spinKey: string): Team[] {
   return seq;
 }
 
-/* Tambor VERTICAL estilo tragamonedas: cae rápido y frena en el campeón.
-   Lee mucho mejor en celular que un strip horizontal. Tocá para saltar;
-   con movimiento reducido va directo al resultado. */
+/* Tambor tipo tragamonedas: los nombres pasan en seco (tick-tick-tick) y el
+   sorteado CLAVA con un pop. Una celda visible a la vez = robusto en cualquier
+   viewport. Tocá para saltar; con movimiento reducido va directo. */
 export function TeamReel({ teams, target, spinKey, label, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
-  const [skipped, setSkipped] = useState(false);
+  const seq = buildSeq(teams, target, spinKey);
+  const lastIdx = seq.length - 1;
+
+  const [idx, setIdx] = useState(0);
   const [done, setDone] = useState(false);
 
   /* Reset al cambiar de sorteo (prop-change-in-render: solo setState). */
   const [prevKey, setPrevKey] = useState(spinKey);
   if (prevKey !== spinKey) {
     setPrevKey(spinKey);
-    setSkipped(false);
+    setIdx(0);
     setDone(false);
   }
 
-  const seq = buildSeq(teams, target, spinKey);
-  const finalY = -(seq.length - 1) * REEL.cellH;
-  const instant = reduce || skipped;
+  const shownIdx = reduce || done ? lastIdx : idx;
+  const landed = shownIdx >= lastIdx;
+  const cell = seq[shownIdx];
 
-  const finish = () => {
-    if (done) return;
-    setDone(true);
-    window.setTimeout(onDone, instant ? 80 : 260); // micro-pausa al clavar
-  };
+  useEffect(() => {
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const finishAfterHold = () => {
+      timers.push(window.setTimeout(() => { if (!cancelled) onDone(); }, REEL.hold));
+    };
+
+    if (reduce) {
+      finishAfterHold();
+      return () => { cancelled = true; timers.forEach(window.clearTimeout); };
+    }
+
+    let i = 0;
+    const step = () => {
+      if (cancelled) return;
+      i++;
+      setIdx(i);
+      if (i >= lastIdx) { finishAfterHold(); return; }
+      const p = i / lastIdx;
+      const delay = REEL.minTick + (REEL.maxTick - REEL.minTick) * p * p * p; // frena al final
+      timers.push(window.setTimeout(step, delay));
+    };
+    timers.push(window.setTimeout(step, REEL.minTick));
+
+    return () => { cancelled = true; timers.forEach(window.clearTimeout); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spinKey, reduce]);
 
   const skip = () => {
-    if (done) return;
-    setSkipped(true);
+    if (done || landed) return;
+    setDone(true);
+    window.setTimeout(onDone, 120);
   };
 
   return (
@@ -76,26 +104,22 @@ export function TeamReel({ teams, target, spinKey, label, onDone }: Props) {
       title={t('ticker.skip')}
     >
       {label && <p className="reel-label">{label}</p>}
-      <div className="reel-window" style={{ height: REEL.cellH }}>
+      <div className={`reel-window ${landed ? 'reel-window--hit' : ''}`}>
         <motion.div
-          key={`${spinKey}:${instant ? 'i' : 'a'}`}
-          className="reel-strip"
-          initial={{ y: instant ? finalY : 0 }}
-          animate={{ y: finalY }}
-          transition={instant ? { duration: 0 } : { duration: REEL.duration, ease: [0.16, 0.84, 0.22, 1] }}
-          onAnimationComplete={finish}
+          key={`${spinKey}:${shownIdx}`}
+          className="reel-cell"
+          initial={reduce ? false : { y: 16, opacity: 0.4 }}
+          animate={landed && !reduce
+            ? { y: 0, opacity: 1, scale: [1.12, 1], transition: { type: 'spring', stiffness: 320, damping: 16 } }
+            : { y: 0, opacity: 1, transition: { duration: 0.06, ease: 'linear' } }}
         >
-          {seq.map((tm, i) => (
-            <div className="reel-cell" key={i} style={{ height: REEL.cellH }}>
-              <div className="club-colors">
-                {tm.colors.map((c, k) => (
-                  <span key={k} style={{ background: c }} />
-                ))}
-              </div>
-              <span className="reel-name">{tm.name}</span>
-              <span className="reel-ed">{tm.edition}</span>
+          {landed && (
+            <div className="club-colors">
+              {cell.colors.map((c, k) => <span key={k} style={{ background: c }} />)}
             </div>
-          ))}
+          )}
+          <span className="reel-name">{cell.name}</span>
+          <span className="reel-ed">{cell.edition}</span>
         </motion.div>
       </div>
       <p className="reel-hint">{t('ticker.skip')}</p>

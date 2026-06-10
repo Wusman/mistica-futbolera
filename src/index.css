@@ -387,10 +387,13 @@ button:focus-visible,
 /* ── Reel (casino-style draw) ── */
 .reel { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 14px; cursor: pointer; }
 .reel-label { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; font-size: 12px; color: var(--accent); margin: 0 0 12px; text-align: center; }
-.reel-window { position: relative; overflow: hidden; height: 92px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.reel-window::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 2px hsl(var(--seed-hue) 80% 60% / 0.22); }
-.reel-strip { display: flex; height: 100%; will-change: transform; }
-.reel-cell { flex: 0 0 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
+.reel-window { position: relative; overflow: hidden; height: 96px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: box-shadow 0.2s ease; }
+.reel-window::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 2px hsl(var(--seed-hue) 80% 60% / 0.22);
+}
+.reel-window--hit::after { box-shadow: inset 0 0 0 2px hsl(45 80% 55% / 0.65), inset 0 0 22px hsl(45 80% 55% / 0.18); }
+.reel-cell { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
 .reel-cell .club-colors { margin-bottom: 6px; }
 .reel-name { font-family: var(--font-display); font-weight: 700; font-size: 26px; text-transform: uppercase; color: var(--text); line-height: 1; }
 .reel-ed { font-size: 12px; color: var(--muted); }
@@ -451,6 +454,48 @@ button:focus-visible,
 .pen-aim { text-align: center; min-height: 52px; }
 .pen-aim:disabled { opacity: 0.45; cursor: default; }
 .tension--bad { color: #ff9b9b; }
+
+/* CTAs gemelos de la carta final: revancha (misma semilla) + torneo nuevo. */
+.card-ctas { display: flex; gap: 16px; margin-top: 4px; }
+.card-ctas .cta { flex: 1; margin-top: 0; padding: 14px 8px; font-size: 15px; }
+@media (max-width: 420px) { .card-ctas { flex-direction: column; gap: 10px; } }
+
+/* Compartir el desafío: chips a X / WhatsApp / share nativo. */
+.share-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.share-chip {
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
+  color: var(--text); background: transparent; border: 1.5px solid var(--line); border-radius: 6px;
+  padding: 9px 16px; min-height: 40px; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.share-chip:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── Versus (preview del rival): cartelera de pelea. ── */
+.match--wide { max-width: 760px; }
+.versus { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 10px; }
+.vs-side {
+  position: relative; border: 1px solid var(--line); border-radius: 10px;
+  background: rgba(15, 24, 56, 0.85);
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 7px);
+  padding: 22px 12px 18px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); overflow: hidden;
+}
+.vs-side--you { border-color: hsl(45 70% 55% / 0.45); }
+.club-colors--vs { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 3px; height: 5px; margin: 0; }
+.club-colors--vs span { flex: 1; width: auto; height: 100%; border: none; }
+.vs-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; color: var(--text); margin: 0; }
+.vs-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(54px, 13vw, 76px); line-height: 1; margin: 2px 0 0; color: var(--text); text-shadow: 0.05em 0.05em 0 hsl(var(--seed-hue) 80% 60% / 0.25); }
+.vs-num--gold { color: var(--gold); text-shadow: 0.05em 0.05em 0 hsl(45 85% 55% / 0.22); }
+.vs-sub { font-size: 12px; color: var(--muted); margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+.vs-bars { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.vs-bars b { color: var(--text); font-family: var(--font-display); margin-left: 4px; }
+.vs-mid {
+  align-self: center; font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 8vw, 44px);
+  color: var(--gold); margin: 0; padding: 0 4px;
+  text-shadow: 0.06em 0.06em 0 hsl(45 85% 55% / 0.28);
+}
+.cta--kickoff { align-self: center; width: 100%; max-width: 420px; }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {

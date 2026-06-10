@@ -99,7 +99,8 @@ export function BuildStep({
     setPending(null);
   };
 
-  const bannerStyle = { '--club': team.colors[0] } as CSSProperties;
+  /* Sin spoiler: el color del club recién aparece cuando el tambor clava. */
+  const bannerStyle = (spinning ? {} : { '--club': team.colors[0] }) as CSSProperties;
 
   return (
     <section className="board3">

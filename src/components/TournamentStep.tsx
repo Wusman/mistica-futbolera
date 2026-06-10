@@ -5,6 +5,8 @@ import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../l
 import { scaledRivalOf } from '../lib/engine';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
+
+const SITE_URL = 'https://misticafutbolera.wusman.com';
 import { RivalReveal } from './RivalReveal';
 import { MatchTicker } from './MatchTicker';
 
@@ -158,6 +160,26 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
           </motion.button>
         </motion.div>
         <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
+        <motion.div className="share-row" variants={riseIn}>
+          <a
+            className="share-chip"
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t('card.shareText', { seed: seed.toString(36) }))}&url=${encodeURIComponent(SITE_URL)}`}
+            target="_blank" rel="noopener noreferrer"
+          >X</a>
+          <a
+            className="share-chip"
+            href={`https://wa.me/?text=${encodeURIComponent(`${t('card.shareText', { seed: seed.toString(36) })} ${SITE_URL}`)}`}
+            target="_blank" rel="noopener noreferrer"
+          >WhatsApp</a>
+          {typeof navigator !== 'undefined' && !!navigator.share && (
+            <button
+              className="share-chip"
+              onClick={() => {
+                navigator.share({ text: t('card.shareText', { seed: seed.toString(36) }), url: SITE_URL }).catch(() => {});
+              }}
+            >{t('card.share')}…</button>
+          )}
+        </motion.div>
         <motion.div className="card-ctas" variants={riseIn}>
           <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
           <motion.button className="cta" {...tap} onClick={onReset}>{t('card.again')}</motion.button>
@@ -209,7 +231,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
   const tension = flavor(tensionCat, xiAvg * 13 + r.overall * 7 + c.stageIdx * 5, locale);
 
   return (
-    <section className="match">
+    <section className="match match--wide">
       <p className="match-tag">{stageLabel}</p>
       <p className="tour-record">{record}</p>
 
