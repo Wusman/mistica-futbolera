@@ -2,8 +2,8 @@
 
 **Drafteá leyendas. Convertite en el rey de Europa.**
 
-Juego web gratuito y 100% client-side: la semilla sortea campeones de Europa de
-distintas épocas, de cada uno elegís un crack hasta completar tu once, y salís a
+Juego web gratuito y 100% client-side: la semilla sortea glorias de Europa —
+campeones y finalistas míticos (1993–2025), de cada uno elegís un crack hasta completar tu once, y salís a
 ganar el torneo — fase de grupos, eliminatorias y la gran final, con relato
 minuto a minuto, decisión táctica en el entretiempo y tandas de penales donde el
 palo lo elegís vos.
@@ -22,7 +22,7 @@ torneo, gol por gol. Eso convierte cada corrida en un desafío:
 
 ## Cómo se juega
 
-1. **Drafteá** — el tambor sortea un campeón histórico; elegí un jugador que te
+1. **Drafteá** — el tambor sortea un equipo histórico; elegí un jugador que te
    sirva (tenés 3 descartes) hasta llenar el once de tu formación.
 2. **Competí** — grupo (2 fechas, necesitás 3 puntos), octavos, cuartos, semifinal
    y final. En el entretiempo decidís: ¿defensivo, equilibrado u ofensivo?

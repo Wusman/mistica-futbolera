@@ -22,9 +22,9 @@ type Dict = Record<string, string>;
 const STRINGS: Record<Locale, Dict> = {
   es: {
     'tagline': 'Convertite en el rey de Europa.',
-    'home.eyebrow': '14 campeones de Europa · 1993 — 2023',
+    'home.eyebrow': '23 equipos míticos · 1993 — 2025',
     'home.h1': 'Drafteá leyendas.',
-    'home.sub': 'La semilla sortea campeones históricos. De cada uno elegís un crack, llenás tu once y vas por la copa: grupo, eliminatorias y la gran final.',
+    'home.sub': 'La semilla sortea glorias de Europa: campeones y finalistas míticos. De cada uno elegís un crack, llenás tu once y vas por la copa: grupo, eliminatorias y la gran final.',
     'home.showcase': 'Un once posible. El tuyo lo armás vos.',
     'home.seedHint': 'Misma semilla, mismo torneo. Compartila y desafiá.',
     'home.copy': 'Copiar', 'home.copied': '¡Copiada!',
@@ -43,7 +43,7 @@ const STRINGS: Record<Locale, Dict> = {
     'pens.see': 'Ver resultado',
     'common.attack': 'Ataque', 'common.defense': 'Defensa', 'common.avg': 'Media', 'common.cancel': 'Cancelar',
     'setup.formation': 'Formación', 'setup.seed': 'Semilla', 'setup.new': 'Nueva', 'setup.start': 'Empezar draft',
-    'setup.stats': '14 campeones · 6 formaciones · determinista por semilla',
+    'setup.stats': '23 equipos · 6 formaciones · determinista por semilla',
     'howto.1.t': 'Drafteá', 'howto.1.d': 'Cruzá glorias de Europa y armá tu once.',
     'howto.2.t': 'Competí', 'howto.2.d': 'Grupo, eliminatorias y la gran final.',
     'howto.3.t': 'Desafiá', 'howto.3.d': 'Misma semilla, mismo torneo. Compartilo.',
@@ -77,9 +77,9 @@ const STRINGS: Record<Locale, Dict> = {
   en: {
     /* Registro futbolero británico: localización, no traducción palabra a palabra. */
     'tagline': 'Become the king of Europe.',
-    'home.eyebrow': '14 European champions · 1993 — 2023',
+    'home.eyebrow': '23 legendary sides · 1993 — 2025',
     'home.h1': 'Draft legends.',
-    'home.sub': 'Every seed deals a run of historic champions. Take one star from each, complete your XI and go win it all: group stage, knockouts, the final.',
+    'home.sub': 'Every seed deals a run of European greats — champions and iconic finalists. Take one star from each, complete your XI and go win it all: group stage, knockouts, the final.',
     'home.showcase': 'One possible XI. Yours is up to you.',
     'home.seedHint': 'Same seed, same run. Share it and challenge a mate.',
     'home.copy': 'Copy', 'home.copied': 'Copied!',
@@ -98,7 +98,7 @@ const STRINGS: Record<Locale, Dict> = {
     'pens.see': 'See result',
     'common.attack': 'Attack', 'common.defense': 'Defence', 'common.avg': 'Rating', 'common.cancel': 'Cancel',
     'setup.formation': 'Formation', 'setup.seed': 'Seed', 'setup.new': 'New', 'setup.start': 'Start your draft',
-    'setup.stats': '14 champions · 6 formations · same seed, same tournament',
+    'setup.stats': '23 sides · 6 formations · same seed, same tournament',
     'howto.1.t': 'Draft', 'howto.1.d': 'Mix Europe’s legends into one XI.',
     'howto.2.t': 'Compete', 'howto.2.d': 'Group stage, knockouts, the final.',
     'howto.3.t': 'Challenge', 'howto.3.d': 'Same seed, same run. Share it.',

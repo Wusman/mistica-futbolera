@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   DATA — players.ts  (v1: UEFA Champions League)
+   DATA — players.ts  (v2: glorias de Europa, 1993–2025)
 
    Single source of game data: champion squads + formations.
 
@@ -7,9 +7,11 @@
    is eligible for a slot only if the slot's position is in `pos`
    (strict, no penalty — the dual position is the flexibility).
 
-   TEAMS: European Cup / Champions League winners, picked for global
-   name-recognition. Squad membership is from the well-known finals;
-   fine-position tags and ratings are a first, editable pass.
+   TEAMS: 15 champions + 8 mythical finalists (1993–2025), picked for
+   global name-recognition. Squad membership is from the well-known
+   finals/runs; fine-position tags and ratings are a first, editable pass.
+   Non-champions sit in a deliberately lower rating band: beatable group
+   rivals + a less broken draft pool. Inter-team variance is intentional.
 
    IDENTITY: each team carries 1–3 own brand COLORS (no crests/kits).
 ══════════════════════════════════════════ */
@@ -346,6 +348,184 @@ export const TEAMS: Team[] = [
       { i: 809, n: 'Cristiano Ronaldo',  pos: ['RW', 'ST'], r: 97 }, // top scorer, 42 goals that season
       { i: 810, n: 'Wayne Rooney',       pos: ['ST', 'AM'], r: 89 },
       { i: 811, n: 'Carlos Tévez',       pos: ['ST'],       r: 86 },
+    ],
+  },
+
+  /* ════════════════════════════════════════
+     DATASET v2 — finalistas y equipos míticos por recorrido (no campeones).
+     Diseño: banda de ratings deliberadamente más baja que los campeones
+     (estrellas 84–92, rol 74–83) → rivales "ganables" en grupos y un pool
+     de draft menos roto. La varianza entre equipos es intencional.
+  ════════════════════════════════════════ */
+
+  /* ── Monaco · Finalista 2004 ── la sorpresa de Deschamps; eliminó a Real y Chelsea. */
+  {
+    id: 'mon04', name: 'Monaco', edition: 'Finalista 2004', colors: ['#e63b3b', '#ffffff'],
+    players: [
+      { i: 1500, n: 'Flavio Roma',        pos: ['GK'],       r: 78 },
+      { i: 1501, n: 'Hugo Ibarra',        pos: ['RB'],       r: 76 },
+      { i: 1502, n: 'Gaël Givet',         pos: ['CB', 'LB'], r: 78 },
+      { i: 1503, n: 'Sébastien Squillaci',pos: ['CB'],       r: 77 },
+      { i: 1504, n: 'Patrice Evra',       pos: ['LB', 'LM'], r: 83 },
+      { i: 1505, n: 'Akis Zikos',         pos: ['DM'],       r: 76 },
+      { i: 1506, n: 'Lucas Bernardi',     pos: ['DM', 'CM'], r: 79 },
+      { i: 1507, n: 'Édouard Cissé',      pos: ['CM'],       r: 75 },
+      { i: 1508, n: 'Jérôme Rothen',      pos: ['LM', 'LW'], r: 82 },
+      { i: 1509, n: 'Ludovic Giuly',      pos: ['RW', 'RM'], r: 84 }, // capitán
+      { i: 1510, n: 'Fernando Morientes', pos: ['ST'],       r: 87 }, // goleador del torneo
+      { i: 1511, n: 'Dado Pršo',          pos: ['ST'],       r: 80 },
+    ],
+  },
+
+  /* ── Arsenal · Finalista 2006 ── récord defensivo en la corrida; con 10 casi la gana. */
+  {
+    id: 'ars06', name: 'Arsenal', edition: 'Finalista 2006', colors: ['#ef0107', '#c8a24a'],
+    players: [
+      { i: 1600, n: 'Jens Lehmann',      pos: ['GK'],       r: 84 },
+      { i: 1601, n: 'Emmanuel Eboué',    pos: ['RB'],       r: 78 },
+      { i: 1602, n: 'Kolo Touré',        pos: ['CB'],       r: 84 },
+      { i: 1603, n: 'Sol Campbell',      pos: ['CB'],       r: 84 }, // gol en la final
+      { i: 1604, n: 'Ashley Cole',       pos: ['LB'],       r: 85 },
+      { i: 1605, n: 'Gilberto Silva',    pos: ['DM'],       r: 83 },
+      { i: 1606, n: 'Cesc Fàbregas',     pos: ['CM', 'AM'], r: 85 },
+      { i: 1607, n: 'Alexander Hleb',    pos: ['AM', 'RM'], r: 81 },
+      { i: 1608, n: 'Robert Pirès',      pos: ['RM', 'LW'], r: 85 },
+      { i: 1609, n: 'Freddie Ljungberg', pos: ['RM', 'AM'], r: 82 },
+      { i: 1610, n: 'Thierry Henry',     pos: ['ST', 'LW'], r: 92 }, // capitán, en su pico
+      { i: 1611, n: 'José Antonio Reyes',pos: ['LW'],       r: 80 },
+    ],
+  },
+
+  /* ── Borussia Dortmund · Finalista 2013 ── el Klopp del gegenpressing; Lewa 4 a Real. */
+  {
+    id: 'bvb13', name: 'Borussia Dortmund', edition: 'Finalista 2013', colors: ['#fde100', '#0a0a0a'],
+    players: [
+      { i: 1700, n: 'Roman Weidenfeller',   pos: ['GK'],       r: 82 },
+      { i: 1701, n: 'Łukasz Piszczek',      pos: ['RB'],       r: 82 },
+      { i: 1702, n: 'Neven Subotić',        pos: ['CB'],       r: 81 },
+      { i: 1703, n: 'Mats Hummels',         pos: ['CB'],       r: 86 },
+      { i: 1704, n: 'Marcel Schmelzer',     pos: ['LB'],       r: 79 },
+      { i: 1705, n: 'Sven Bender',          pos: ['DM'],       r: 80 },
+      { i: 1706, n: 'İlkay Gündoğan',       pos: ['CM', 'DM'], r: 85 },
+      { i: 1707, n: 'Jakub Błaszczykowski', pos: ['RM', 'RW'], r: 80 },
+      { i: 1708, n: 'Kevin Großkreutz',     pos: ['LM', 'LB'], r: 77 },
+      { i: 1709, n: 'Marco Reus',           pos: ['AM', 'LW'], r: 88 },
+      { i: 1710, n: 'Mario Götze',          pos: ['AM', 'RW'], r: 85 },
+      { i: 1711, n: 'Robert Lewandowski',   pos: ['ST'],       r: 91 }, // póker a Real en semis
+    ],
+  },
+
+  /* ── Atlético Madrid · Finalista 2014 ── el Cholismo; lo perdió en el 92:48. */
+  {
+    id: 'atm14', name: 'Atlético Madrid', edition: 'Finalista 2014', colors: ['#cb3524', '#ffffff', '#1b3d8f'],
+    players: [
+      { i: 1800, n: 'Thibaut Courtois', pos: ['GK'],       r: 86 },
+      { i: 1801, n: 'Juanfran',         pos: ['RB'],       r: 81 },
+      { i: 1802, n: 'Miranda',          pos: ['CB'],       r: 83 },
+      { i: 1803, n: 'Diego Godín',      pos: ['CB'],       r: 86 }, // gol en la final
+      { i: 1804, n: 'Filipe Luís',      pos: ['LB'],       r: 83 },
+      { i: 1805, n: 'Gabi',             pos: ['CM', 'DM'], r: 82 }, // capitán
+      { i: 1806, n: 'Tiago',            pos: ['DM', 'CM'], r: 79 },
+      { i: 1807, n: 'Koke',             pos: ['CM', 'RM'], r: 84 },
+      { i: 1808, n: 'Arda Turan',       pos: ['RM', 'AM'], r: 84 },
+      { i: 1809, n: 'Raúl García',      pos: ['AM', 'ST'], r: 79 },
+      { i: 1810, n: 'Diego Costa',      pos: ['ST'],       r: 87 },
+      { i: 1811, n: 'David Villa',      pos: ['ST', 'LW'], r: 83 },
+    ],
+  },
+
+  /* ── Atlético Madrid · Finalista 2016 ── otra final al límite; cayó por penales. */
+  {
+    id: 'atm16', name: 'Atlético Madrid', edition: 'Finalista 2016', colors: ['#cb3524', '#ffffff', '#1b3d8f'],
+    players: [
+      { i: 1900, n: 'Jan Oblak',         pos: ['GK'],       r: 88 },
+      { i: 1901, n: 'Juanfran',          pos: ['RB'],       r: 80 },
+      { i: 1902, n: 'Stefan Savić',      pos: ['CB'],       r: 81 },
+      { i: 1903, n: 'Diego Godín',       pos: ['CB'],       r: 87 },
+      { i: 1904, n: 'Filipe Luís',       pos: ['LB'],       r: 83 },
+      { i: 1905, n: 'Augusto Fernández', pos: ['DM'],       r: 75 },
+      { i: 1906, n: 'Gabi',              pos: ['DM', 'CM'], r: 82 }, // capitán
+      { i: 1907, n: 'Saúl Ñíguez',       pos: ['CM', 'AM'], r: 84 }, // el golazo a Bayern
+      { i: 1908, n: 'Koke',              pos: ['CM', 'LM'], r: 85 },
+      { i: 1909, n: 'Yannick Carrasco',  pos: ['LW', 'RW'], r: 82 }, // gol en la final
+      { i: 1910, n: 'Antoine Griezmann', pos: ['ST', 'AM'], r: 89 },
+      { i: 1911, n: 'Fernando Torres',   pos: ['ST'],       r: 79 },
+    ],
+  },
+
+  /* ── Juventus · Finalista 2017 ── la defensa italiana eterna; la chilena de Mandžukić. */
+  {
+    id: 'juv17', name: 'Juventus', edition: 'Finalista 2017', colors: ['#0a0a0a', '#ffffff'],
+    players: [
+      { i: 2000, n: 'Gianluigi Buffon',  pos: ['GK'],       r: 88 }, // capitán
+      { i: 2001, n: 'Dani Alves',        pos: ['RB', 'RM'], r: 84 },
+      { i: 2002, n: 'Leonardo Bonucci',  pos: ['CB'],       r: 87 },
+      { i: 2003, n: 'Giorgio Chiellini', pos: ['CB'],       r: 87 },
+      { i: 2004, n: 'Andrea Barzagli',   pos: ['CB', 'RB'], r: 82 },
+      { i: 2005, n: 'Alex Sandro',       pos: ['LB'],       r: 83 },
+      { i: 2006, n: 'Sami Khedira',      pos: ['CM', 'DM'], r: 81 },
+      { i: 2007, n: 'Miralem Pjanić',    pos: ['CM', 'DM'], r: 84 },
+      { i: 2008, n: 'Juan Cuadrado',     pos: ['RW', 'RM'], r: 81 },
+      { i: 2009, n: 'Paulo Dybala',      pos: ['AM', 'ST'], r: 87 },
+      { i: 2010, n: 'Mario Mandžukić',   pos: ['LW', 'ST'], r: 83 }, // LA chilena
+      { i: 2011, n: 'Gonzalo Higuaín',   pos: ['ST'],       r: 87 },
+    ],
+  },
+
+  /* ── Tottenham · Finalista 2019 ── el milagro de Ámsterdam; hat-trick de Lucas en semis. */
+  {
+    id: 'tot19', name: 'Tottenham', edition: 'Finalista 2019', colors: ['#ffffff', '#132257'],
+    players: [
+      { i: 2100, n: 'Hugo Lloris',        pos: ['GK'],       r: 84 }, // capitán
+      { i: 2101, n: 'Kieran Trippier',    pos: ['RB'],       r: 79 },
+      { i: 2102, n: 'Toby Alderweireld',  pos: ['CB'],       r: 83 },
+      { i: 2103, n: 'Jan Vertonghen',     pos: ['CB', 'LB'], r: 83 },
+      { i: 2104, n: 'Danny Rose',         pos: ['LB'],       r: 79 },
+      { i: 2105, n: 'Moussa Sissoko',     pos: ['CM', 'DM'], r: 78 },
+      { i: 2106, n: 'Harry Winks',        pos: ['CM'],       r: 76 },
+      { i: 2107, n: 'Christian Eriksen',  pos: ['AM', 'CM'], r: 86 },
+      { i: 2108, n: 'Dele Alli',          pos: ['AM'],       r: 82 },
+      { i: 2109, n: 'Lucas Moura',        pos: ['RW', 'LW'], r: 81 }, // hat-trick en Ámsterdam
+      { i: 2110, n: 'Son Heung-min',      pos: ['LW', 'ST'], r: 86 },
+      { i: 2111, n: 'Harry Kane',         pos: ['ST'],       r: 88 },
+    ],
+  },
+
+  /* ── PSG · Finalista 2020 ── Neymar-Mbappé en la burbuja de Lisboa; cayó 0-1 con Bayern. */
+  {
+    id: 'psg20', name: 'PSG', edition: 'Finalista 2020', colors: ['#004170', '#da291c', '#ffffff'],
+    players: [
+      { i: 2200, n: 'Keylor Navas',     pos: ['GK'],       r: 85 },
+      { i: 2201, n: 'Thilo Kehrer',     pos: ['RB', 'CB'], r: 76 },
+      { i: 2202, n: 'Thiago Silva',     pos: ['CB'],       r: 86 }, // capitán
+      { i: 2203, n: 'Presnel Kimpembe', pos: ['CB'],       r: 81 },
+      { i: 2204, n: 'Juan Bernat',      pos: ['LB'],       r: 80 },
+      { i: 2205, n: 'Marquinhos',       pos: ['DM', 'CB'], r: 85 },
+      { i: 2206, n: 'Ander Herrera',    pos: ['CM'],       r: 79 },
+      { i: 2207, n: 'Leandro Paredes',  pos: ['CM', 'DM'], r: 80 },
+      { i: 2208, n: 'Ángel Di María',   pos: ['RW', 'AM'], r: 87 },
+      { i: 2209, n: 'Neymar',           pos: ['LW', 'AM'], r: 91 },
+      { i: 2210, n: 'Kylian Mbappé',    pos: ['ST', 'LW'], r: 92 },
+      { i: 2211, n: 'Mauro Icardi',     pos: ['ST'],       r: 82 },
+    ],
+  },
+
+  /* ── PSG · Champions 2025 ── Luis Enrique; el 5-0 a Inter en Múnich, la primera Orejona. */
+  {
+    id: 'psg25', name: 'PSG', edition: 'Champions 2025', colors: ['#004170', '#da291c', '#ffffff'],
+    players: [
+      { i: 2300, n: 'Gianluigi Donnarumma',  pos: ['GK'],       r: 88 },
+      { i: 2301, n: 'Achraf Hakimi',         pos: ['RB', 'RM'], r: 88 }, // gol en la final
+      { i: 2302, n: 'Marquinhos',            pos: ['CB'],       r: 85 }, // capitán
+      { i: 2303, n: 'Willian Pacho',         pos: ['CB'],       r: 83 },
+      { i: 2304, n: 'Nuno Mendes',           pos: ['LB', 'LM'], r: 87 },
+      { i: 2305, n: 'Vitinha',               pos: ['CM', 'DM'], r: 88 },
+      { i: 2306, n: 'João Neves',            pos: ['CM', 'DM'], r: 85 },
+      { i: 2307, n: 'Fabián Ruiz',           pos: ['CM', 'AM'], r: 84 },
+      { i: 2308, n: 'Désiré Doué',           pos: ['RW', 'AM'], r: 86 }, // doblete en la final
+      { i: 2309, n: 'Ousmane Dembélé',       pos: ['ST', 'RW'], r: 91 }, // el año del Balón de Oro
+      { i: 2310, n: 'Khvicha Kvaratskhelia', pos: ['LW'],       r: 87 },
+      { i: 2311, n: 'Bradley Barcola',       pos: ['LW', 'RW'], r: 83 },
     ],
   },
 ];
