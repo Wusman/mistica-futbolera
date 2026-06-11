@@ -4,7 +4,7 @@ import { type Team } from '../data/players';
 import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
-import { SITE_URL } from '../config';
+import { BRAND, SITE_URL } from '../config';
 import { scaledRivalOf, xiProfile } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
@@ -38,10 +38,27 @@ function groupVerdictCat(m: MatchView): Cat {
   return d >= 4 ? 'win_rout' : d >= 2 ? 'win_clear' : 'win_narrow';
 }
 
-function topScorer(goals: Record<string, number>): string {
+function topScorer(goals: Record<string, number>): { n: string; g: number } | null {
   const e = Object.entries(goals).sort((a, b) => b[1] - a[1])[0];
-  return e ? `${e[0]} (${e[1]})` : '—';
+  return e ? { n: e[0], g: e[1] } : null;
 }
+
+/* Logos inline (trazados estándar, sin dependencias). */
+const IcoX = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z" />
+  </svg>
+);
+const IcoWa = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+  </svg>
+);
+const IcoShare = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+    <path d="M12 2.59l4.7 4.7-1.41 1.42L13 6.41V16h-2V6.41L8.71 8.71 7.3 7.29 12 2.59zM5 10v10h14V10h2v12H3V10h2z" />
+  </svg>
+);
 
 /* Marcador que "cuenta" hasta el resultado (presentación pura; instantáneo
    con movimiento reducido). El número real ya está decidido por el engine. */
@@ -148,12 +165,13 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
   if (c.sub.k === 'fulltime' && c.done) {
     const m = c.sub.m;
     const champ = c.done.champion;
+    const top = topScorer(s.goals);
     const idx = s.gf * 13 + s.ga * 7 + c.stageIdx * 5;
     const headline = champ ? flavor('champion', idx, locale) : flavor(OUT_CAT[c.done.stage], idx, locale);
     return (
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
         <ClubStripe colors={opp.colors} />
-        <motion.p className="card-club" variants={riseIn}>{champ ? 'Mística Futbolera' : stageLabel}</motion.p>
+        <motion.p className="card-club" variants={riseIn}>{champ ? BRAND : stageLabel}</motion.p>
         <motion.div className="scoreline" variants={riseIn}>
           <CountScore n={m.gf} />
           <span className="score-sep">–</span>
@@ -164,12 +182,27 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <motion.p className={`outcome ${champ ? 'outcome--win' : 'outcome--lose'}`} variants={riseIn}>{headline}</motion.p>
         <motion.div className="scorers" variants={riseIn}>
           <h3 className="scorers-title">{t('card.campaign')}</h3>
-          <ul>
-            <li>{t('stats.played')}: {s.pj} · {s.w}{t('rec.w')} {s.d}{t('rec.d')} {s.l}{t('rec.l')}</li>
-            <li>{t('stats.goals', { gf: s.gf, ga: s.ga })}</li>
-            <li>{t('stats.cs')}: {s.cs}</li>
-            <li>{t('stats.topScorer')}: {topScorer(s.goals)}</li>
-          </ul>
+          <div className="stat-grid">
+            <div className="stat">
+              <span className="stat-v">{s.pj}</span>
+              <span className="stat-l">{t('stats.played')}</span>
+              <span className="stat-s">{s.w}{t('rec.w')} {s.d}{t('rec.d')} {s.l}{t('rec.l')}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-v">{s.gf}:{s.ga}</span>
+              <span className="stat-l">{t('stats.goalsShort')}</span>
+              <span className="stat-s">{s.gf - s.ga >= 0 ? '+' : ''}{s.gf - s.ga}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-v">{s.cs}</span>
+              <span className="stat-l">{t('stats.cs')}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-v">{top ? top.g : '—'}</span>
+              <span className="stat-l">{t('stats.topScorer')}</span>
+              <span className="stat-s">{top ? top.n : '—'}</span>
+            </div>
+          </div>
         </motion.div>
         {mode === 'daily' && champ && boardState !== 'done' && (
           <motion.div className="arcade" variants={riseIn}>
@@ -195,7 +228,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         {mode === 'daily' && champ && boardState === 'done' && (
           <motion.p className="seed-hint" variants={riseIn}>{t('daily.submitted')}</motion.p>
         )}
-        <motion.div className="seed-mini" variants={riseIn}>
+        <motion.div className="seed-mini seed-mini--compact" variants={riseIn}>
           <code className="seed-chip">{seed.toString(36)}</code>
           <motion.button className={`btn-mini ${copied ? 'btn-mini--ok' : ''}`} {...tap} onClick={copySeed}>
             {copied ? t('home.copied') : t('home.copy')}
@@ -204,22 +237,23 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
         <motion.div className="share-row" variants={riseIn}>
           <a
-            className="share-chip"
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t('card.shareText', { seed: seed.toString(36) }))}&url=${encodeURIComponent(SITE_URL)}`}
-            target="_blank" rel="noopener noreferrer"
-          >X</a>
+            className="share-chip share-chip--icon"
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t('card.shareText', { seed: seed.toString(36), brand: BRAND }))}&url=${encodeURIComponent(SITE_URL)}`}
+            target="_blank" rel="noopener noreferrer" aria-label="X"
+          ><IcoX /><span>X</span></a>
           <a
-            className="share-chip"
-            href={`https://wa.me/?text=${encodeURIComponent(`${t('card.shareText', { seed: seed.toString(36) })} ${SITE_URL}`)}`}
-            target="_blank" rel="noopener noreferrer"
-          >WhatsApp</a>
+            className="share-chip share-chip--icon"
+            href={`https://wa.me/?text=${encodeURIComponent(`${t('card.shareText', { seed: seed.toString(36), brand: BRAND })} ${SITE_URL}`)}`}
+            target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+          ><IcoWa /><span>WhatsApp</span></a>
           {typeof navigator !== 'undefined' && !!navigator.share && (
             <button
-              className="share-chip"
+              className="share-chip share-chip--icon"
+              aria-label={t('card.share')}
               onClick={() => {
-                navigator.share({ text: t('card.shareText', { seed: seed.toString(36) }), url: SITE_URL }).catch(() => {});
+                navigator.share({ text: t('card.shareText', { seed: seed.toString(36), brand: BRAND }), url: SITE_URL }).catch(() => {});
               }}
-            >{t('card.share')}…</button>
+            ><IcoShare /><span>{t('card.share')}</span></button>
           )}
         </motion.div>
         <motion.div className="card-ctas" variants={riseIn}>

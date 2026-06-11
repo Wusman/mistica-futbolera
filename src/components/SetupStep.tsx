@@ -75,16 +75,17 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             <span className="hero-title-gold">{t('tagline')}</span>
           </h2>
           <p className="hero-sub">{t('home.sub')}</p>
-          <motion.button className="cta cta--xl cta--hero" {...tap} onClick={onStart}>
-            {t('setup.start')} →
-          </motion.button>
+          {/* El diario manda: es el hábito y la competencia. El libre acompaña. */}
           <motion.button
-            className="cta cta--ghost cta--daily"
+            className="cta cta--xl cta--hero"
             {...tap}
             onClick={onDaily}
             title={t('home.dailyHint')}
           >
-            🗓 {t('home.daily')}
+            🏆 {t('home.daily')} →
+          </motion.button>
+          <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
+            {t('daily.free')}
           </motion.button>
         </motion.div>
 
