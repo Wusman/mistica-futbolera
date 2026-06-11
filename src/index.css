@@ -430,6 +430,7 @@ button:focus-visible,
 .goal .goal-frame { fill: none; stroke: #eef2ff; stroke-width: 2; stroke-linecap: round; }
 .goal .goal-ground { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.8; }
 .goal .keeper circle, .goal .keeper rect { fill: hsl(var(--seed-hue) 70% 62%); stroke: #0a1024; stroke-width: 0.7; }
+.goal .keeper--you circle, .goal .keeper--you rect { fill: var(--gold); }
 .goal .pen-ball { fill: #eef2ff; stroke: #0a1024; stroke-width: 0.6; }
 .pen-result {
   position: absolute; top: 26%; left: 0; right: 0; margin: 0; text-align: center;
@@ -454,6 +455,8 @@ button:focus-visible,
 .pen-aim { text-align: center; min-height: 52px; }
 .pen-aim:disabled { opacity: 0.45; cursor: default; }
 .tension--bad { color: #ff9b9b; }
+.toss-line { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; font-size: clamp(22px, 6vw, 30px); color: var(--gold); margin: 8px 0; }
+.pen-turn { align-self: center; }
 
 /* CTAs gemelos de la carta final: revancha (misma semilla) + torneo nuevo. */
 .card-ctas { display: flex; gap: 16px; margin-top: 4px; }

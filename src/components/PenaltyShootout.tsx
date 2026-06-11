@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { type PenAim, type PenKickResult, type TickerEvent } from '../lib/engine';
+import { type PenAim, type PenKickResult, type OppPenResult, type TickerEvent, pensTurn } from '../lib/engine';
 import { useT } from '../i18n';
 import { MatchTicker } from './MatchTicker';
 
 /* ── Tunables de la tanda ──
-   reveal: ms que dura la animación de tu tiro (pelota + arquero + cartel).
-   oppBeat: ms extra para mostrar el penal rival antes de habilitar el próximo. */
-const PEN = { reveal: 1100, oppBeat: 900 };
+   reveal: ms que dura la animación de cada penal (pelota + arquero + cartel).
+   toss: ms del splash del sorteo antes de habilitar el primer turno. */
+const PEN = { reveal: 1250, toss: 1700 };
 
 /* Coordenadas en el viewBox 100×62 del arco. */
 const ZONE: Record<PenAim, { x: number; y: number }> = {
@@ -25,38 +25,55 @@ interface Props {
   gf: number;
   ga: number;
   ev: TickerEvent[];
+  first: 'you' | 'opp';
   you: PenKickResult[];
-  opp: boolean[];
+  opp: OppPenResult[];
   winner?: 'you' | 'opp';
   tickerSecs: number;
   onKick: (aim: PenAim) => void;
+  onDive: (aim: PenAim) => void;
   onDone: () => void;
 }
 
-/* Presentación pura sobre decisiones + engine: cada tiro tuyo es un dispatch
-   (KICK) que el reducer resuelve con penKick/oppPenKick; acá solo se anima
-   el último resultado. Nada de azar en el componente. */
-export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, winner, tickerSecs, onKick, onDone }: Props) {
+/* Tanda v2 — un penal por turno, alternancia estricta desde el sorteo:
+   · Tu turno: elegís palo (KICK); el arquero rival se sortea de la semilla.
+   · Turno rival: SU palo se sortea de la semilla; vos elegís dónde se tira
+     TU arquero (DIVE). Cada dispatch resuelve UN penal; acá solo se anima
+     el último. Nada de azar en el componente. */
+export function PenaltyShootout({
+  stageLabel, oppName, gf, ga, ev, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
+}: Props) {
   const t = useT();
   const reduce = useReducedMotion();
 
-  /* Relato del 2do tiempo primero (45'→90'), después la tanda. */
+  /* Relato del 2do tiempo primero (45'→90'), después sorteo, después la tanda. */
   const [live, setLive] = useState(true);
+  const [tossSeen, setTossSeen] = useState(false);
 
-  /* 'aim' espera tu elección; 'reveal' anima el último tiro (y el rival). */
-  const [step, setStep] = useState<'aim' | 'reveal' | 'done'>('aim');
+  /* 'idle' espera la decisión del turno; 'reveal' anima el último penal. */
+  const [step, setStep] = useState<'idle' | 'reveal' | 'done'>('idle');
   const timer = useRef<number | null>(null);
 
-  const last = you.length > 0 ? you[you.length - 1] : null;
-  const oppKickedThisRound = opp.length === you.length && opp.length > 0;
+  const total = you.length + opp.length;
+  const turn = pensTurn(first, you.length, opp.length);
+  const other: 'you' | 'opp' = first === 'you' ? 'opp' : 'you';
+  const lastSide: 'you' | 'opp' | null = total === 0 ? null : (total - 1) % 2 === 0 ? first : other;
+  const last = lastSide === 'you' ? you[you.length - 1] : lastSide === 'opp' ? opp[opp.length - 1] : null;
 
   useEffect(() => {
     if (step !== 'reveal') return;
-    const wait = reduce ? 200 : PEN.reveal + (oppKickedThisRound ? PEN.oppBeat : 0);
-    timer.current = window.setTimeout(() => setStep(winner ? 'done' : 'aim'), wait);
+    const wait = reduce ? 250 : PEN.reveal;
+    timer.current = window.setTimeout(() => setStep(winner ? 'done' : 'idle'), wait);
     return () => { if (timer.current) window.clearTimeout(timer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, you.length]);
+  }, [step, total]);
+
+  /* El sorteo se muestra una vez y avanza solo (o con un tap). */
+  useEffect(() => {
+    if (live || tossSeen) return;
+    const id = window.setTimeout(() => setTossSeen(true), reduce ? 400 : PEN.toss);
+    return () => window.clearTimeout(id);
+  }, [live, tossSeen, reduce]);
 
   if (live) {
     return (
@@ -78,13 +95,31 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
     );
   }
 
-  const kick = (aim: PenAim) => {
-    if (step !== 'aim' || winner) return;
-    onKick(aim);
+  if (!tossSeen) {
+    return (
+      <section className="match" onClick={() => setTossSeen(true)} role="button" tabIndex={0}>
+        <p className="match-tag">{t('pens.toss')}</p>
+        <motion.p
+          className="toss-line"
+          initial={reduce ? false : { opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+        >
+          {first === 'you' ? t('pens.first.you') : t('pens.first.opp')}
+        </motion.p>
+        <p className="reel-hint">{t('ticker.skip')}</p>
+      </section>
+    );
+  }
+
+  const decide = (aim: PenAim) => {
+    if (step !== 'idle' || winner) return;
+    if (turn === 'you') onKick(aim);
+    else onDive(aim);
     setStep('reveal');
   };
 
-  /* Destino de la pelota según el resultado del último tiro. */
+  /* Destino de la pelota: misma geometría para ambos lados (es "el arco"). */
   const ballTo = last
     ? last.scored
       ? ZONE[last.aim]
@@ -93,11 +128,13 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
         : OUT[last.aim]                                // errado: se va afuera
     : BALL_START;
 
-  const showAnim = step !== 'aim' && last !== null;
-  const resultKey: 'pens.goal' | 'pens.saved' | 'pens.out' | null = last
-    ? last.scored ? 'pens.goal' : last.dive === last.aim ? 'pens.saved' : 'pens.out'
-    : null;
-  const lastOpp = oppKickedThisRound ? opp[opp.length - 1] : null;
+  const showAnim = step !== 'idle' && last !== null;
+  const resultText = last
+    ? lastSide === 'you'
+      ? (last.scored ? t('pens.goal') : last.dive === last.aim ? t('pens.saved') : t('pens.out'))
+      : (last.scored ? t('pens.oppGoal', { opp: oppName }) : last.dive === last.aim ? t('pens.youSaved') : t('pens.oppOut'))
+    : '';
+  const resultGood = last ? (lastSide === 'you' ? last.scored : !last.scored) : false;
 
   const dots = (arr: boolean[], n: number) =>
     Array.from({ length: Math.max(5, n) }, (_, i) =>
@@ -115,6 +152,13 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
       <p className="match-tag">{stageLabel}</p>
       <p className="tour-record">{gf}–{ga} · {t('pens.title')} · {oppName}</p>
 
+      {/* De quién es el penal que se juega / se va a jugar. */}
+      <p className="ticker-half pen-turn">
+        {showAnim
+          ? (lastSide === 'you' ? t('pens.turn.you') : t('pens.turn.opp'))
+          : (turn === 'you' ? t('pens.turn.you') : t('pens.turn.opp'))}
+      </p>
+
       <div className="goalbox">
         <svg className="goal" viewBox="0 0 100 62" aria-hidden="true">
           <defs>
@@ -122,21 +166,19 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
               <path d="M0 0H3.4M0 0V3.4" className="net-line" />
             </pattern>
           </defs>
-          {/* red + marco propio (cualquier arco del mundo se ve así) */}
           <rect x="9" y="9" width="82" height="44" fill="url(#net)" />
           <path d="M9 53 V9 H91 V53" className="goal-frame" />
           <line x1="0" y1="53" x2="100" y2="53" className="goal-ground" />
 
-          {/* arquero abstracto: se tira al palo sorteado */}
+          {/* Arquero: rival (tinte de semilla) cuando pateás vos; el TUYO
+              (dorado) cuando atajás. Se tira al palo que corresponda. */}
           <motion.g
-            className="keeper"
+            className={`keeper ${showAnim && lastSide === 'opp' ? 'keeper--you' : ''}`}
             initial={false}
             animate={
-              showAnim && last && !reduce
-                ? { x: ZONE[last.dive].x - 50, y: -5, rotate: last.dive === 'L' ? -18 : last.dive === 'R' ? 18 : 0 }
-                : showAnim && last
-                  ? { x: ZONE[last.dive].x - 50, y: -5, rotate: 0 }
-                  : { x: 0, y: 0, rotate: 0 }
+              showAnim && last
+                ? { x: ZONE[last.dive].x - 50, y: -5, rotate: reduce ? 0 : last.dive === 'L' ? -18 : last.dive === 'R' ? 18 : 0 }
+                : { x: 0, y: 0, rotate: 0 }
             }
             transition={{ type: 'spring', stiffness: 220, damping: 17 }}
           >
@@ -144,10 +186,9 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
             <rect x="46.4" y={KEEPER_Y - 3.5} width="7.2" height="12" rx="3" />
           </motion.g>
 
-          {/* pelota: del punto penal al destino del último tiro */}
           {showAnim && (
             <motion.circle
-              key={you.length}
+              key={total}
               className="pen-ball"
               r="2.6"
               initial={{ cx: BALL_START.x, cy: BALL_START.y, scale: 1 }}
@@ -157,40 +198,28 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
           )}
         </svg>
 
-        {/* cartel del resultado + penal rival */}
-        {showAnim && resultKey && (
+        {showAnim && resultText && (
           <motion.p
-            key={`r${you.length}`}
-            className={`pen-result ${last!.scored ? 'pen-result--goal' : 'pen-result--miss'}`}
+            key={`r${total}`}
+            className={`pen-result ${resultGood ? 'pen-result--goal' : 'pen-result--miss'}`}
             initial={reduce ? false : { opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: reduce ? 0 : 0.5, type: 'spring', stiffness: 300, damping: 18 }}
           >
-            {t(resultKey)}
-          </motion.p>
-        )}
-        {showAnim && lastOpp !== null && (
-          <motion.p
-            key={`o${opp.length}`}
-            className="pen-opp"
-            initial={reduce ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: reduce ? 0 : 1.0, duration: 0.3 }}
-          >
-            {lastOpp ? t('pens.oppGoal', { opp: oppName }) : t('pens.oppMiss', { opp: oppName })}
+            {resultText}
           </motion.p>
         )}
       </div>
 
-      {/* tablero de la tanda */}
+      {/* Tablero de la tanda (1º = quién arrancó pateando). */}
       <div className="pen-board">
         <div className="pen-row">
-          <span className="pen-side">{t('pens.you')}</span>
+          <span className="pen-side">{t('pens.you')}{first === 'you' ? ' · 1º' : ''}</span>
           <span className="pen-dots pen-dots--you">{dots(you.map((k) => k.scored), you.length).join(' ')}</span>
         </div>
         <div className="pen-row">
-          <span className="pen-side">{t('pens.opp')}</span>
-          <span className="pen-dots">{dots(opp, opp.length).join(' ')}</span>
+          <span className="pen-side">{t('pens.opp')}{first === 'opp' ? ' · 1º' : ''}</span>
+          <span className="pen-dots">{dots(opp.map((k) => k.scored), opp.length).join(' ')}</span>
         </div>
       </div>
 
@@ -205,16 +234,16 @@ export function PenaltyShootout({ stageLabel, oppName, gf, ga, ev, you, opp, win
         </>
       ) : (
         <>
-          <p className="match-note">{t('pens.aim')}</p>
+          <p className="match-note">{turn === 'you' ? t('pens.aim') : t('pens.dive')}</p>
           <div className="pen-aims">
             {aims.map((a) => (
               <motion.button
                 key={a.key}
                 className="att-btn pen-aim"
-                disabled={step !== 'aim'}
-                whileHover={step === 'aim' ? { scale: 1.03 } : undefined}
-                whileTap={step === 'aim' ? { scale: 0.96 } : undefined}
-                onClick={() => kick(a.key)}
+                disabled={step !== 'idle'}
+                whileHover={step === 'idle' ? { scale: 1.03 } : undefined}
+                whileTap={step === 'idle' ? { scale: 0.96 } : undefined}
+                onClick={() => decide(a.key)}
               >
                 <b>{a.label}</b>
               </motion.button>

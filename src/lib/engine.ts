@@ -137,6 +137,11 @@ export function showcaseXI(
   });
 }
 
+/* El once "tipo" de un equipo: sus 11 mejores por rating. */
+export function bestXI(team: Team): Player[] {
+  return [...team.players].sort((a, b) => b.r - a.r).slice(0, 11);
+}
+
 /* ════════ SCORERS ════════ */
 export interface Scorer { i: number; n: string; }
 
@@ -240,7 +245,12 @@ export function playHalf(
    no agrega azar nuevo ni toca el share-code. */
 export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; }
 
-export function halfEvents(matchSeed: number, half: 1 | 2, out: HalfOutcome): TickerEvent[] {
+export function halfEvents(
+  matchSeed: number,
+  half: 1 | 2,
+  out: HalfOutcome,
+  oppXI?: Player[],
+): TickerEvent[] {
   const base = half === 1 ? 1 : 46;
   const minutesFor = (salt: number, count: number) => {
     const rng = mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ salt) >>> 0);
@@ -250,9 +260,14 @@ export function halfEvents(matchSeed: number, half: 1 | 2, out: HalfOutcome): Ti
   };
   const yours = minutesFor(0x474f4c21, out.gf);
   const theirs = minutesFor(0x474f4c32, out.ga);
+  /* Autor del gol rival: ilusión para el usuario (igual que los tuyos, no
+     afecta la simulación). Determinista y ponderado por ataque del rival. */
+  const oppScorers = oppXI && out.ga > 0
+    ? pickScorers(out.ga, oppXI, mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ 0x4e414d45) >>> 0))
+    : [];
   const ev: TickerEvent[] = [
     ...yours.map((min, i) => ({ min, side: 'you' as const, n: out.scorers[i]?.n })),
-    ...theirs.map((min) => ({ min, side: 'opp' as const })),
+    ...theirs.map((min, j) => ({ min, side: 'opp' as const, n: oppScorers[j]?.n })),
   ];
   return ev.sort((a, b) => a.min - b.min);
 }
@@ -283,12 +298,32 @@ export function penKick(matchSeed: number, i: number, aim: PenAim, xiAvg: number
   return { aim, dive, scored };
 }
 
-/* Penal rival i: se resuelve solo, misma familia de probabilidades que antes. */
-export function oppPenKick(matchSeed: number, i: number, xiAvg: number, oppOverall: number): boolean {
+/* Sorteo de la tanda: quién arranca pateando (determinista del matchSeed). */
+export function penCoinToss(matchSeed: number): 'you' | 'opp' {
+  const rng = mulberry32((matchSeed ^ 0x544f5353) >>> 0); // ^ "TOSS"
+  return rng() < 0.5 ? 'you' : 'opp';
+}
+
+/* Penal rival i: SU palo se sortea de la semilla (nunca depende de tu
+   atajada); vos elegís dónde se tira TU arquero (dive = decisión tuya).
+   Si adivinás, atajás casi siempre; si no, casi siempre es gol. */
+export interface OppPenResult { aim: PenAim; dive: PenAim; scored: boolean; }
+
+export function oppPenShot(matchSeed: number, i: number, dive: PenAim, xiAvg: number, oppOverall: number): OppPenResult {
   const rng = mulberry32((matchSeed ^ 0x4f50454e ^ Math.imul(i + 1, 0x85ebca6b)) >>> 0);
-  const edge = (oppOverall - xiAvg) / 400;
-  const p = Math.min(0.92, Math.max(0.55, 0.75 + edge));
-  return rng() < p;
+  const aim = PEN_DIRS[Math.floor(rng() * 3)];
+  const roll = rng();
+  const edge = (oppOverall - xiAvg) / 200;
+  const scored = dive === aim
+    ? roll < Math.min(0.55, Math.max(0.18, 0.32 + edge))   // le adivinaste: atajás casi siempre
+    : roll < Math.min(0.98, Math.max(0.82, 0.93 + edge));  // palo equivocado: casi siempre gol
+  return { aim, dive, scored };
+}
+
+/* De quién es el próximo penal: alternancia estricta desde `first` (sorteo). */
+export function pensTurn(first: 'you' | 'opp', yKicks: number, oKicks: number): 'you' | 'opp' {
+  const other = first === 'you' ? 'opp' : 'you';
+  return (yKicks + oKicks) % 2 === 0 ? first : other;
 }
 
 /* Reglas de la tanda: mejor de 5 con corte anticipado, luego muerte súbita.

@@ -1,5 +1,5 @@
 import { type Player } from '../data/players';
-import { type Scorer, type Shootout, type TickerEvent, type PenKickResult } from './engine';
+import { type Scorer, type Shootout, type TickerEvent, type PenKickResult, type OppPenResult } from './engine';
 
 /* ── Tournament ladder ── */
 export type Stage = 'g1' | 'g2' | 'r16' | 'qf' | 'sf' | 'final';
@@ -40,12 +40,15 @@ export type Sub =
   | { k: 'preview' }
   | { k: 'half'; gf1: number; ga1: number; sc1: Scorer[]; ev1: TickerEvent[] }
   | {
-      /* Tanda interactiva: el partido (gf/ga/ev) quedó congelado en el 90'
-         y se define tiro a tiro. winner se setea cuando la tanda se decide;
-         PENS_DONE la "liquida" hacia fulltime (stats, pool, done). */
+      /* Tanda interactiva v2: el partido (gf/ga/ev) quedó congelado en el 90'
+         y se define a un penal por turno, alternando estricto desde `first`
+         (sorteo determinista). En tu turno pateás (KICK); en el rival, TU
+         arquero elige palo (DIVE). winner se setea al decidirse; PENS_DONE
+         la "liquida" hacia fulltime (stats, pool, done). */
       k: 'pens';
       gf: number; ga: number; scorers: Scorer[]; ev: TickerEvent[];
-      you: PenKickResult[]; opp: boolean[];
+      first: 'you' | 'opp';
+      you: PenKickResult[]; opp: OppPenResult[];
       winner?: 'you' | 'opp';
     }
   | { k: 'fulltime'; m: MatchView };

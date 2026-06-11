@@ -10,8 +10,11 @@ import {
   lineupXI,
   playHalf,
   penKick,
-  oppPenKick,
+  penCoinToss,
+  oppPenShot,
   shootoutWinner,
+  pensTurn,
+  bestXI,
   pickOpponent,
   scaledRivalOf,
   halfEvents,
@@ -64,6 +67,7 @@ type Action =
   | { type: 'KICKOFF' }
   | { type: 'DECIDE'; attitude: Attitude }
   | { type: 'KICK'; aim: PenAim }
+  | { type: 'DIVE'; aim: PenAim }
   | { type: 'PENS_DONE' }
   | { type: 'NEXT' }
   | { type: 'GO_HOME' }
@@ -152,7 +156,7 @@ function reducer(state: GameState, action: Action): GameState {
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
-      const ev1 = halfEvents(ms, 1, h1);
+      const ev1 = halfEvents(ms, 1, h1, bestXI(opp));
       return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1 } } } };
     }
 
@@ -175,14 +179,14 @@ function reducer(state: GameState, action: Action): GameState {
       /* Eventos del relato (con minuto). Si el tope de 9 recortó goles,
          recortamos los eventos sobrantes para que relato y marcador coincidan. */
       let cy = 0, co = 0;
-      const ev = [...ev1, ...halfEvents(ms, 2, h2)].filter((e) =>
+      const ev = [...ev1, ...halfEvents(ms, 2, h2, bestXI(opp))].filter((e) =>
         e.side === 'you' ? ++cy <= gf : ++co <= ga,
       );
 
       /* Empate en eliminatorias → tanda interactiva: el partido queda
          congelado en 'pens' y NO se liquida hasta que la tanda termine. */
       if (!isGroup(stage) && gf === ga) {
-        const sub: Sub = { k: 'pens', gf, ga, scorers, ev, you: [], opp: [] };
+        const sub: Sub = { k: 'pens', gf, ga, scorers, ev, first: penCoinToss(ms), you: [], opp: [] };
         return { ...state, phase: { kind: 'campaign', c: { ...c, sub } } };
       }
 
@@ -195,19 +199,28 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
       if (c.sub.k !== 'pens' || c.sub.winner) return state;
+      if (pensTurn(c.sub.first, c.sub.you.length, c.sub.opp.length) !== 'you') return state;
       const opp = teamById(c.oppId);
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
-      const xa = avg(c.xi);
 
-      const you = [...c.sub.you, penKick(ms, c.sub.you.length, action.aim, xa, ov)];
-      let oppArr = c.sub.opp;
-      let winner = shootoutWinner(you.map((k) => k.scored), oppArr) ?? undefined;
-      if (!winner) {
-        oppArr = [...oppArr, oppPenKick(ms, oppArr.length, xa, ov)];
-        winner = shootoutWinner(you.map((k) => k.scored), oppArr) ?? undefined;
-      }
-      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, you, opp: oppArr, winner } } } };
+      const you = [...c.sub.you, penKick(ms, c.sub.you.length, action.aim, avg(c.xi), ov)];
+      const winner = shootoutWinner(you.map((k) => k.scored), c.sub.opp.map((k) => k.scored)) ?? undefined;
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, you, winner } } } };
+    }
+
+    case 'DIVE': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'pens' || c.sub.winner) return state;
+      if (pensTurn(c.sub.first, c.sub.you.length, c.sub.opp.length) !== 'opp') return state;
+      const opp = teamById(c.oppId);
+      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
+
+      const oppArr = [...c.sub.opp, oppPenShot(ms, c.sub.opp.length, action.aim, avg(c.xi), ov)];
+      const winner = shootoutWinner(c.sub.you.map((k) => k.scored), oppArr.map((k) => k.scored)) ?? undefined;
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, opp: oppArr, winner } } } };
     }
 
     case 'PENS_DONE': {
@@ -218,7 +231,7 @@ function reducer(state: GameState, action: Action): GameState {
       const opp = teamById(c.oppId);
       const pens: Shootout = {
         you: c.sub.you.filter((k) => k.scored).length,
-        opp: c.sub.opp.filter(Boolean).length,
+        opp: c.sub.opp.filter((k) => k.scored).length,
       };
       const outcome: 'W' | 'L' = c.sub.winner === 'you' ? 'W' : 'L';
       const m: MatchView = {
@@ -329,11 +342,13 @@ export default function App() {
           gf={phase.c.sub.gf}
           ga={phase.c.sub.ga}
           ev={phase.c.sub.ev}
+          first={phase.c.sub.first}
           you={phase.c.sub.you}
           opp={phase.c.sub.opp}
           winner={phase.c.sub.winner}
           tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
           onKick={(aim) => dispatch({ type: 'KICK', aim })}
+          onDive={(aim) => dispatch({ type: 'DIVE', aim })}
           onDone={() => dispatch({ type: 'PENS_DONE' })}
         />
       )}
