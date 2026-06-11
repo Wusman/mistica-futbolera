@@ -7,7 +7,7 @@ import {
   type PenAim,
   emptyLineup,
   lineupFilled,
-  dailySeed,
+  dailyRunSeed,
   lineupXI,
   playHalf,
   penKick,
@@ -338,7 +338,7 @@ export default function App() {
             /* Un intento por día: si ya jugaste, vas directo a tu resultado. */
             const rec = loadDaily();
             if (rec) setDailyDone(rec);
-            else dispatch({ type: 'START_DAILY', seed: dailySeed() });
+            else dispatch({ type: 'START_DAILY', seed: dailyRunSeed() });
           }}
         />
       )}

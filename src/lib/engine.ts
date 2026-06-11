@@ -36,6 +36,14 @@ export function dailySeed(date = new Date()): number {
   return hashSeed(date.toISOString().slice(0, 10));
 }
 
+/* Semilla EFECTIVA del torneo del día: la fecha con salt. Misma para todos
+   hoy, pero no es trivialmente derivable de la fecha "a ojo" y la carta del
+   daily no la muestra → practicarla antes en modo libre exige leer el código.
+   Mitigación v1; el comprobante real será el share-code. */
+export function dailyRunSeed(date = new Date()): number {
+  return hashSeed(`daily:${date.toISOString().slice(0, 10)}`);
+}
+
 /* ── Semilla desde texto (input del home). Puro. ──
    Round-trip exacto de semillas generadas (base36 ≤ 0xffffffff) y cualquier
    palabra como semilla custom vía hash ("messi" siempre da el mismo torneo). */

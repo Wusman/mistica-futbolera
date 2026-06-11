@@ -167,6 +167,9 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     const champ = c.done.champion;
     const top = topScorer(s.goals);
     const idx = s.gf * 13 + s.ga * 7 + c.stageIdx * 5;
+    const shareTxt = mode === 'daily'
+      ? t('card.shareTextDaily', { brand: BRAND })
+      : t('card.shareText', { seed: seed.toString(36), brand: BRAND });
     const headline = champ ? flavor('champion', idx, locale) : flavor(OUT_CAT[c.done.stage], idx, locale);
     return (
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
@@ -228,22 +231,26 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         {mode === 'daily' && champ && boardState === 'done' && (
           <motion.p className="seed-hint" variants={riseIn}>{t('daily.submitted')}</motion.p>
         )}
-        <motion.div className="seed-mini seed-mini--compact" variants={riseIn}>
-          <code className="seed-chip">{seed.toString(36)}</code>
-          <motion.button className={`btn-mini ${copied ? 'btn-mini--ok' : ''}`} {...tap} onClick={copySeed}>
-            {copied ? t('home.copied') : t('home.copy')}
-          </motion.button>
-        </motion.div>
-        <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
+        {mode === 'free' && (
+          <>
+            <motion.div className="seed-mini seed-mini--compact" variants={riseIn}>
+              <code className="seed-chip">{seed.toString(36)}</code>
+              <motion.button className={`btn-mini ${copied ? 'btn-mini--ok' : ''}`} {...tap} onClick={copySeed}>
+                {copied ? t('home.copied') : t('home.copy')}
+              </motion.button>
+            </motion.div>
+            <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
+          </>
+        )}
         <motion.div className="share-row" variants={riseIn}>
           <a
             className="share-chip share-chip--icon"
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t('card.shareText', { seed: seed.toString(36), brand: BRAND }))}&url=${encodeURIComponent(SITE_URL)}`}
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTxt)}&url=${encodeURIComponent(SITE_URL)}`}
             target="_blank" rel="noopener noreferrer" aria-label="X"
           ><IcoX /><span>X</span></a>
           <a
             className="share-chip share-chip--icon"
-            href={`https://wa.me/?text=${encodeURIComponent(`${t('card.shareText', { seed: seed.toString(36), brand: BRAND })} ${SITE_URL}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
             target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
           ><IcoWa /><span>WhatsApp</span></a>
           {typeof navigator !== 'undefined' && !!navigator.share && (
@@ -251,7 +258,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
               className="share-chip share-chip--icon"
               aria-label={t('card.share')}
               onClick={() => {
-                navigator.share({ text: t('card.shareText', { seed: seed.toString(36), brand: BRAND }), url: SITE_URL }).catch(() => {});
+                navigator.share({ text: shareTxt, url: SITE_URL }).catch(() => {});
               }}
             ><IcoShare /><span>{t('card.share')}</span></button>
           )}
