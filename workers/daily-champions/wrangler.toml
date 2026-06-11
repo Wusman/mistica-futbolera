@@ -1,0 +1,8 @@
+name = "mistica-daily-champions"
+main = "index.js"
+compatibility_date = "2026-06-11"
+
+# Completar con el id que te devuelve `wrangler kv namespace create CHAMPIONS`
+[[kv_namespaces]]
+binding = "CHAMPIONS"
+id = "a9daf931d8ed441289275843240d3f6b"

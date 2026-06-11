@@ -8,6 +8,7 @@ interface Props {
   inGroup: boolean;
   groupPts: number;
   xiAvg: number;
+  you: { atk: number; def: number };
   tension: string;
   onKickoff: () => void;
 }
@@ -21,7 +22,7 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } 
 /* Pantalla de enfrentamiento estilo cartelera de pelea: tu once a la izquierda,
    el rival entra desde la derecha con sus colores, y el VS se estampa en el
    medio. Presentación pura sobre datos ya escalados por etapa (scaledRivalOf). */
-export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, tension, onKickoff }: Props) {
+export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, you, tension, onKickoff }: Props) {
   const t = useT();
 
   return (
@@ -31,6 +32,10 @@ export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, tension, 
           <p className="vs-tag">{t('vs.you')}</p>
           <p className="vs-num vs-num--gold">{xiAvg}</p>
           <p className="vs-sub">{t('common.avg')}</p>
+          <div className="vs-bars">
+            <span>{t('common.attack')} <b>{you.atk}</b></span>
+            <span>{t('common.defense')} <b>{you.def}</b></span>
+          </div>
         </motion.div>
 
         <motion.p className="vs-mid" variants={slam} aria-hidden="true">VS</motion.p>

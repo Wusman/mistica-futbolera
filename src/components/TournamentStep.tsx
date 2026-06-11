@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { motion, animate, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
-import { scaledRivalOf } from '../lib/engine';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
-
-const SITE_URL = 'https://misticafutbolera.wusman.com';
+import { SITE_URL } from '../config';
+import { scaledRivalOf, xiProfile } from '../lib/engine';
+import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
 import { MatchTicker } from './MatchTicker';
 
@@ -16,6 +16,7 @@ interface Props {
   xiAvg: number;
   opp: Team;
   seed: number;
+  mode: 'free' | 'daily';
   onKickoff: () => void;
   onNext: () => void;
   onRetry: () => void;
@@ -80,7 +81,7 @@ function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
   );
 }
 
-export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKickoff, onNext, onRetry, onReset }: Props) {
+export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, onKickoff, onNext, onRetry, onReset }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const s = c.stats;
@@ -91,6 +92,23 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
      a penales, el relato ya corrió en la tanda y no se repite. */
   const [live2, setLive2] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [arcadeName, setArcadeName] = useState('');
+  const [boardState, setBoardState] = useState<'idle' | 'sending' | 'done' | 'error'>(
+    () => (loadDaily()?.name ? 'done' : 'idle'),
+  );
+  const signBoard = () => {
+    const name = arcadeName.trim();
+    if (name.length < 2 || boardState === 'sending' || boardState === 'done') return;
+    const stats: DailyStats = { w: s.w, d: s.d, l: s.l, gf: s.gf, ga: s.ga, avg: xiAvg };
+    setBoardState('sending');
+    submitChampion({ name, ...stats })
+      .then(() => {
+        const rec = loadDaily();
+        if (rec) saveDaily({ ...rec, name });
+        setBoardState('done');
+      })
+      .catch(() => setBoardState('error'));
+  };
   const copySeed = () => {
     navigator.clipboard?.writeText(seed.toString(36)).then(() => {
       setCopied(true);
@@ -153,6 +171,30 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
             <li>{t('stats.topScorer')}: {topScorer(s.goals)}</li>
           </ul>
         </motion.div>
+        {mode === 'daily' && champ && boardState !== 'done' && (
+          <motion.div className="arcade" variants={riseIn}>
+            <p className="arcade-title">{t('daily.enterName')}</p>
+            <div className="seed-mini">
+              <input
+                className="seed-chip"
+                value={arcadeName}
+                maxLength={12}
+                placeholder={t('daily.namePh')}
+                onChange={(e) => setArcadeName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') signBoard(); }}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <motion.button className="btn-mini" {...tap} disabled={boardState === 'sending'} onClick={signBoard}>
+                {boardState === 'sending' ? '…' : t('daily.submit')}
+              </motion.button>
+            </div>
+            {boardState === 'error' && <p className="board-note board-note--bad">{t('daily.error')}</p>}
+          </motion.div>
+        )}
+        {mode === 'daily' && champ && boardState === 'done' && (
+          <motion.p className="seed-hint" variants={riseIn}>{t('daily.submitted')}</motion.p>
+        )}
         <motion.div className="seed-mini" variants={riseIn}>
           <code className="seed-chip">{seed.toString(36)}</code>
           <motion.button className={`btn-mini ${copied ? 'btn-mini--ok' : ''}`} {...tap} onClick={copySeed}>
@@ -181,8 +223,12 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
           )}
         </motion.div>
         <motion.div className="card-ctas" variants={riseIn}>
-          <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
-          <motion.button className="cta" {...tap} onClick={onReset}>{t('card.again')}</motion.button>
+          {mode === 'free' && (
+            <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
+          )}
+          <motion.button className="cta" {...tap} onClick={onReset}>
+            {mode === 'daily' ? t('daily.free') : t('card.again')}
+          </motion.button>
         </motion.div>
       </motion.section>
     );
@@ -242,6 +288,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, onKi
         inGroup={inGroup}
         groupPts={c.groupPts}
         xiAvg={xiAvg}
+        you={xiProfile(c.xi)}
         tension={tension}
         onKickoff={onKickoff}
       />

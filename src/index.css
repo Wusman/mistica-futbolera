@@ -188,7 +188,7 @@ button:focus-visible,
 .hero-title-gold {
   display: block; color: var(--gold); font-size: 0.56em; letter-spacing: 0; margin-top: 6px;
 }
-.hero-sub { color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; }
+.hero-sub { color: #bcc7e8; font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65); }
 
 .hero-board { padding: 14px 14px 16px; }
 .board-caption { font-style: italic; color: var(--muted); font-size: 13px; text-align: center; margin: 12px 0 0; }
@@ -456,6 +456,18 @@ button:focus-visible,
 .pen-aim:disabled { opacity: 0.45; cursor: default; }
 .tension--bad { color: #ff9b9b; }
 .toss-line { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 3px; font-size: clamp(22px, 6vw, 30px); color: var(--gold); margin: 8px 0; }
+
+/* ── Tabla de campeones del día (arcade) ── */
+.board { max-width: 680px; margin: 0 auto; width: 100%; }
+.board-note { color: var(--muted); font-size: 13px; font-style: italic; margin: 8px 0 0; }
+.board-note--bad { color: #ff9b9b; font-style: normal; }
+.board-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.board-row { display: flex; align-items: baseline; gap: 10px; padding: 7px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.board-pos { font-family: var(--font-display); font-weight: 700; color: var(--gold); width: 22px; text-align: right; }
+.board-name { flex: 1; font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-rec { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.arcade { border: 1px solid hsl(45 70% 55% / 0.45); border-radius: 8px; padding: 12px; }
+.arcade-title { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0 0 8px; }
 .pen-turn { align-self: center; }
 
 /* CTAs gemelos de la carta final: revancha (misma semilla) + torneo nuevo. */

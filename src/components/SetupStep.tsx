@@ -5,6 +5,7 @@ import { posLabel } from '../labels';
 import { showcaseXI, seedFromInput } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
+import { ChampionsBoard } from './ChampionsBoard';
 
 interface Props {
   formation: FormationName;
@@ -172,6 +173,10 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           </li>
         ))}
       </motion.ol>
+
+      <motion.div variants={rise}>
+        <ChampionsBoard />
+      </motion.div>
 
       <motion.p className="setup-stats" variants={rise}>
         {t('setup.stats')}

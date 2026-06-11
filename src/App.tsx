@@ -1,4 +1,4 @@
-import { type CSSProperties, useReducer } from 'react';
+import { type CSSProperties, useEffect, useReducer, useState } from 'react';
 import { type Player, type FormationName, TEAMS } from './data/players';
 import {
   type Lineup,
@@ -32,6 +32,8 @@ import {
   emptyStats,
 } from './lib/tournament';
 import { useT, useLocale } from './i18n';
+import { type DailyRecord, loadDaily, saveDaily } from './lib/daily';
+import { DailyDone } from './components/DailyDone';
 import { LangSwitch } from './components/LangSwitch';
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
@@ -55,12 +57,13 @@ type Phase =
   | { kind: 'drafting'; step: number; lineup: Lineup; passes: number }
   | { kind: 'campaign'; c: Campaign };
 
-interface GameState { seed: number; formation: FormationName; phase: Phase; }
+interface GameState { seed: number; formation: FormationName; phase: Phase; mode: 'free' | 'daily'; }
 
 type Action =
   | { type: 'SET_FORMATION'; formation: FormationName }
   | { type: 'NEW_SEED'; seed: number }
   | { type: 'START' }
+  | { type: 'START_DAILY'; seed: number }
   | { type: 'PICK'; player: Player; slot: number }
   | { type: 'SKIP' }
   | { type: 'PASS' }
@@ -74,7 +77,7 @@ type Action =
   | { type: 'GO_HOME' }
   | { type: 'RESET'; seed: number };
 
-const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' } });
+const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' }, mode: 'free' });
 
 const teamById = (id: string) => TEAMS.find((t) => t.id === id)!;
 const matchSeedFor = (seed: number, stageIdx: number) => (seed ^ ((stageIdx + 1) * 0x85ebca6b)) >>> 0;
@@ -120,7 +123,11 @@ function reducer(state: GameState, action: Action): GameState {
     case 'NEW_SEED':
       return { ...state, seed: action.seed };
     case 'START':
-      return { ...state, phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES } };
+      return { ...state, mode: 'free', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES } };
+    case 'START_DAILY':
+      /* Torneo del día: misma semilla para todos hoy; UN intento (candado en
+         localStorage al terminar). El reloj solo elige la semilla. */
+      return { ...state, seed: action.seed, mode: 'daily', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES } };
 
     case 'PICK': {
       if (state.phase.kind !== 'drafting') return state;
@@ -259,7 +266,7 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, phase: { kind: 'setup' } };
 
     case 'RESET':
-      return { seed: action.seed, formation: state.formation, phase: { kind: 'setup' } };
+      return { seed: action.seed, formation: state.formation, phase: { kind: 'setup' }, mode: 'free' };
     default:
       return state;
   }
@@ -272,6 +279,24 @@ export default function App() {
   const rootStyle = { '--seed-hue': String(seedHue(state.seed)) } as CSSProperties;
 
   const phase = state.phase;
+
+  const [dailyDone, setDailyDone] = useState<DailyRecord | null>(null);
+
+  /* Candado del diario: al terminar la corrida (campeón o eliminado) se
+     persiste el resultado. Sincronización con sistema externo → effect. */
+  useEffect(() => {
+    if (phase.kind !== 'campaign' || state.mode !== 'daily') return;
+    const c = phase.c;
+    const done = c.done;
+    if (!done || c.sub.k !== 'fulltime') return;
+    if (loadDaily()) return; // ya guardado
+    const m = c.sub.m;
+    saveDaily({
+      champion: done.champion,
+      gf: m.gf, ga: m.ga, opp: `${m.oppName} · ${m.oppEdition}`, stage: done.stage,
+      stats: { w: c.stats.w, d: c.stats.d, l: c.stats.l, gf: c.stats.gf, ga: c.stats.ga, avg: Math.round(avg(c.xi)) },
+    });
+  }, [phase, state.mode]);
 
   const goHome = () => {
     if (phase.kind === 'setup') return;
@@ -298,7 +323,10 @@ export default function App() {
       </header>
 
       <main className="stage">
-        {phase.kind === 'setup' && (
+        {phase.kind === 'setup' && dailyDone && (
+          <DailyDone rec={dailyDone} onFree={() => setDailyDone(null)} />
+        )}
+        {phase.kind === 'setup' && !dailyDone && (
         <SetupStep
           formation={state.formation}
           seed={state.seed}
@@ -307,10 +335,10 @@ export default function App() {
           onSetSeed={(seed) => dispatch({ type: 'NEW_SEED', seed })}
           onStart={() => dispatch({ type: 'START' })}
           onDaily={() => {
-            /* La fecha (reloj) solo ELIGE la semilla; la corrida sigue siendo
-               100% determinista de esa semilla. Todos juegan la misma hoy. */
-            dispatch({ type: 'NEW_SEED', seed: dailySeed() });
-            dispatch({ type: 'START' });
+            /* Un intento por día: si ya jugaste, vas directo a tu resultado. */
+            const rec = loadDaily();
+            if (rec) setDailyDone(rec);
+            else dispatch({ type: 'START_DAILY', seed: dailySeed() });
           }}
         />
       )}
@@ -367,6 +395,7 @@ export default function App() {
           xiAvg={Math.round(avg(phase.c.xi))}
           opp={teamById(phase.c.oppId)}
           seed={state.seed}
+          mode={state.mode}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
           onNext={() => dispatch({ type: 'NEXT' })}
           onRetry={() => {

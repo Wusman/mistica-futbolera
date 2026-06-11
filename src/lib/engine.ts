@@ -186,6 +186,17 @@ export function rivalOf(team: Team): Rival {
   };
 }
 
+/* Perfil de un once: ataque (FW+MF) y defensa (DF+GK), como rivalOf pero
+   para TU equipo — el versus muestra lo mismo de ambos lados. Puro. */
+export function xiProfile(xi: Player[]): { atk: number; def: number } {
+  const at = xi.filter((p) => { const l = lineOf(p.pos[0]); return l === 'FW' || l === 'MF'; });
+  const bk = xi.filter((p) => { const l = lineOf(p.pos[0]); return l === 'DF' || l === 'GK'; });
+  return {
+    atk: Math.round(avg(at.length ? at : xi)),
+    def: Math.round(avg(bk.length ? bk : xi)),
+  };
+}
+
 /* ════════ DIFFICULTY RAMP (deterministic) ════════
    A cherry-picked cross-era XI out-rates any single real squad, so without
    a ramp the run is a steamroll. This raises the rival's effective strength
