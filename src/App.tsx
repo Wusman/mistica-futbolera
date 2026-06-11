@@ -7,6 +7,7 @@ import {
   type PenAim,
   emptyLineup,
   lineupFilled,
+  dailySeed,
   lineupXI,
   playHalf,
   penKick,
@@ -305,6 +306,12 @@ export default function App() {
           onNewSeed={() => dispatch({ type: 'NEW_SEED', seed: newSeed() })}
           onSetSeed={(seed) => dispatch({ type: 'NEW_SEED', seed })}
           onStart={() => dispatch({ type: 'START' })}
+          onDaily={() => {
+            /* La fecha (reloj) solo ELIGE la semilla; la corrida sigue siendo
+               100% determinista de esa semilla. Todos juegan la misma hoy. */
+            dispatch({ type: 'NEW_SEED', seed: dailySeed() });
+            dispatch({ type: 'START' });
+          }}
         />
       )}
 

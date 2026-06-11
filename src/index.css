@@ -499,6 +499,7 @@ button:focus-visible,
   text-shadow: 0.06em 0.06em 0 hsl(45 85% 55% / 0.28);
 }
 .cta--kickoff { align-self: center; width: 100%; max-width: 420px; }
+.cta--daily { display: block; width: 100%; max-width: 380px; margin-top: 10px; font-size: 15px; padding: 13px; }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {

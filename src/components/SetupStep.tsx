@@ -13,6 +13,7 @@ interface Props {
   onNewSeed: () => void;
   onSetSeed: (seed: number) => void;
   onStart: () => void;
+  onDaily: () => void;
 }
 
 const surname = (name: string) => {
@@ -26,7 +27,7 @@ const pitchC = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const slotV = { hidden: { opacity: 0, scale: 0.5 }, show: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
-export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart }: Props) {
+export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onDaily }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const names = Object.keys(FORMATIONS) as FormationName[];
@@ -75,6 +76,14 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           <p className="hero-sub">{t('home.sub')}</p>
           <motion.button className="cta cta--xl cta--hero" {...tap} onClick={onStart}>
             {t('setup.start')} →
+          </motion.button>
+          <motion.button
+            className="cta cta--ghost cta--daily"
+            {...tap}
+            onClick={onDaily}
+            title={t('home.dailyHint')}
+          >
+            🗓 {t('home.daily')}
           </motion.button>
         </motion.div>
 

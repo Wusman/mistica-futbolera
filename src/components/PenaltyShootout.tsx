@@ -16,6 +16,11 @@ const ZONE: Record<PenAim, { x: number; y: number }> = {
 const OUT: Record<PenAim, { x: number; y: number }> = {
   L: { x: 3, y: 10 }, C: { x: 50, y: -4 }, R: { x: 97, y: 10 },
 };
+/* Gol con el palo ADIVINADO: la pelota lo pasa por arriba, al rincón. Si
+   aterrizara en el mismo punto que el arquero, parecería un robo. */
+const PAST: Record<PenAim, { x: number; y: number }> = {
+  L: { x: 16, y: 15 }, C: { x: 50, y: 13 }, R: { x: 84, y: 15 },
+};
 const KEEPER_Y = 38;
 const BALL_START = { x: 50, y: 57 };
 
@@ -122,7 +127,7 @@ export function PenaltyShootout({
   /* Destino de la pelota: misma geometría para ambos lados (es "el arco"). */
   const ballTo = last
     ? last.scored
-      ? ZONE[last.aim]
+      ? (last.dive === last.aim ? PAST[last.aim] : ZONE[last.aim])  // adivinado pero gol: al rincón
       : last.dive === last.aim
         ? { x: ZONE[last.dive].x, y: KEEPER_Y - 4 }   // atajada: muere en el arquero
         : OUT[last.aim]                                // errado: se va afuera
@@ -131,8 +136,12 @@ export function PenaltyShootout({
   const showAnim = step !== 'idle' && last !== null;
   const resultText = last
     ? lastSide === 'you'
-      ? (last.scored ? t('pens.goal') : last.dive === last.aim ? t('pens.saved') : t('pens.out'))
-      : (last.scored ? t('pens.oppGoal', { opp: oppName }) : last.dive === last.aim ? t('pens.youSaved') : t('pens.oppOut'))
+      ? (last.scored
+          ? (last.dive === last.aim ? t('pens.golazo') : t('pens.goal'))
+          : last.dive === last.aim ? t('pens.saved') : t('pens.out'))
+      : (last.scored
+          ? (last.dive === last.aim ? t('pens.unstoppable') : t('pens.oppGoal', { opp: oppName }))
+          : last.dive === last.aim ? t('pens.youSaved') : t('pens.oppOut'))
     : '';
   const resultGood = last ? (lastSide === 'you' ? last.scored : !last.scored) : false;
 

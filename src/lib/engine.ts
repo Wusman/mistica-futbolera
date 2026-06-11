@@ -252,10 +252,22 @@ export function halfEvents(
   oppXI?: Player[],
 ): TickerEvent[] {
   const base = half === 1 ? 1 : 46;
+  /* Minutos ÚNICOS en la mitad (entre ambos equipos): dos goles en el mismo
+     minuto rompen la ilusión y el ticker los hace aparecer juntos. Si un
+     sorteo cae en minuto ocupado, se corre al hueco libre más cercano.
+     Determinista: mismo seed → mismos minutos. */
+  const used = new Set<number>();
+  const claim = (m: number): number => {
+    let x = m;
+    while (used.has(x) && x < base + 44) x++;
+    while (used.has(x) && x > base) x--;
+    used.add(x);
+    return x;
+  };
   const minutesFor = (salt: number, count: number) => {
     const rng = mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ salt) >>> 0);
     const mins: number[] = [];
-    for (let i = 0; i < count; i++) mins.push(base + Math.floor(rng() * 44));
+    for (let i = 0; i < count; i++) mins.push(claim(base + Math.floor(rng() * 44)));
     return mins.sort((a, b) => a - b);
   };
   const yours = minutesFor(0x474f4c21, out.gf);
