@@ -6,6 +6,7 @@ import { showcaseXI, seedFromInput, shortName } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
+import { loadStreak } from '../lib/daily';
 
 interface Props {
   formation: FormationName;
@@ -88,6 +89,16 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
             {t('daily.free')}
           </motion.button>
+          {(() => {
+            const meta = loadStreak();
+            if (!meta || (meta.streak < 2 && meta.titles === 0)) return null;
+            return (
+              <p className="streak-chip">
+                {meta.streak >= 2 && <span>🔥 {t('streak.days', { n: meta.streak })}</span>}
+                {meta.titles > 0 && <span>🏆 {t('streak.titles', { n: meta.titles })}</span>}
+              </p>
+            );
+          })()}
         </motion.div>
 
         {/* ── The carrot: a dream XI you could draft, re-rolled per seed. ── */}

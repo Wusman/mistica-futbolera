@@ -37,7 +37,7 @@ import {
   emptyStats,
 } from './lib/tournament';
 import { useT, useLocale } from './i18n';
-import { type DailyRecord, loadDaily, saveDaily } from './lib/daily';
+import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { DailyDone } from './components/DailyDone';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
@@ -454,6 +454,7 @@ export default function App() {
       gf: m.gf, ga: m.ga, opp: `${m.oppName} · ${m.oppEdition}`, stage: done.stage,
       stats: { w: c.stats.w, d: c.stats.d, l: c.stats.l, gf: c.stats.gf, ga: c.stats.ga, avg: Math.round(avg(c.xi)) },
     });
+    bumpStreak(done.champion); // racha de días + vitrina de títulos
   }, [phase, state.mode]);
 
   const goHome = () => {

@@ -579,6 +579,14 @@ button:focus-visible,
 .fb-box:focus { outline: none; border-color: var(--accent); }
 .cta--seed { width: 100%; margin-top: 10px; padding: 11px 8px; font-size: 13px; }
 
+/* Racha del diario + vitrina: chip discreto bajo los CTAs del home. */
+.streak-chip {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 16px;
+  margin: 10px 0 0; font-family: var(--font-display);
+  font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
 .footer-link {
   background: none; border: none; cursor: pointer; padding: 0; font: inherit;
   color: var(--muted); text-decoration: underline; text-underline-offset: 3px;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { type DailyRecord } from '../lib/daily';
+import { type DailyRecord, loadStreak } from '../lib/daily';
 import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
 
@@ -33,6 +33,16 @@ export function DailyDone({ rec, onFree }: Props) {
           {t('stats.record', { pj: rec.stats.w + rec.stats.d + rec.stats.l, w: rec.stats.w, d: rec.stats.d, l: rec.stats.l, gf: rec.stats.gf, ga: rec.stats.ga })}
         </p>
         {rec.name && <p className="seed-hint">{t('daily.submitted')}</p>}
+        {(() => {
+          const meta = loadStreak();
+          if (!meta || (meta.streak < 2 && meta.titles === 0)) return null;
+          return (
+            <p className="streak-chip">
+              {meta.streak >= 2 && <span>🔥 {t('streak.days', { n: meta.streak })}</span>}
+              {meta.titles > 0 && <span>🏆 {t('streak.titles', { n: meta.titles })}</span>}
+            </p>
+          );
+        })()}
         <p className="match-note">{t('daily.back')}</p>
       </div>
 
