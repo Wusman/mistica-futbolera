@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   DATA — players.ts  (v2: glorias de Europa, 1993–2025)
+   DATA — players.ts  (v3: glorias de Europa, 1993–2025)
 
    Single source of game data: champion squads + formations.
 
@@ -7,7 +7,7 @@
    is eligible for a slot only if the slot's position is in `pos`
    (strict, no penalty — the dual position is the flexibility).
 
-   TEAMS: 15 champions + 8 mythical finalists (1993–2025), picked for
+   TEAMS: 19 champions + 11 mythical finalists (1993–2025), picked for
    global name-recognition. Squad membership is from the well-known
    finals/runs; fine-position tags and ratings are a first, editable pass.
    Non-champions sit in a deliberately lower rating band: beatable group
@@ -526,6 +526,145 @@ export const TEAMS: Team[] = [
       { i: 2309, n: 'Ousmane Dembélé',       pos: ['ST', 'RW'], r: 91 }, // el año del Balón de Oro
       { i: 2310, n: 'Khvicha Kvaratskhelia', pos: ['LW'],       r: 87 },
       { i: 2311, n: 'Bradley Barcola',       pos: ['LW', 'RW'], r: 83 },
+    ],
+  },
+
+  /* ════════════════════════════════════════
+     DATASET v3 — segunda tanda: 4 campeones de banda media-alta y 3
+     finalistas míticos en banda baja. La varianza crece por arriba y por
+     abajo; la curva de dificultad no se rompe.
+  ════════════════════════════════════════ */
+
+  /* ── Ajax · Champions 1995 ── los pibes de Van Gaal; campeones invictos. */
+  {
+    id: 'aja95', name: 'Ajax', edition: 'Champions 1995', colors: ['#d2122e', '#ffffff'],
+    players: [
+      { i: 2400, n: 'Edwin van der Sar', pos: ['GK'],       r: 87 },
+      { i: 2401, n: 'Michael Reiziger',  pos: ['RB'],       r: 80 },
+      { i: 2402, n: 'Danny Blind',       pos: ['CB'],       r: 83 }, // capitán
+      { i: 2403, n: 'Frank de Boer',     pos: ['CB', 'LB'], r: 84 },
+      { i: 2404, n: 'Frank Rijkaard',    pos: ['DM', 'CB'], r: 87 },
+      { i: 2405, n: 'Edgar Davids',      pos: ['CM', 'DM'], r: 85 },
+      { i: 2406, n: 'Clarence Seedorf',  pos: ['CM', 'AM'], r: 84 },
+      { i: 2407, n: 'Jari Litmanen',     pos: ['AM'],       r: 87 },
+      { i: 2408, n: 'Finidi George',     pos: ['RW'],       r: 80 },
+      { i: 2409, n: 'Marc Overmars',     pos: ['LW'],       r: 86 },
+      { i: 2410, n: 'Patrick Kluivert',  pos: ['ST'],       r: 84 }, // el gol de la final con 18
+      { i: 2411, n: 'Ronald de Boer',    pos: ['CM', 'ST'], r: 81 },
+    ],
+  },
+
+  /* ── Juventus · Champions 1996 ── la Juve de Lippi; ganó la tanda en Roma. */
+  {
+    id: 'juv96', name: 'Juventus', edition: 'Champions 1996', colors: ['#0a0a0a', '#ffffff'],
+    players: [
+      { i: 2500, n: 'Angelo Peruzzi',     pos: ['GK'],       r: 85 },
+      { i: 2501, n: 'Moreno Torricelli',  pos: ['RB'],       r: 77 },
+      { i: 2502, n: 'Ciro Ferrara',       pos: ['CB'],       r: 84 },
+      { i: 2503, n: 'Pietro Vierchowod',  pos: ['CB'],       r: 83 },
+      { i: 2504, n: 'Gianluca Pessotto',  pos: ['LB'],       r: 78 },
+      { i: 2505, n: 'Didier Deschamps',   pos: ['DM'],       r: 84 },
+      { i: 2506, n: 'Antonio Conte',      pos: ['CM', 'RM'], r: 82 },
+      { i: 2507, n: 'Paulo Sousa',        pos: ['DM', 'CM'], r: 83 },
+      { i: 2508, n: 'Vladimir Jugović',   pos: ['CM', 'AM'], r: 80 }, // el penal del título
+      { i: 2509, n: 'Alessandro Del Piero', pos: ['AM', 'ST'], r: 88 },
+      { i: 2510, n: 'Gianluca Vialli',    pos: ['ST'],       r: 87 }, // capitán
+      { i: 2511, n: 'Fabrizio Ravanelli', pos: ['ST', 'LW'], r: 84 },
+    ],
+  },
+
+  /* ── Bayern München · Champions 2001 ── Kahn atajó tres en la tanda de Milán. */
+  {
+    id: 'mun01', name: 'Bayern München', edition: 'Champions 2001', colors: ['#dc052d', '#0066b2'],
+    players: [
+      { i: 2600, n: 'Oliver Kahn',        pos: ['GK'],       r: 91 }, // héroe de la tanda
+      { i: 2601, n: 'Willy Sagnol',       pos: ['RB'],       r: 80 },
+      { i: 2602, n: 'Samuel Kuffour',     pos: ['CB'],       r: 83 },
+      { i: 2603, n: 'Patrik Andersson',   pos: ['CB'],       r: 81 },
+      { i: 2604, n: 'Bixente Lizarazu',   pos: ['LB'],       r: 86 },
+      { i: 2605, n: 'Jens Jeremies',      pos: ['DM'],       r: 79 },
+      { i: 2606, n: 'Owen Hargreaves',    pos: ['DM', 'CM'], r: 78 },
+      { i: 2607, n: 'Stefan Effenberg',   pos: ['CM', 'AM'], r: 87 }, // capitán
+      { i: 2608, n: 'Mehmet Scholl',      pos: ['AM', 'RW'], r: 86 },
+      { i: 2609, n: 'Hasan Salihamidžić', pos: ['RM', 'RW'], r: 80 },
+      { i: 2610, n: 'Giovane Élber',      pos: ['ST'],       r: 85 },
+      { i: 2611, n: 'Paulo Sérgio',       pos: ['LW', 'ST'], r: 78 },
+    ],
+  },
+
+  /* ── Real Madrid · Champions 2002 ── la Novena; LA volea de Zidane en Glasgow. */
+  {
+    id: 'rma02', name: 'Real Madrid', edition: 'Champions 2002', colors: ['#ffffff', '#febe10'],
+    players: [
+      { i: 2700, n: 'Iker Casillas',   pos: ['GK'],       r: 87 }, // entró y la salvó
+      { i: 2701, n: 'Míchel Salgado',  pos: ['RB'],       r: 80 },
+      { i: 2702, n: 'Fernando Hierro', pos: ['CB', 'DM'], r: 87 }, // capitán
+      { i: 2703, n: 'Iván Helguera',   pos: ['CB', 'DM'], r: 82 },
+      { i: 2704, n: 'Roberto Carlos',  pos: ['LB', 'LM'], r: 89 },
+      { i: 2705, n: 'Claude Makélélé', pos: ['DM'],       r: 86 },
+      { i: 2706, n: 'Guti',            pos: ['CM', 'AM'], r: 81 },
+      { i: 2707, n: 'Santiago Solari', pos: ['LM', 'LW'], r: 79 },
+      { i: 2708, n: 'Luís Figo',       pos: ['RW', 'RM'], r: 90 },
+      { i: 2709, n: 'Zinedine Zidane', pos: ['AM', 'CM'], r: 94 }, // LA volea
+      { i: 2710, n: 'Raúl',            pos: ['ST'],       r: 90 },
+      { i: 2711, n: 'Fernando Morientes', pos: ['ST'],    r: 85 },
+    ],
+  },
+
+  /* ── Valencia · Finalista 2001 ── dos finales seguidas; cayó por penales en Milán. */
+  {
+    id: 'val01', name: 'Valencia', edition: 'Finalista 2001', colors: ['#ffffff', '#ee3524'],
+    players: [
+      { i: 2800, n: 'Santiago Cañizares', pos: ['GK'],       r: 85 },
+      { i: 2801, n: 'Jocelyn Angloma',    pos: ['RB'],       r: 79 },
+      { i: 2802, n: 'Roberto Ayala',      pos: ['CB'],       r: 86 },
+      { i: 2803, n: 'Mauricio Pellegrino',pos: ['CB'],       r: 79 },
+      { i: 2804, n: 'Amedeo Carboni',     pos: ['LB'],       r: 78 },
+      { i: 2805, n: 'Rubén Baraja',       pos: ['CM', 'DM'], r: 83 },
+      { i: 2806, n: 'Gaizka Mendieta',    pos: ['RM', 'CM'], r: 87 }, // la estrella
+      { i: 2807, n: 'Kily González',      pos: ['LM', 'LW'], r: 82 },
+      { i: 2808, n: 'Pablo Aimar',        pos: ['AM'],       r: 84 },
+      { i: 2809, n: 'Vicente',            pos: ['LW', 'LM'], r: 81 },
+      { i: 2810, n: 'John Carew',         pos: ['ST'],       r: 80 },
+      { i: 2811, n: 'Juan Sánchez',       pos: ['ST', 'RW'], r: 76 },
+    ],
+  },
+
+  /* ── Bayer Leverkusen · Finalista 2002 ── el Neverkusen; lo mató la volea. */
+  {
+    id: 'lev02', name: 'Bayer Leverkusen', edition: 'Finalista 2002', colors: ['#e32221', '#0a0a0a'],
+    players: [
+      { i: 2900, n: 'Hans-Jörg Butt',    pos: ['GK'],       r: 80 },
+      { i: 2901, n: 'Diego Placente',    pos: ['LB'],       r: 77 },
+      { i: 2902, n: 'Lúcio',             pos: ['CB'],       r: 85 },
+      { i: 2903, n: 'Jens Nowotny',      pos: ['CB', 'DM'], r: 81 },
+      { i: 2904, n: 'Bernd Schneider',   pos: ['RM', 'RW'], r: 84 },
+      { i: 2905, n: 'Carsten Ramelow',   pos: ['DM', 'CB'], r: 80 },
+      { i: 2906, n: 'Michael Ballack',   pos: ['CM', 'AM'], r: 89 },
+      { i: 2907, n: 'Zé Roberto',        pos: ['LM', 'LW'], r: 84 },
+      { i: 2908, n: 'Yıldıray Baştürk',  pos: ['AM'],       r: 82 },
+      { i: 2909, n: 'Oliver Neuville',   pos: ['ST', 'RW'], r: 81 },
+      { i: 2910, n: 'Ulf Kirsten',       pos: ['ST'],       r: 79 },
+      { i: 2911, n: 'Dimitar Berbatov',  pos: ['ST'],       r: 80 },
+    ],
+  },
+
+  /* ── Inter · Finalista 2023 ── le plantó cara al City de Estambul. */
+  {
+    id: 'int23', name: 'Inter', edition: 'Finalista 2023', colors: ['#0068a8', '#0a0a0a'],
+    players: [
+      { i: 3000, n: 'André Onana',        pos: ['GK'],       r: 85 },
+      { i: 3001, n: 'Matteo Darmian',     pos: ['RB', 'CB'], r: 79 },
+      { i: 3002, n: 'Francesco Acerbi',   pos: ['CB'],       r: 82 },
+      { i: 3003, n: 'Alessandro Bastoni', pos: ['CB', 'LB'], r: 85 },
+      { i: 3004, n: 'Denzel Dumfries',    pos: ['RM', 'RB'], r: 82 },
+      { i: 3005, n: 'Federico Dimarco',   pos: ['LM', 'LB'], r: 84 },
+      { i: 3006, n: 'Nicolò Barella',     pos: ['CM'],       r: 86 },
+      { i: 3007, n: 'Hakan Çalhanoğlu',   pos: ['DM', 'CM'], r: 86 },
+      { i: 3008, n: 'Marcelo Brozović',   pos: ['DM', 'CM'], r: 84 },
+      { i: 3009, n: 'Henrikh Mkhitaryan', pos: ['CM', 'AM'], r: 81 },
+      { i: 3010, n: 'Lautaro Martínez',   pos: ['ST'],       r: 87 }, // capitán
+      { i: 3011, n: 'Edin Džeko',         pos: ['ST'],       r: 81 },
     ],
   },
 ];
