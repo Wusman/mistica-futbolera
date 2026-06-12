@@ -17,6 +17,10 @@ export const STAGE_LABEL: Record<Stage, string> = {
 
 export const isGroup = (s: Stage) => s === 'g1' || s === 'g2';
 
+/* Eliminatorias a doble partido (la final es única). Sin gol de visitante:
+   manda el global; si empata tras la vuelta, tanda. */
+export const isTwoLegged = (s: Stage) => s === 'r16' || s === 'qf' || s === 'sf';
+
 /* ── Running stats across a run ── */
 export interface Stats {
   pj: number; w: number; d: number; l: number;
@@ -34,6 +38,8 @@ export interface MatchView {
   pens?: Shootout;
   outcome: 'W' | 'D' | 'L';
   end2: number; // 90 + descuento (reloj del relato)
+  leg?: 1 | 2;                       // solo eliminatorias con vuelta
+  agg?: { gf: number; ga: number };  // global acumulado tras este partido
 }
 
 /* ── The interactive sub-state of the current match ── */
@@ -65,6 +71,7 @@ export type Sub =
          la "liquida" hacia fulltime (stats, pool, done). */
       k: 'pens';
       gf: number; ga: number; scorers: Scorer[]; ev: TickerEvent[];
+      agg?: { gf: number; ga: number }; // global de la serie (tanda tras la vuelta)
       end2: number; resume?: number; // relato del 2T: hasta 90+X, desde resume si hubo penal
       first: 'you' | 'opp';
       you: PenKickResult[]; opp: OppPenResult[];
@@ -81,5 +88,9 @@ export interface Campaign {
   groupPts: number;
   stats: Stats;
   sub: Sub;
+  /* Ida y vuelta: leg 1|2 (siempre 1 en grupos y final); agg1 = marcador de
+     la ida mientras la serie está abierta. */
+  leg: 1 | 2;
+  agg1?: { gf: number; ga: number };
   done?: { champion: boolean; stage: Stage };
 }

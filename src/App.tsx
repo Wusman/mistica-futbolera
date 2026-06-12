@@ -33,6 +33,7 @@ import {
   type Sub,
   LADDER,
   isGroup,
+  isTwoLegged,
   emptyStats,
 } from './lib/tournament';
 import { useT, useLocale } from './i18n';
@@ -89,7 +90,8 @@ type Action =
 const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' }, mode: 'free' });
 
 const teamById = (id: string) => TEAMS.find((t) => t.id === id)!;
-const matchSeedFor = (seed: number, stageIdx: number) => (seed ^ ((stageIdx + 1) * 0x85ebca6b)) >>> 0;
+const matchSeedFor = (seed: number, stageIdx: number, leg: 1 | 2 = 1) =>
+  (seed ^ ((stageIdx + 1) * 0x85ebca6b) ^ (leg === 2 ? 0x4c454732 : 0)) >>> 0; // ^"LEG2"
 
 /* Cierre del 2do tiempo (compartido por DECIDE y H2_DONE): combina mitades,
    recorta al tope de 9, deriva a tanda si hay empate eliminatorio y liquida.
@@ -116,13 +118,28 @@ function settleH2(
     e.side === 'you' ? ++cy <= gf : ++co <= ga,
   );
 
-  if (!isGroup(stage) && gf === ga) {
-    const sub: Sub = { k: 'pens', gf, ga, scorers, ev, end2, resume, first: penCoinToss(ms), you: [], opp: [] };
+  /* Ida y vuelta: el global manda. La ida nunca elimina ni va a tanda;
+     la vuelta empatada EN EL GLOBAL deriva a penales. La final es única. */
+  const twoLeg = isTwoLegged(stage);
+  const aggGf = gf + (twoLeg && c.leg === 2 ? c.agg1?.gf ?? 0 : 0);
+  const aggGa = ga + (twoLeg && c.leg === 2 ? c.agg1?.ga ?? 0 : 0);
+  const needsPens = !isGroup(stage) && (twoLeg ? c.leg === 2 && aggGf === aggGa : gf === ga);
+
+  if (needsPens) {
+    const sub: Sub = {
+      k: 'pens', gf, ga, scorers, ev, end2, resume,
+      agg: twoLeg ? { gf: aggGf, ga: aggGa } : undefined,
+      first: penCoinToss(ms), you: [], opp: [],
+    };
     return { ...state, phase: { kind: 'campaign', c: { ...c, sub } } };
   }
 
   const outcome: 'W' | 'D' | 'L' = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
-  const m: MatchView = { oppId: c.oppId, oppName, oppEdition, gf, ga, scorers, ev, outcome, end2 };
+  const m: MatchView = {
+    oppId: c.oppId, oppName, oppEdition, gf, ga, scorers, ev, outcome, end2,
+    leg: twoLeg ? c.leg : undefined,
+    agg: twoLeg ? { gf: aggGf, ga: aggGa } : undefined,
+  };
   const settled = { ...c, ...settleMatch(c, stage, m) };
   if (settled.sub.k === 'fulltime' && resume !== undefined) {
     settled.sub = { ...settled.sub, resume };
@@ -136,7 +153,7 @@ function settleMatch(
   c: Campaign,
   stage: Stage,
   m: MatchView,
-): Pick<Campaign, 'pool' | 'groupPts' | 'stats' | 'sub' | 'done'> {
+): Pick<Campaign, 'pool' | 'groupPts' | 'stats' | 'sub' | 'done' | 'leg' | 'agg1'> {
   const goals = { ...c.stats.goals };
   for (const s of m.scorers) goals[s.n] = (goals[s.n] ?? 0) + 1;
   const stats: Stats = {
@@ -150,18 +167,33 @@ function settleMatch(
     goals,
   };
 
-  const pool = m.outcome === 'W' ? c.pool.filter((id) => id !== c.oppId) : c.pool;
+  const twoLeg = isTwoLegged(stage);
+  const legOpen = twoLeg && c.leg === 1; // la ida deja la serie abierta
+
+  /* ¿La llave quedó ganada? Series por global (o tanda); final/grupo por
+     el partido. La ida nunca decide. */
+  const tieWon = legOpen
+    ? false
+    : twoLeg
+      ? (m.pens ? m.outcome === 'W' : (m.agg?.gf ?? m.gf) > (m.agg?.ga ?? m.ga))
+      : m.outcome === 'W';
+
+  const pool = tieWon ? c.pool.filter((id) => id !== c.oppId) : c.pool;
   const groupPts = c.groupPts + (isGroup(stage) ? (m.outcome === 'W' ? 3 : m.outcome === 'D' ? 1 : 0) : 0);
 
   let done: Campaign['done'];
   if (stage === 'g2') {
     if (groupPts < 3) done = { champion: false, stage };
-  } else if (!isGroup(stage)) {
-    if (m.outcome === 'L') done = { champion: false, stage };
+  } else if (!isGroup(stage) && !legOpen) {
+    if (!tieWon) done = { champion: false, stage };
     else if (stage === 'final') done = { champion: true, stage };
   }
 
-  return { pool, groupPts, stats, sub: { k: 'fulltime', m }, done };
+  return {
+    pool, groupPts, stats, sub: { k: 'fulltime', m }, done,
+    leg: legOpen ? 2 : c.leg,
+    agg1: legOpen ? { gf: m.gf, ga: m.ga } : c.agg1,
+  };
 }
 
 function reducer(state: GameState, action: Action): GameState {
@@ -199,8 +231,8 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.phase.kind !== 'drafting' || !lineupFilled(state.phase.lineup)) return state;
       const xi = lineupXI(state.phase.lineup);
       const pool = TEAMS.map((t) => t.id);
-      const oppId = pickOpponent(matchSeedFor(state.seed, 0), pool);
-      const c: Campaign = { xi, stageIdx: 0, oppId, pool, groupPts: 0, stats: emptyStats(), sub: { k: 'preview' } };
+      const oppId = pickOpponent(matchSeedFor(state.seed, 0), pool, TEAMS, 0);
+      const c: Campaign = { xi, stageIdx: 0, oppId, pool, groupPts: 0, stats: emptyStats(), sub: { k: 'preview' }, leg: 1 };
       return { ...state, phase: { kind: 'campaign', c } };
     }
 
@@ -209,7 +241,7 @@ function reducer(state: GameState, action: Action): GameState {
       const c = state.phase.c;
       if (c.sub.k !== 'preview') return state;
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
       const ev1 = halfEvents(ms, 1, h1, bestXI(opp));
@@ -224,7 +256,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'half' || !c.sub.pen1 || c.sub.pen1.res) return state;
       const pen = c.sub.pen1;
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       /* Índice 97: stream propio, no colisiona con los tiros de la tanda. */
       const res = pen.side === 'you'
@@ -260,7 +292,7 @@ function reducer(state: GameState, action: Action): GameState {
       const stage: Stage = LADDER[c.stageIdx];
       const opp = teamById(c.oppId);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const h2 = playHalf(ms, 2, c.xi, ov, action.attitude);
       const ev2 = halfEvents(ms, 2, h2, bestXI(opp));
       const end2 = 90 + addedTime(ms, 2);
@@ -282,7 +314,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'h2pen' || c.sub.pen.res) return state;
       const pen = c.sub.pen;
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       /* Índice 98: stream propio del penal del 2T. */
       const res = pen.side === 'you'
@@ -315,7 +347,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'h2pen' || !c.sub.pen.res) return state;
       const stage: Stage = LADDER[c.stageIdx];
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const { gf1, ga1, sc1, ev1, gf2, ga2, sc2, ev2, end2 } = c.sub;
       return settleH2(state, c, stage, opp.name, opp.edition, { gf1, ga1, sc1, ev1 }, { gf2, ga2, sc2, ev2 }, end2, ms, c.sub.pen.min);
     }
@@ -326,7 +358,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'pens' || c.sub.winner) return state;
       if (pensTurn(c.sub.first, c.sub.you.length, c.sub.opp.length) !== 'you') return state;
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
 
       const you = [...c.sub.you, penKick(ms, c.sub.you.length, action.aim, avg(c.xi), ov)];
@@ -340,7 +372,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (c.sub.k !== 'pens' || c.sub.winner) return state;
       if (pensTurn(c.sub.first, c.sub.you.length, c.sub.opp.length) !== 'opp') return state;
       const opp = teamById(c.oppId);
-      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ms = matchSeedFor(state.seed, c.stageIdx, c.leg);
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
 
       const oppArr = [...c.sub.opp, oppPenShot(ms, c.sub.opp.length, action.aim, avg(c.xi), ov)];
@@ -362,6 +394,7 @@ function reducer(state: GameState, action: Action): GameState {
       const m: MatchView = {
         oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition,
         gf: c.sub.gf, ga: c.sub.ga, scorers: c.sub.scorers, ev: c.sub.ev, pens, outcome, end2: c.sub.end2,
+        leg: isTwoLegged(stage) ? c.leg : undefined, agg: c.sub.agg,
       };
       return { ...state, phase: { kind: 'campaign', c: { ...c, ...settleMatch(c, stage, m) } } };
     }
@@ -370,11 +403,18 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.phase.kind !== 'campaign') return state;
       const c = state.phase.c;
       if (c.sub.k !== 'fulltime' || c.done) return state;
+
+      /* Serie abierta: la vuelta es contra el MISMO rival (leg ya quedó en 2
+         al liquidar la ida). */
+      if (isTwoLegged(LADDER[c.stageIdx]) && c.sub.m.leg === 1) {
+        return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'preview' } } } };
+      }
+
       const nextIdx = c.stageIdx + 1;
       const ms = matchSeedFor(state.seed, nextIdx);
       const candidates = c.pool.filter((id) => id !== c.oppId);
-      const oppId = pickOpponent(ms, candidates.length ? candidates : c.pool);
-      return { ...state, phase: { kind: 'campaign', c: { ...c, stageIdx: nextIdx, oppId, sub: { k: 'preview' } } } };
+      const oppId = pickOpponent(ms, candidates.length ? candidates : c.pool, TEAMS, nextIdx);
+      return { ...state, phase: { kind: 'campaign', c: { ...c, stageIdx: nextIdx, oppId, leg: 1, agg1: undefined, sub: { k: 'preview' } } } };
     }
 
     case 'GO_HOME':
@@ -517,7 +557,7 @@ export default function App() {
       )}
       {phase.kind === 'campaign' && phase.c.sub.k === 'pens' && (
         <PenaltyShootout
-          key={phase.c.stageIdx}
+          key={`${phase.c.stageIdx}:${phase.c.leg}`}
           stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
           oppName={teamById(phase.c.oppId).name}
           gf={phase.c.sub.gf}
@@ -525,6 +565,7 @@ export default function App() {
           ev={phase.c.sub.ev}
           end2={phase.c.sub.end2}
           resume={phase.c.sub.resume}
+          agg={phase.c.sub.agg}
           first={phase.c.sub.first}
           you={phase.c.sub.you}
           opp={phase.c.sub.opp}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, animate, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
-import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../lib/tournament';
+import { type Campaign, type Stage, type MatchView, LADDER, isGroup, isTwoLegged } from '../lib/tournament';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
 import { BRAND, SITE_URL } from '../config';
@@ -133,9 +133,12 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
       window.setTimeout(() => setCopied(false), 1600); // UI-only
     });
   };
-  const [prevIdx, setPrevIdx] = useState(c.stageIdx);
-  if (prevIdx !== c.stageIdx) {
-    setPrevIdx(c.stageIdx);
+  /* Reset del relato por PARTIDO, no por etapa: entre ida y vuelta el
+     stageIdx no cambia, pero la pierna sí. */
+  const matchKey = `${c.stageIdx}:${c.leg}`;
+  const [prevKey, setPrevKey] = useState(matchKey);
+  if (prevKey !== matchKey) {
+    setPrevKey(matchKey);
     setLive2(true);
   }
 
@@ -183,6 +186,9 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           <CountScore n={m.ga} away />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
+        {m.leg === 2 && m.agg && (
+          <motion.p className="perfect-tag" variants={riseIn}>{t('leg.agg', { gf: m.agg.gf, ga: m.agg.ga })}</motion.p>
+        )}
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
         <motion.p className={`outcome ${champ ? 'outcome--win' : 'outcome--lose'}`} variants={riseIn}>{headline}</motion.p>
         <motion.div className="scorers" variants={riseIn}>
@@ -284,8 +290,14 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     let line: string;
     if (isGroup(stage)) {
       line = flavor(groupVerdictCat(m), idx, locale);
-    } else {
+    } else if (m.leg === 1) {
+      /* La ida no elimina: el veredicto habla de la serie, no de avanzar. */
       const d = m.gf - m.ga;
+      const legCat: Cat = d > 0 ? 'leg_win' : d < 0 ? 'leg_loss' : 'leg_draw';
+      line = flavor(legCat, idx, locale);
+    } else {
+      const agg = m.agg ?? { gf: m.gf, ga: m.ga };
+      const d = agg.gf - agg.ga;
       const koCat: Cat = m.pens ? 'pens_win' : d >= 4 ? 'ko_rout' : d >= 2 ? 'ko_clear' : 'ko_narrow';
       line = `${flavor(koCat, idx, locale)} ${t('advance.' + stage)}`.trim();
     }
@@ -293,18 +305,26 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     return (
       <motion.section className={`card ${lost ? 'card--out' : ''}`} variants={cardV} initial="hidden" animate="show">
         <ClubStripe colors={opp.colors} />
-        <motion.p className="card-club" variants={riseIn}>{stageLabel}</motion.p>
+        <motion.p className="card-club" variants={riseIn}>
+          {stageLabel}{m.leg ? ` · ${t(m.leg === 1 ? 'leg.first' : 'leg.second')}` : ''}
+        </motion.p>
         <motion.div className="scoreline" variants={riseIn}>
           <CountScore n={m.gf} />
           <span className="score-sep">–</span>
           <CountScore n={m.ga} away />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
+        {m.leg === 2 && m.agg && (
+          <motion.p className="perfect-tag" variants={riseIn}>{t('leg.agg', { gf: m.agg.gf, ga: m.agg.ga })}</motion.p>
+        )}
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
         <motion.p className={`outcome ${lost ? 'outcome--lose' : 'outcome--win'}`} variants={riseIn}>{t(`result.${m.outcome}`)}</motion.p>
+        {m.leg === 1 && <motion.p className="match-note" variants={riseIn}>{t('leg.return')}</motion.p>}
         <motion.p className="flavor-line" variants={riseIn}>{line}</motion.p>
         <GoalsWithMinutes m={m} title={t('card.yourGoals')} />
-        <motion.button className="cta" variants={riseIn} {...tap} onClick={onNext}>{t('card.nextRound')}</motion.button>
+        <motion.button className="cta" variants={riseIn} {...tap} onClick={onNext}>
+          {m.leg === 1 ? `${t('leg.playReturn')} →` : t('card.nextRound')}
+        </motion.button>
       </motion.section>
     );
   }
@@ -323,11 +343,18 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     <section className="match match--wide">
       <p className="match-tag">{stageLabel}</p>
       <p className="tour-record">{record}</p>
+      {isTwoLegged(stage) && (
+        <p className="ticker-half pen-turn">
+          {t(c.leg === 1 ? 'leg.first' : 'leg.second')}
+          {c.leg === 2 && c.agg1 ? ` · ${t('leg.agg', { gf: c.agg1.gf, ga: c.agg1.ga })}` : ''}
+        </p>
+      )}
+      {isTwoLegged(stage) && c.leg === 2 && <p className="match-note">{t('leg.rule')}</p>}
 
       <Bracket stageIdx={c.stageIdx} />
 
       <RivalReveal
-        key={`${c.stageIdx}:${c.oppId}`}
+        key={`${c.stageIdx}:${c.leg}:${c.oppId}`}
         rival={r}
         colors={opp.colors}
         inGroup={inGroup}

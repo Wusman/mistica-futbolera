@@ -10,6 +10,7 @@ import { type Locale } from './i18n';
 export type Cat =
   | 'win_rout' | 'win_clear' | 'win_narrow' | 'draw' | 'loss' | 'loss_heavy'
   | 'ko_rout' | 'ko_clear' | 'ko_narrow' | 'pens_win'
+  | 'leg_win' | 'leg_draw' | 'leg_loss'
   | 'group_must_win'
   | 'out_g' | 'out_r16' | 'out_qf' | 'out_sf' | 'out_final' | 'champion'
   | 'scout_fav' | 'scout_even' | 'scout_dog';
@@ -26,6 +27,9 @@ const DICT: Record<Locale, Partial<Record<Cat, string[]>>> = {
     ko_clear: ['Trámite resuelto.', 'Con autoridad, sin sustos.', 'Lo controlaron de principio a fin.'],
     ko_narrow: ['Sufrido, pero lo sacaron adelante.', 'Por un pelo, pero alcanzó.', 'Agónico. Aguantaron como leones.'],
     pens_win: ['¡Penaltis! Aguantaron los nervios.', 'Desde los once metros, heroicos.', 'Tanda dramática, y la ganaron.'],
+    leg_win: ['Ventaja en la ida. Falta rematarla.', 'Buen primer golpe. La serie no está cerrada.', 'La serie se inclina, pero quedan 90 minutos.'],
+    leg_draw: ['Serie abierta. La vuelta es una final.', 'Igualados. Todo se decide en la vuelta.', 'Ni un centímetro. A definirlo en la vuelta.'],
+    leg_loss: ['Cuesta arriba. La vuelta exige una remontada.', 'Golpe duro, pero quedan 90 minutos.', 'Tocará remontar. Nadie dijo que era fácil.'],
     group_must_win: ['Hay que ganar para seguir vivos.', 'Sin victoria no hay mañana.', 'Final anticipada: o ganan, o fuera.'],
     out_g: ['Fuera en fase de grupos. Un desastre.', 'Eliminados en grupos. Para el olvido.', 'Ni el grupo pudieron pasar. A revisarlo todo.'],
     out_r16: ['Eliminados en Octavos. Corto el sueño.', 'Octavos y a casa. Esperabas más.'],
@@ -48,6 +52,9 @@ const DICT: Record<Locale, Partial<Record<Cat, string[]>>> = {
     ko_clear: ['Job done.', 'In control, no scares.', 'Bossed it from first whistle to last.'],
     ko_narrow: ['Dug it out the hard way.', 'Through by the skin of your teeth.', 'Heroic. Hung on for dear life.'],
     pens_win: ['Nerves of steel from twelve yards.', 'Shootout drama — and you held your nerve.', 'Spot-kick heroes.'],
+    leg_win: ['First blood. Now finish the job.', 'Advantage you — but there’s a second leg.', 'The tie leans your way. Not over.'],
+    leg_draw: ['All square. The return is a cup final.', 'Nothing in it. Settled at the return.', 'Level tie. One leg decides it.'],
+    leg_loss: ['Uphill from here. A comeback is required.', 'A blow — but 90 minutes remain.', 'Time to chase the tie.'],
     group_must_win: ['Win or go home.', 'No win, no tomorrow.', 'A cup final already: win or you’re out.'],
     out_g: ['Out in the groups. Embarrassing.', 'Didn’t even clear the group. Back to the drawing board.', 'Group-stage exit. One to forget.'],
     out_r16: ['Out in the last 16. Short-lived dream.', 'Last 16 and home. You expected more.'],
@@ -70,6 +77,9 @@ const DICT: Record<Locale, Partial<Record<Cat, string[]>>> = {
     ko_clear: ['Missão cumprida.', 'Com autoridade, sem sustos.', 'Controlaram do início ao fim.'],
     ko_narrow: ['Sofrido, mas passaram.', 'Por um triz, mas deu.', 'Agônico. Seguraram como leões.'],
     pens_win: ['Pênaltis! Nervos de aço.', 'Da marca da cal, heróis.', 'Disputa dramática — e venceram.'],
+    leg_win: ['Vantagem na ida. Falta fechar.', 'Primeiro golpe é seu. A série segue aberta.', 'A série pende para você, mas restam 90 minutos.'],
+    leg_draw: ['Série aberta. A volta é uma final.', 'Tudo igual. Decide-se na volta.', 'Nada definido. Verdito na volta.'],
+    leg_loss: ['Ladeira acima. Precisa de virada.', 'Golpe duro — restam 90 minutos.', 'Hora de buscar a remontada.'],
     group_must_win: ['Tem que vencer para seguir vivo.', 'Sem vitória, não há amanhã.', 'Final antecipada: vence ou está fora.'],
     out_g: ['Fora na fase de grupos. Vexame.', 'Eliminados nos grupos. Para esquecer.', 'Nem o grupo passaram. Rever tudo.'],
     out_r16: ['Eliminados nas Oitavas. Sonho curto.', 'Oitavas e para casa. Você esperava mais.'],
@@ -92,6 +102,9 @@ const DICT: Record<Locale, Partial<Record<Cat, string[]>>> = {
     ko_clear: ['Mission accomplie.', 'Avec autorité, sans frayeur.', 'Maîtrisé de bout en bout.'],
     ko_narrow: ['Arraché dans la douleur.', 'Qualifiés d’un cheveu.', 'Héroïque. Ils ont tenu bon.'],
     pens_win: ['Tirs au but ! Nerfs d’acier.', 'Au point de penalty, des héros.', 'Séance dramatique — et c’est gagné.'],
+    leg_win: ['Avantage à l’aller. Reste à conclure.', 'Premier coup pour toi. Rien n’est plié.', 'La double penche de ton côté — 90 minutes restent.'],
+    leg_draw: ['Égalité parfaite. Le retour sera une finale.', 'Tout reste à faire au retour.', 'Série ouverte. Verdict au retour.'],
+    leg_loss: ['La pente est raide. Il faudra une remontada.', 'Coup dur — il reste 90 minutes.', 'À toi de renverser la série.'],
     group_must_win: ['Gagner ou rentrer à la maison.', 'Sans victoire, pas de lendemain.', 'Déjà une finale : gagner ou sortir.'],
     out_g: ['Éliminés en poules. La honte.', 'Sortis dès les poules. À oublier.', 'Même pas passé les poules. Tout est à revoir.'],
     out_r16: ['Éliminés en 8es. Rêve trop court.', '8es et retour maison. Tu attendais mieux.'],

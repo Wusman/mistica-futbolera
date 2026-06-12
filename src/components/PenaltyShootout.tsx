@@ -18,6 +18,7 @@ interface Props {
   ev: TickerEvent[];
   end2: number;            // 90 + descuento
   resume?: number;         // si hubo penal en jugada en el 2T, retoma desde ahí
+  agg?: { gf: number; ga: number }; // global de la serie (tanda tras la vuelta)
   first: 'you' | 'opp';
   you: PenKickResult[];
   opp: OppPenResult[];
@@ -34,7 +35,7 @@ interface Props {
      TU arquero (DIVE). Cada dispatch resuelve UN penal; acá solo se anima
      el último. Nada de azar en el componente. */
 export function PenaltyShootout({
-  stageLabel, oppName, gf, ga, ev, end2, resume, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
+  stageLabel, oppName, gf, ga, ev, end2, resume, agg, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
 }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
@@ -138,7 +139,9 @@ export function PenaltyShootout({
   return (
     <section className="match">
       <p className="match-tag">{stageLabel}</p>
-      <p className="tour-record">{gf}–{ga} · {t('pens.title')} · {oppName}</p>
+      <p className="tour-record">
+        {agg ? t('leg.agg', { gf: agg.gf, ga: agg.ga }) : `${gf}–${ga}`} · {t('pens.title')} · {oppName}
+      </p>
 
       {/* De quién es el penal que se juega / se va a jugar. */}
       <p className="ticker-half pen-turn">

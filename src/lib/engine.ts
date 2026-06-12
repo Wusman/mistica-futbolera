@@ -425,7 +425,24 @@ export function shootoutWinner(you: boolean[], opp: boolean[]): 'you' | 'opp' | 
 }
 
 /* ════════ Tournament opponent draw (deterministic) ════════ */
-export function pickOpponent(matchSeed: number, candidates: string[]): string {
+/* Peso del sorteo por etapa: en grupos es lotería pura (la varianza es la
+   gracia); de octavos a la final, los equipos fuertes pesan cada vez más —
+   en la final, el mejor del pool es ~7x más probable que el peor. */
+export const DRAW_WEIGHT: number[] = [0, 0, 1.5, 2.5, 4, 6];
+
+export function pickOpponent(matchSeed: number, candidates: string[], teams: Team[], stageIdx = 0): string {
   const rng = mulberry32((matchSeed ^ 0x4f707021) >>> 0);
-  return candidates[Math.floor(rng() * candidates.length)];
+  const k = DRAW_WEIGHT[stageIdx] ?? 0;
+  if (k === 0 || candidates.length <= 1) {
+    return candidates[Math.floor(rng() * candidates.length)];
+  }
+  const ovs = candidates.map((id) => rivalOf(teams.find((t) => t.id === id)!).overall);
+  const lo = Math.min(...ovs), hi = Math.max(...ovs);
+  const ws = ovs.map((o) => 1 + (hi === lo ? 0 : (o - lo) / (hi - lo)) * k);
+  let ticket = rng() * ws.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < candidates.length; i++) {
+    ticket -= ws[i];
+    if (ticket <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
 }
