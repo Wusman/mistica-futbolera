@@ -92,7 +92,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 22 }}
           >
-            {e.min}&rsquo; ⚽ {e.n ?? t('ticker.goalOpp', { opp: oppName })}
+            {e.min}&rsquo; ⚽ {e.n ?? t('ticker.goalOpp', { opp: oppName })}{e.p ? ' (p)' : ''}
           </motion.li>
         ))}
       </ul>

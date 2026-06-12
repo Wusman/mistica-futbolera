@@ -8,6 +8,7 @@ import { BRAND, SITE_URL } from '../config';
 import { scaledRivalOf, xiProfile } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
+import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 
 interface Props {
@@ -321,6 +322,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     <section className="match match--wide">
       <p className="match-tag">{stageLabel}</p>
       <p className="tour-record">{record}</p>
+
+      <Bracket stageIdx={c.stageIdx} />
 
       <RivalReveal
         key={`${c.stageIdx}:${c.oppId}`}

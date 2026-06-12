@@ -19,6 +19,7 @@ import {
   pickOpponent,
   scaledRivalOf,
   halfEvents,
+  halfPenalty,
   avg,
 } from './lib/engine';
 import {
@@ -70,6 +71,7 @@ type Action =
   | { type: 'ENTER' }
   | { type: 'KICKOFF' }
   | { type: 'DECIDE'; attitude: Attitude }
+  | { type: 'HALF_PEN'; aim: PenAim }
   | { type: 'KICK'; aim: PenAim }
   | { type: 'DIVE'; aim: PenAim }
   | { type: 'PENS_DONE' }
@@ -165,7 +167,41 @@ function reducer(state: GameState, action: Action): GameState {
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
       const ev1 = halfEvents(ms, 1, h1, bestXI(opp));
-      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1 } } } };
+      const pen1 = halfPenalty(ms, 1, ev1) ?? undefined;
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1, pen1 } } } };
+    }
+
+    case 'HALF_PEN': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'half' || !c.sub.pen1 || c.sub.pen1.res) return state;
+      const pen = c.sub.pen1;
+      const opp = teamById(c.oppId);
+      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
+      /* Índice 97: stream propio, no colisiona con los tiros de la tanda. */
+      const res = pen.side === 'you'
+        ? penKick(ms, 97, action.aim, avg(c.xi), ov)
+        : oppPenShot(ms, 97, action.aim, avg(c.xi), ov);
+
+      let { gf1, ga1 } = c.sub;
+      let sc1 = c.sub.sc1;
+      let ev1 = c.sub.ev1;
+      const idx = ev1.findIndex((e) => e.min === pen.min && e.side === pen.side);
+      if (res.scored) {
+        ev1 = ev1.map((e, i) => (i === idx ? { ...e, p: true } : e));
+      } else if (idx >= 0) {
+        const gone = ev1[idx];
+        ev1 = ev1.filter((_, i) => i !== idx);
+        if (pen.side === 'you') {
+          gf1 -= 1;
+          const si = sc1.findIndex((sc) => sc.n === gone.n);
+          if (si >= 0) sc1 = sc1.filter((_, i) => i !== si);
+        } else {
+          ga1 -= 1;
+        }
+      }
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, gf1, ga1, sc1, ev1, pen1: { ...pen, res } } } } };
     }
 
     case 'DECIDE': {
@@ -364,8 +400,11 @@ export default function App() {
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
           ev1={phase.c.sub.ev1}
+          pen1={phase.c.sub.pen1}
+          oppName={teamById(phase.c.oppId).name}
           tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
           onDecide={(attitude) => dispatch({ type: 'DECIDE', attitude })}
+          onPen={(aim) => dispatch({ type: 'HALF_PEN', aim })}
         />
       )}
 

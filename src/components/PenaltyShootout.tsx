@@ -3,26 +3,12 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { type PenAim, type PenKickResult, type OppPenResult, type TickerEvent, pensTurn } from '../lib/engine';
 import { useT } from '../i18n';
 import { MatchTicker } from './MatchTicker';
+import { GoalScene } from './GoalScene';
 
 /* ── Tunables de la tanda ──
    reveal: ms que dura la animación de cada penal (pelota + arquero + cartel).
    toss: ms del splash del sorteo antes de habilitar el primer turno. */
 const PEN = { reveal: 1250, toss: 1700 };
-
-/* Coordenadas en el viewBox 100×62 del arco. */
-const ZONE: Record<PenAim, { x: number; y: number }> = {
-  L: { x: 24, y: 27 }, C: { x: 50, y: 24 }, R: { x: 76, y: 27 },
-};
-const OUT: Record<PenAim, { x: number; y: number }> = {
-  L: { x: 3, y: 10 }, C: { x: 50, y: -4 }, R: { x: 97, y: 10 },
-};
-/* Gol con el palo ADIVINADO: la pelota lo pasa por arriba, al rincón. Si
-   aterrizara en el mismo punto que el arquero, parecería un robo. */
-const PAST: Record<PenAim, { x: number; y: number }> = {
-  L: { x: 16, y: 15 }, C: { x: 50, y: 13 }, R: { x: 84, y: 15 },
-};
-const KEEPER_Y = 38;
-const BALL_START = { x: 50, y: 57 };
 
 interface Props {
   stageLabel: string;
@@ -124,15 +110,6 @@ export function PenaltyShootout({
     setStep('reveal');
   };
 
-  /* Destino de la pelota: misma geometría para ambos lados (es "el arco"). */
-  const ballTo = last
-    ? last.scored
-      ? (last.dive === last.aim ? PAST[last.aim] : ZONE[last.aim])  // adivinado pero gol: al rincón
-      : last.dive === last.aim
-        ? { x: ZONE[last.dive].x, y: KEEPER_Y - 4 }   // atajada: muere en el arquero
-        : OUT[last.aim]                                // errado: se va afuera
-    : BALL_START;
-
   const showAnim = step !== 'idle' && last !== null;
   const resultText = last
     ? lastSide === 'you'
@@ -168,57 +145,14 @@ export function PenaltyShootout({
           : (turn === 'you' ? t('pens.turn.you') : t('pens.turn.opp'))}
       </p>
 
-      <div className="goalbox">
-        <svg className="goal" viewBox="0 0 100 62" aria-hidden="true">
-          <defs>
-            <pattern id="net" width="3.4" height="3.4" patternUnits="userSpaceOnUse">
-              <path d="M0 0H3.4M0 0V3.4" className="net-line" />
-            </pattern>
-          </defs>
-          <rect x="9" y="9" width="82" height="44" fill="url(#net)" />
-          <path d="M9 53 V9 H91 V53" className="goal-frame" />
-          <line x1="0" y1="53" x2="100" y2="53" className="goal-ground" />
-
-          {/* Arquero: rival (tinte de semilla) cuando pateás vos; el TUYO
-              (dorado) cuando atajás. Se tira al palo que corresponda. */}
-          <motion.g
-            className={`keeper ${showAnim && lastSide === 'opp' ? 'keeper--you' : ''}`}
-            initial={false}
-            animate={
-              showAnim && last
-                ? { x: ZONE[last.dive].x - 50, y: -5, rotate: reduce ? 0 : last.dive === 'L' ? -18 : last.dive === 'R' ? 18 : 0 }
-                : { x: 0, y: 0, rotate: 0 }
-            }
-            transition={{ type: 'spring', stiffness: 220, damping: 17 }}
-          >
-            <circle cx="50" cy={KEEPER_Y - 6.5} r="3" />
-            <rect x="46.4" y={KEEPER_Y - 3.5} width="7.2" height="12" rx="3" />
-          </motion.g>
-
-          {showAnim && (
-            <motion.circle
-              key={total}
-              className="pen-ball"
-              r="2.6"
-              initial={{ cx: BALL_START.x, cy: BALL_START.y, scale: 1 }}
-              animate={{ cx: ballTo.x, cy: ballTo.y, scale: 0.82 }}
-              transition={reduce ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
-            />
-          )}
-        </svg>
-
-        {showAnim && resultText && (
-          <motion.p
-            key={`r${total}`}
-            className={`pen-result ${resultGood ? 'pen-result--goal' : 'pen-result--miss'}`}
-            initial={reduce ? false : { opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: reduce ? 0 : 0.5, type: 'spring', stiffness: 300, damping: 18 }}
-          >
-            {resultText}
-          </motion.p>
-        )}
-      </div>
+      <GoalScene
+        res={last}
+        showAnim={showAnim}
+        keeperYou={showAnim && lastSide === 'opp'}
+        resultText={resultText}
+        resultGood={resultGood}
+        animKey={total}
+      />
 
       {/* Tablero de la tanda (1º = quién arrancó pateando). */}
       <div className="pen-board">

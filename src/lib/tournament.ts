@@ -1,5 +1,5 @@
 import { type Player } from '../data/players';
-import { type Scorer, type Shootout, type TickerEvent, type PenKickResult, type OppPenResult } from './engine';
+import { type Scorer, type Shootout, type TickerEvent, type PenKickResult, type OppPenResult, type PenAim } from './engine';
 
 /* ── Tournament ladder ── */
 export type Stage = 'g1' | 'g2' | 'r16' | 'qf' | 'sf' | 'final';
@@ -38,7 +38,13 @@ export interface MatchView {
 /* ── The interactive sub-state of the current match ── */
 export type Sub =
   | { k: 'preview' }
-  | { k: 'half'; gf1: number; ga1: number; sc1: Scorer[]; ev1: TickerEvent[] }
+  | {
+      /* 1er tiempo jugado. pen1 = penal en jugada (si lo hay): uno de los
+         goles ya decididos se convierte en penal interactivo; al resolverse
+         (HALF_PEN) gf1/ga1/sc1/ev1 quedan AJUSTADOS (si falló, el gol no va). */
+      k: 'half'; gf1: number; ga1: number; sc1: Scorer[]; ev1: TickerEvent[];
+      pen1?: { min: number; side: 'you' | 'opp'; res?: { aim: PenAim; dive: PenAim; scored: boolean } };
+    }
   | {
       /* Tanda interactiva v2: el partido (gf/ga/ev) quedó congelado en el 90'
          y se define a un penal por turno, alternando estricto desde `first`

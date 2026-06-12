@@ -262,7 +262,7 @@ export function playHalf(
    Los goles ya están decididos por playHalf; esto solo les asigna un minuto
    dentro de su mitad para el ticker. Presentación derivada del matchSeed:
    no agrega azar nuevo ni toca el share-code. */
-export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; }
+export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; p?: boolean; }
 
 export function halfEvents(
   matchSeed: number,
@@ -327,6 +327,22 @@ export function penKick(matchSeed: number, i: number, aim: PenAim, xiAvg: number
     ? roll < Math.min(0.55, Math.max(0.18, 0.32 + edge))   // te adivinó: casi siempre ataja
     : roll < Math.min(0.98, Math.max(0.82, 0.93 + edge));  // palo equivocado: casi siempre gol
   return { aim, dive, scored };
+}
+
+/* Penal en jugada: ~6% de las mitades CON goles convierten uno de los goles
+   ya decididos en penal interactivo. Existencia, gol elegido y minuto:
+   deterministas del matchSeed. El RESULTADO depende de tu decisión (palo o
+   estirada): si se falla, ese gol no ocurre. v1 se usa solo en el 1er tiempo;
+   la firma ya acepta half=2 para extenderlo. */
+export interface HalfPen { min: number; side: 'you' | 'opp'; }
+
+export function halfPenalty(matchSeed: number, half: 1 | 2, ev: TickerEvent[]): HalfPen | null {
+  const rng = mulberry32((matchSeed ^ Math.imul(half, 0x50454e21)) >>> 0); // "PEN!"
+  const roll = rng();
+  const pick = rng(); // se sortean SIEMPRE ambos (estabilidad del stream)
+  if (ev.length === 0 || roll >= 0.06) return null;
+  const e = ev[Math.floor(pick * ev.length)];
+  return { min: e.min, side: e.side };
 }
 
 /* Sorteo de la tanda: quién arranca pateando (determinista del matchSeed). */

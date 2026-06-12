@@ -530,6 +530,38 @@ button:focus-visible,
 .lang-opt--on { color: #fff; background: var(--accent); }
 .lang-opt--on:hover { background: var(--accent); color: #fff; }
 
+/* ── Bracket guía v2: slots por equipo (sin nombres), conectores punteados
+   para lo que falta y sólidos para lo recorrido, copa al centro. Los fills
+   críticos viven como atributos del SVG (nunca negro aunque falte CSS);
+   acá va el color fino: estados, glow y pulso. ── */
+.bracket { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0 auto; }
+.bracket svg { width: min(360px, 90vw); height: auto; display: block; }
+
+.br-slot { fill: rgba(255, 255, 255, 0.04); stroke: var(--line); stroke-width: 1; }
+.br-slot--done { stroke: hsl(var(--seed-hue) 50% 48%); fill: hsl(var(--seed-hue) 50% 48% / 0.14); }
+.br-slot--on { stroke: var(--gold); fill: hsl(45 85% 55% / 0.12); filter: drop-shadow(0 0 3px hsl(45 85% 55% / 0.55)); }
+.br-slot--you { fill: hsl(45 85% 55% / 0.5); animation: brPulse 1.6s ease-in-out infinite; }
+@keyframes brPulse { 0%, 100% { fill-opacity: 1; } 50% { fill-opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .br-slot--you { animation: none; } }
+
+.br-link { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
+.br-link--done { stroke: hsl(var(--seed-hue) 50% 48%); }
+.br-link--on { stroke: var(--gold); filter: drop-shadow(0 0 3px hsl(45 85% 55% / 0.45)); }
+
+.br-cup { fill: hsl(220 30% 52% / 0.55); }
+.br-cup--done, .br-cup--on { fill: var(--gold); filter: drop-shadow(0 0 6px hsl(45 85% 55% / 0.6)); }
+.br-chip {
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 2px; font-size: 11px;
+  color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 3px 14px 2px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+.br-chip--on {
+  color: #fff; border-color: transparent;
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  filter: drop-shadow(0 0 4px hsl(45 85% 55% / 0.25));
+}
+.br-chip--done { color: hsl(var(--seed-hue) 45% 60%); border-color: hsl(var(--seed-hue) 45% 42% / 0.6); }
+
 /* ── Versus (preview del rival): cartelera de pelea. ── */
 .match--wide { max-width: 760px; }
 .versus { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 10px; }
