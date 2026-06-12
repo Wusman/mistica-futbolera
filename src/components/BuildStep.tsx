@@ -14,6 +14,7 @@ import {
   draftTeamAt,
   openSlotsFor,
   lineupFilled,
+  shortName,
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
 import { PitchMarkings } from './PitchMarkings';
@@ -29,11 +30,6 @@ interface Props {
   onPass: () => void;
   onSimulate: () => void;
 }
-
-const surname = (name: string) => {
-  const parts = name.replace(/"/g, '').split(' ');
-  return parts[parts.length - 1];
-};
 
 const listV = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const itemV = { hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } };
@@ -201,7 +197,7 @@ export function BuildStep({
               >
                 {player ? (
                   <>
-                    <span className="pslot-name">{surname(player.n)}</span>
+                    <span className="pslot-name">{shortName(player.n)}</span>
                     <span className="pslot-rating">{player.r}</span>
                   </>
                 ) : (
@@ -225,7 +221,7 @@ export function BuildStep({
             return (
               <li key={i} className="bs-row">
                 <span className="bs-pos">{posLabel(slot.pos, locale)}</span>
-                <span className="bs-name">{pl ? surname(pl.n) : '—'}</span>
+                <span className="bs-name">{pl ? shortName(pl.n) : '—'}</span>
                 <span className="bs-rat">{pl ? pl.r : ''}</span>
               </li>
             );

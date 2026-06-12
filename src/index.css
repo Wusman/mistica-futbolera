@@ -562,6 +562,29 @@ button:focus-visible,
 }
 .br-chip--done { color: hsl(var(--seed-hue) 45% 60%); border-color: hsl(var(--seed-hue) 45% 42% / 0.6); }
 
+/* ── Modal de sugerencias ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 18px;
+  background: rgba(5, 8, 20, 0.72); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.modal {
+  width: 100%; max-width: 440px; border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(13, 20, 46, 0.97); padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.fb-box {
+  width: 100%; min-height: 120px; resize: vertical; border: 1px solid var(--line); border-radius: 8px;
+  background: rgba(10, 16, 36, 0.6); color: var(--text); padding: 10px 12px; font: inherit; font-size: 14px;
+}
+.fb-box:focus { outline: none; border-color: var(--accent); }
+.cta--seed { width: 100%; margin-top: 10px; padding: 11px 8px; font-size: 13px; }
+
+.footer-link {
+  background: none; border: none; cursor: pointer; padding: 0; font: inherit;
+  color: var(--muted); text-decoration: underline; text-underline-offset: 3px;
+}
+.footer-link:hover { color: var(--text); }
+
 /* ── Versus (preview del rival): cartelera de pelea. ── */
 .match--wide { max-width: 760px; }
 .versus { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 10px; }
@@ -603,6 +626,7 @@ button:focus-visible,
 .footer-brand { color: var(--text); }
 .footer-brand:hover, .footer-tag:hover { color: var(--gold); }
 .footer-tag { color: var(--muted); opacity: 0.9; }
+.footer-links { display: flex; align-items: center; gap: 20px; }
 .footer-links a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); transition: color 0.15s ease, border-color 0.15s ease; }
 .footer-links a:hover { color: var(--gold); border-bottom-color: var(--gold); }
 

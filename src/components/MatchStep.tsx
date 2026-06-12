@@ -3,7 +3,7 @@ import { useReducedMotion } from 'framer-motion';
 import { type Attitude, type PenAim, type Rival, type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
 import { MatchTicker } from './MatchTicker';
-import { GoalScene } from './GoalScene';
+import { PenMoment } from './PenMoment';
 
 /* Pausa de la escena del penal en jugada antes de retomar el relato. */
 const MPEN = { reveal: 1500 };
@@ -15,6 +15,7 @@ interface Props {
   gf1: number;
   ga1: number;
   ev1: TickerEvent[];
+  end1: number; // 45 + descuento
   pen1?: Pen1;
   oppName: string;
   tickerSecs: number;
@@ -26,7 +27,7 @@ interface Props {
    Con penal en jugada: relato 0'→min → "¡PENAL!" (pateás o atajás según el
    lado) → escena del arco → relato min→45 con el marcador YA ajustado por
    el resultado (gf1/ga1/ev1 llegan ajustados desde el reducer). */
-export function MatchStep({ rival, gf1, ga1, ev1, pen1, oppName, tickerSecs, onDecide, onPen }: Props) {
+export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSecs, onDecide, onPen }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
 
@@ -42,17 +43,17 @@ export function MatchStep({ rival, gf1, ga1, ev1, pen1, oppName, tickerSecs, onD
   }, [seg, res, reduce]);
 
   if (seg === 'l1') {
-    const cut = pen1 ? pen1.min : 46;
+    const cut = pen1 ? pen1.min : end1 + 1;
     return (
       <section className="match">
         <MatchTicker
           from={0}
-          to={pen1 ? pen1.min : 45}
+          to={pen1 ? pen1.min : end1}
           events={ev1.filter((e) => e.min < cut)}
           oppName={rival.name}
           halfLabel={t('ticker.first')}
           endLabel={pen1 ? t('mpen.tag') : t('ticker.ht')}
-          duration={tickerSecs * (pen1 ? pen1.min / 45 : 1)}
+          duration={tickerSecs * (pen1 ? pen1.min / end1 : 1)}
           onDone={() => setSeg(pen1 ? 'pen' : 'ht')}
         />
       </section>
@@ -60,44 +61,9 @@ export function MatchStep({ rival, gf1, ga1, ev1, pen1, oppName, tickerSecs, onD
   }
 
   if (seg === 'pen' && pen1) {
-    const mine = pen1.side === 'you';
-    const resultText = res
-      ? mine
-        ? (res.scored ? (res.dive === res.aim ? t('pens.golazo') : t('pens.goal')) : res.dive === res.aim ? t('pens.saved') : t('pens.out'))
-        : (res.scored ? (res.dive === res.aim ? t('pens.unstoppable') : t('pens.oppGoal', { opp: oppName })) : res.dive === res.aim ? t('pens.youSaved') : t('pens.oppOut'))
-      : '';
-    const resultGood = res ? (mine ? res.scored : !res.scored) : false;
-    const aims: { key: PenAim; label: string }[] = [
-      { key: 'L', label: t('pens.left') },
-      { key: 'C', label: t('pens.center') },
-      { key: 'R', label: t('pens.right') },
-    ];
     return (
       <section className="match">
-        <p className="match-tag">{pen1.min}&rsquo; · {t('mpen.tag')}</p>
-        <p className="ticker-half pen-turn">{mine ? t('mpen.you') : t('mpen.opp')}</p>
-
-        <GoalScene
-          res={res}
-          showAnim={!!res}
-          keeperYou={!mine}
-          resultText={resultText}
-          resultGood={resultGood}
-          animKey={`mpen:${pen1.min}`}
-        />
-
-        {!res && (
-          <>
-            <p className="match-note">{mine ? t('pens.aim') : t('pens.dive')}</p>
-            <div className="pen-aims">
-              {aims.map((a) => (
-                <button key={a.key} className="att-btn pen-aim" onClick={() => onPen(a.key)}>
-                  <b>{a.label}</b>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        <PenMoment min={pen1.min} mine={pen1.side === 'you'} res={res} oppName={oppName} onPen={onPen} />
       </section>
     );
   }
@@ -107,14 +73,14 @@ export function MatchStep({ rival, gf1, ga1, ev1, pen1, oppName, tickerSecs, onD
       <section className="match">
         <MatchTicker
           from={pen1.min}
-          to={45}
+          to={end1}
           events={ev1.filter((e) => e.min >= pen1.min)}
           baseGf={ev1.filter((e) => e.min < pen1.min && e.side === 'you').length}
           baseGa={ev1.filter((e) => e.min < pen1.min && e.side === 'opp').length}
           oppName={rival.name}
           halfLabel={t('ticker.first')}
           endLabel={t('ticker.ht')}
-          duration={tickerSecs * ((45 - pen1.min) / 45)}
+          duration={tickerSecs * ((end1 - pen1.min) / end1)}
           onDone={() => setSeg('ht')}
         />
       </section>

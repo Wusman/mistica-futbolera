@@ -5,7 +5,7 @@ import { type Campaign, type Stage, type MatchView, LADDER, isGroup } from '../l
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
 import { BRAND, SITE_URL } from '../config';
-import { scaledRivalOf, xiProfile } from '../lib/engine';
+import { scaledRivalOf, xiProfile, evHalf, fmtMin } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
@@ -92,7 +92,7 @@ function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
       <h3 className="scorers-title">{title}</h3>
       <ul className="goals-min">
         {yours.map((e, k) => (
-          <li key={k}><span className="gm-min">{e.min}&rsquo;</span> {e.n}</li>
+          <li key={k}><span className="gm-min">{fmtMin(e)}</span> {e.n}{e.p ? ' (p)' : ''}</li>
         ))}
       </ul>
     </motion.div>
@@ -143,19 +143,20 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
 
   if (c.sub.k === 'fulltime' && live2 && !c.sub.m.pens) {
     const m = c.sub.m;
+    const resume = c.sub.resume;
     return (
       <section className="match">
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
-          from={45}
-          to={90}
-          events={m.ev.filter((e) => e.min > 45)}
-          baseGf={m.ev.filter((e) => e.min <= 45 && e.side === 'you').length}
-          baseGa={m.ev.filter((e) => e.min <= 45 && e.side === 'opp').length}
+          from={resume ?? 45}
+          to={m.end2}
+          events={m.ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
+          baseGf={m.ev.filter((e) => e.side === 'you' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
+          baseGa={m.ev.filter((e) => e.side === 'opp' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           oppName={m.oppName}
           halfLabel={t('ticker.second')}
           endLabel={t('ticker.ft')}
-          duration={isGroup(stage) ? 4.2 : 5.4}
+          duration={(isGroup(stage) ? 4.2 : 5.4) * ((m.end2 - (resume ?? 45)) / (m.end2 - 45))}
           onDone={() => setLive2(false)}
         />
       </section>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate, useReducedMotion } from 'framer-motion';
-import { type TickerEvent } from '../lib/engine';
+import { type TickerEvent, fmtMin } from '../lib/engine';
 import { useT } from '../i18n';
 
 /* ── Tunables del relato (ajustá a gusto) ──
@@ -27,6 +27,18 @@ interface Props {
 export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
+
+  /* Cinturón de seguridad: si una prop llega rota (típico: archivos
+     desfasados al pegar a mano), el relato degrada a valores sanos en vez de
+     congelarse en silencio. */
+  if (!Number.isFinite(to)) {
+    console.warn('[MatchTicker] prop `to` inválida:', to, '— usando fin de mitad por defecto');
+    to = from < 45 ? 45 : 90;
+  }
+  if (!Number.isFinite(duration) || duration <= 0) {
+    console.warn('[MatchTicker] prop `duration` inválida:', duration);
+    duration = TICK.duration;
+  }
   const [min, setMin] = useState(from);
   const doneRef = useRef(false);
   const ctrlRef = useRef<ReturnType<typeof animate> | null>(null);
@@ -64,6 +76,9 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
   const shownMin = reduce ? to : min;
   const ended = shownMin >= to;
   const visible = events.filter((e) => e.min <= shownMin);
+  /* Reloj con descuento: pasada la hora de la mitad, muestra 45+X / 90+X. */
+  const base = from < 45 ? 45 : 90;
+  const clock = shownMin <= base ? `${shownMin}’` : `${base}+${shownMin - base}’`;
   const gf = baseGf + visible.filter((e) => e.side === 'you').length;
   const ga = baseGa + visible.filter((e) => e.side === 'opp').length;
 
@@ -82,7 +97,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
         <span className="ticker-sep">–</span>
         <span className="ticker-ga">{ga}</span>
       </div>
-      <p className="ticker-min">{shownMin}&rsquo;</p>
+      <p className="ticker-min">{clock}</p>
       <ul className="ticker-events">
         {visible.map((e, k) => (
           <motion.li
@@ -92,7 +107,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 22 }}
           >
-            {e.min}&rsquo; ⚽ {e.n ?? t('ticker.goalOpp', { opp: oppName })}{e.p ? ' (p)' : ''}
+            {fmtMin(e)} ⚽ {e.n ?? t('ticker.goalOpp', { opp: oppName })}{e.p ? ' (p)' : ''}
           </motion.li>
         ))}
       </ul>

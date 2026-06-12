@@ -6,3 +6,7 @@
 export const BRAND = 'Mística Futbolera';
 export const SITE_URL = 'https://misticafutbolera.wusman.com';
 export const DAILY_WORKER_URL = 'https://mistica-daily-champions.wusman.workers.dev';
+/* Sugerencias → mail (contact@wusman.com) vía web3forms. Pegá acá la misma
+   access key que usás en tu portfolio (está ligada a tu email, sirve para
+   cualquier sitio). La key de web3forms es pública por diseño. */
+export const WEB3FORMS_KEY = '0cd1c379-0ebf-4566-8e39-5785bda489f3';

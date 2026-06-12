@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { type PenAim, type PenKickResult, type OppPenResult, type TickerEvent, pensTurn } from '../lib/engine';
+import { type PenAim, type PenKickResult, type OppPenResult, type TickerEvent, pensTurn, evHalf } from '../lib/engine';
 import { useT } from '../i18n';
 import { MatchTicker } from './MatchTicker';
 import { GoalScene } from './GoalScene';
@@ -16,6 +16,8 @@ interface Props {
   gf: number;
   ga: number;
   ev: TickerEvent[];
+  end2: number;            // 90 + descuento
+  resume?: number;         // si hubo penal en jugada en el 2T, retoma desde ahí
   first: 'you' | 'opp';
   you: PenKickResult[];
   opp: OppPenResult[];
@@ -32,7 +34,7 @@ interface Props {
      TU arquero (DIVE). Cada dispatch resuelve UN penal; acá solo se anima
      el último. Nada de azar en el componente. */
 export function PenaltyShootout({
-  stageLabel, oppName, gf, ga, ev, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
+  stageLabel, oppName, gf, ga, ev, end2, resume, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
 }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
@@ -71,15 +73,15 @@ export function PenaltyShootout({
       <section className="match">
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
-          from={45}
-          to={90}
-          events={ev.filter((e) => e.min > 45)}
-          baseGf={ev.filter((e) => e.min <= 45 && e.side === 'you').length}
-          baseGa={ev.filter((e) => e.min <= 45 && e.side === 'opp').length}
+          from={resume ?? 45}
+          to={end2}
+          events={ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
+          baseGf={ev.filter((e) => e.side === 'you' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
+          baseGa={ev.filter((e) => e.side === 'opp' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           oppName={oppName}
           halfLabel={t('ticker.second')}
           endLabel={t('pens.title')}
-          duration={tickerSecs}
+          duration={tickerSecs * ((end2 - (resume ?? 45)) / (end2 - 45))}
           onDone={() => setLive(false)}
         />
       </section>

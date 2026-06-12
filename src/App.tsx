@@ -20,7 +20,10 @@ import {
   scaledRivalOf,
   halfEvents,
   halfPenalty,
+  addedTime,
   avg,
+  type Scorer,
+  type TickerEvent,
 } from './lib/engine';
 import {
   type Stage,
@@ -35,6 +38,8 @@ import {
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily } from './lib/daily';
 import { DailyDone } from './components/DailyDone';
+import { SecondHalfPen } from './components/SecondHalfPen';
+import { Feedback } from './components/Feedback';
 import { LangSwitch } from './components/LangSwitch';
 import { SetupStep } from './components/SetupStep';
 import { BuildStep } from './components/BuildStep';
@@ -72,6 +77,8 @@ type Action =
   | { type: 'KICKOFF' }
   | { type: 'DECIDE'; attitude: Attitude }
   | { type: 'HALF_PEN'; aim: PenAim }
+  | { type: 'H2_PEN'; aim: PenAim }
+  | { type: 'H2_DONE' }
   | { type: 'KICK'; aim: PenAim }
   | { type: 'DIVE'; aim: PenAim }
   | { type: 'PENS_DONE' }
@@ -83,6 +90,45 @@ const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { k
 
 const teamById = (id: string) => TEAMS.find((t) => t.id === id)!;
 const matchSeedFor = (seed: number, stageIdx: number) => (seed ^ ((stageIdx + 1) * 0x85ebca6b)) >>> 0;
+
+/* Cierre del 2do tiempo (compartido por DECIDE y H2_DONE): combina mitades,
+   recorta al tope de 9, deriva a tanda si hay empate eliminatorio y liquida.
+   `resume` (minuto del penal en jugada) hace que el relato retome desde ahí. */
+function settleH2(
+  state: GameState,
+  c: Campaign,
+  stage: Stage,
+  oppName: string,
+  oppEdition: string,
+  h1: { gf1: number; ga1: number; sc1: Scorer[]; ev1: TickerEvent[] },
+  h2: { gf2: number; ga2: number; sc2: Scorer[]; ev2: TickerEvent[] },
+  end2: number,
+  ms: number,
+  resume?: number,
+): GameState {
+  const gf = Math.min(9, h1.gf1 + h2.gf2);
+  const ga = Math.min(9, h1.ga1 + h2.ga2);
+  const scorers = [...h1.sc1, ...h2.sc2];
+
+  /* Si el tope de 9 recortó goles, recortamos eventos para que coincidan. */
+  let cy = 0, co = 0;
+  const ev = [...h1.ev1, ...h2.ev2].filter((e) =>
+    e.side === 'you' ? ++cy <= gf : ++co <= ga,
+  );
+
+  if (!isGroup(stage) && gf === ga) {
+    const sub: Sub = { k: 'pens', gf, ga, scorers, ev, end2, resume, first: penCoinToss(ms), you: [], opp: [] };
+    return { ...state, phase: { kind: 'campaign', c: { ...c, sub } } };
+  }
+
+  const outcome: 'W' | 'D' | 'L' = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
+  const m: MatchView = { oppId: c.oppId, oppName, oppEdition, gf, ga, scorers, ev, outcome, end2 };
+  const settled = { ...c, ...settleMatch(c, stage, m) };
+  if (settled.sub.k === 'fulltime' && resume !== undefined) {
+    settled.sub = { ...settled.sub, resume };
+  }
+  return { ...state, phase: { kind: 'campaign', c: settled } };
+}
 
 /* Liquidar un partido decidido: stats, pool vivo, puntos de grupo y done.
    Lo usan DECIDE (resultados directos) y PENS_DONE (tras la tanda). */
@@ -168,7 +214,8 @@ function reducer(state: GameState, action: Action): GameState {
       const h1 = playHalf(ms, 1, c.xi, ov, 'eq');
       const ev1 = halfEvents(ms, 1, h1, bestXI(opp));
       const pen1 = halfPenalty(ms, 1, ev1) ?? undefined;
-      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1, pen1 } } } };
+      const end1 = 45 + addedTime(ms, 1);
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { k: 'half', gf1: h1.gf, ga1: h1.ga, sc1: h1.scorers, ev1, end1, pen1 } } } };
     }
 
     case 'HALF_PEN': {
@@ -215,28 +262,62 @@ function reducer(state: GameState, action: Action): GameState {
       const ov = scaledRivalOf(opp, c.stageIdx).overall;
       const ms = matchSeedFor(state.seed, c.stageIdx);
       const h2 = playHalf(ms, 2, c.xi, ov, action.attitude);
+      const ev2 = halfEvents(ms, 2, h2, bestXI(opp));
+      const end2 = 90 + addedTime(ms, 2);
+      const h2pack = { gf2: h2.gf, ga2: h2.ga, sc2: h2.scorers, ev2 };
 
-      const gf = Math.min(9, gf1 + h2.gf);
-      const ga = Math.min(9, ga1 + h2.ga);
-      const scorers = [...sc1, ...h2.scorers];
-
-      /* Eventos del relato (con minuto). Si el tope de 9 recortó goles,
-         recortamos los eventos sobrantes para que relato y marcador coincidan. */
-      let cy = 0, co = 0;
-      const ev = [...ev1, ...halfEvents(ms, 2, h2, bestXI(opp))].filter((e) =>
-        e.side === 'you' ? ++cy <= gf : ++co <= ga,
-      );
-
-      /* Empate en eliminatorias → tanda interactiva: el partido queda
-         congelado en 'pens' y NO se liquida hasta que la tanda termine. */
-      if (!isGroup(stage) && gf === ga) {
-        const sub: Sub = { k: 'pens', gf, ga, scorers, ev, first: penCoinToss(ms), you: [], opp: [] };
+      /* Penal en jugada del 2T: NO se liquida hasta resolverlo. */
+      const pen2 = halfPenalty(ms, 2, ev2);
+      if (pen2) {
+        const sub: Sub = { k: 'h2pen', gf1, ga1, sc1, ev1, ...h2pack, end2, pen: pen2 };
         return { ...state, phase: { kind: 'campaign', c: { ...c, sub } } };
       }
 
-      const outcome: 'W' | 'D' | 'L' = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
-      const m: MatchView = { oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition, gf, ga, scorers, ev, outcome };
-      return { ...state, phase: { kind: 'campaign', c: { ...c, ...settleMatch(c, stage, m) } } };
+      return settleH2(state, c, stage, opp.name, opp.edition, { gf1, ga1, sc1, ev1 }, h2pack, end2, ms);
+    }
+
+    case 'H2_PEN': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'h2pen' || c.sub.pen.res) return state;
+      const pen = c.sub.pen;
+      const opp = teamById(c.oppId);
+      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const ov = scaledRivalOf(opp, c.stageIdx).overall;
+      /* Índice 98: stream propio del penal del 2T. */
+      const res = pen.side === 'you'
+        ? penKick(ms, 98, action.aim, avg(c.xi), ov)
+        : oppPenShot(ms, 98, action.aim, avg(c.xi), ov);
+
+      let { gf2, ga2 } = c.sub;
+      let sc2 = c.sub.sc2;
+      let ev2 = c.sub.ev2;
+      const idx = ev2.findIndex((e) => e.min === pen.min && e.side === pen.side);
+      if (res.scored) {
+        ev2 = ev2.map((e, i) => (i === idx ? { ...e, p: true } : e));
+      } else if (idx >= 0) {
+        const gone = ev2[idx];
+        ev2 = ev2.filter((_, i) => i !== idx);
+        if (pen.side === 'you') {
+          gf2 -= 1;
+          const si = sc2.findIndex((sc) => sc.n === gone.n);
+          if (si >= 0) sc2 = sc2.filter((_, i) => i !== si);
+        } else {
+          ga2 -= 1;
+        }
+      }
+      return { ...state, phase: { kind: 'campaign', c: { ...c, sub: { ...c.sub, gf2, ga2, sc2, ev2, pen: { ...pen, res } } } } };
+    }
+
+    case 'H2_DONE': {
+      if (state.phase.kind !== 'campaign') return state;
+      const c = state.phase.c;
+      if (c.sub.k !== 'h2pen' || !c.sub.pen.res) return state;
+      const stage: Stage = LADDER[c.stageIdx];
+      const opp = teamById(c.oppId);
+      const ms = matchSeedFor(state.seed, c.stageIdx);
+      const { gf1, ga1, sc1, ev1, gf2, ga2, sc2, ev2, end2 } = c.sub;
+      return settleH2(state, c, stage, opp.name, opp.edition, { gf1, ga1, sc1, ev1 }, { gf2, ga2, sc2, ev2 }, end2, ms, c.sub.pen.min);
     }
 
     case 'KICK': {
@@ -280,7 +361,7 @@ function reducer(state: GameState, action: Action): GameState {
       const outcome: 'W' | 'L' = c.sub.winner === 'you' ? 'W' : 'L';
       const m: MatchView = {
         oppId: c.oppId, oppName: opp.name, oppEdition: opp.edition,
-        gf: c.sub.gf, ga: c.sub.ga, scorers: c.sub.scorers, ev: c.sub.ev, pens, outcome,
+        gf: c.sub.gf, ga: c.sub.ga, scorers: c.sub.scorers, ev: c.sub.ev, pens, outcome, end2: c.sub.end2,
       };
       return { ...state, phase: { kind: 'campaign', c: { ...c, ...settleMatch(c, stage, m) } } };
     }
@@ -317,6 +398,7 @@ export default function App() {
   const phase = state.phase;
 
   const [dailyDone, setDailyDone] = useState<DailyRecord | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   /* Candado del diario: al terminar la corrida (campeón o eliminado) se
      persiste el resultado. Sincronización con sistema externo → effect. */
@@ -360,7 +442,14 @@ export default function App() {
 
       <main className="stage">
         {phase.kind === 'setup' && dailyDone && (
-          <DailyDone rec={dailyDone} onFree={() => setDailyDone(null)} />
+          <DailyDone
+            rec={dailyDone}
+            onFree={() => {
+              /* "Jugar torneo libre" arranca el torneo, no te deja en el home. */
+              setDailyDone(null);
+              dispatch({ type: 'START' });
+            }}
+          />
         )}
         {phase.kind === 'setup' && !dailyDone && (
         <SetupStep
@@ -370,6 +459,10 @@ export default function App() {
           onNewSeed={() => dispatch({ type: 'NEW_SEED', seed: newSeed() })}
           onSetSeed={(seed) => dispatch({ type: 'NEW_SEED', seed })}
           onStart={() => dispatch({ type: 'START' })}
+          onPlaySeed={(seed) => {
+            dispatch({ type: 'NEW_SEED', seed });
+            dispatch({ type: 'START' });
+          }}
           onDaily={() => {
             /* Un intento por día: si ya jugaste, vas directo a tu resultado. */
             const rec = loadDaily();
@@ -400,6 +493,7 @@ export default function App() {
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
           ev1={phase.c.sub.ev1}
+          end1={phase.c.sub.end1}
           pen1={phase.c.sub.pen1}
           oppName={teamById(phase.c.oppId).name}
           tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
@@ -408,6 +502,19 @@ export default function App() {
         />
       )}
 
+      {phase.kind === 'campaign' && phase.c.sub.k === 'h2pen' && (
+        <SecondHalfPen
+          stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
+          oppName={teamById(phase.c.oppId).name}
+          ev1={phase.c.sub.ev1}
+          ev2={phase.c.sub.ev2}
+          end2={phase.c.sub.end2}
+          pen={phase.c.sub.pen}
+          tickerSecs={tickerSecsFor(LADDER[phase.c.stageIdx])}
+          onPen={(aim) => dispatch({ type: 'H2_PEN', aim })}
+          onSettle={() => dispatch({ type: 'H2_DONE' })}
+        />
+      )}
       {phase.kind === 'campaign' && phase.c.sub.k === 'pens' && (
         <PenaltyShootout
           key={phase.c.stageIdx}
@@ -416,6 +523,8 @@ export default function App() {
           gf={phase.c.sub.gf}
           ga={phase.c.sub.ga}
           ev={phase.c.sub.ev}
+          end2={phase.c.sub.end2}
+          resume={phase.c.sub.resume}
           first={phase.c.sub.first}
           you={phase.c.sub.you}
           opp={phase.c.sub.opp}
@@ -451,9 +560,11 @@ export default function App() {
         <button className="footer-brand" onClick={goHome}>Mística Futbolera</button>
         <button className="footer-tag" onClick={playNow}>{t('footer.tag')}</button>
         <nav className="footer-links">
+          <button className="footer-link" onClick={() => setShowFeedback(true)}>{t('fb.link')}</button>
           <a href={locale === 'es' ? '/privacidad.html' : '/privacidad.html#en'}>{t('footer.privacy')}</a>
         </nav>
       </footer>
+      {showFeedback && <Feedback onClose={() => setShowFeedback(false)} />}
     </div>
   );
 }

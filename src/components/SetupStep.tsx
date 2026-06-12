@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FORMATIONS, type FormationName } from '../data/players';
 import { posLabel } from '../labels';
-import { showcaseXI, seedFromInput } from '../lib/engine';
+import { showcaseXI, seedFromInput, shortName } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
@@ -14,13 +14,9 @@ interface Props {
   onNewSeed: () => void;
   onSetSeed: (seed: number) => void;
   onStart: () => void;
+  onPlaySeed: (seed: number) => void;
   onDaily: () => void;
 }
-
-const surname = (name: string) => {
-  const parts = name.replace(/"/g, '').split(' ');
-  return parts[parts.length - 1];
-};
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } } };
 const rise = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } } };
@@ -28,7 +24,7 @@ const pitchC = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const slotV = { hidden: { opacity: 0, scale: 0.5 }, show: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
-export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onDaily }: Props) {
+export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const names = Object.keys(FORMATIONS) as FormationName[];
@@ -52,6 +48,11 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
       return;
     }
     onSetSeed(n);
+  };
+
+  /* Lo que esté escrito se aplica y se juega: cero "apretá Enter primero". */
+  const playSeed = () => {
+    onPlaySeed(seedFromInput(seedText) ?? seed);
   };
 
   const [copied, setCopied] = useState(false);
@@ -110,7 +111,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
                 >
                   {p ? (
                     <>
-                      <span className="pslot-name">{surname(p.n)}</span>
+                      <span className="pslot-name">{shortName(p.n)}</span>
                       <span className="pslot-rating">{p.r}</span>
                     </>
                   ) : (
@@ -142,6 +143,9 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
               {copied ? t('home.copied') : t('home.copy')}
             </motion.button>
           </div>
+          <motion.button className="cta cta--seed" {...tap} onClick={playSeed}>
+            ▶ {t('home.playSeed')}
+          </motion.button>
           <p className="seed-hint">{t('home.seedHint')}</p>
         </motion.div>
 

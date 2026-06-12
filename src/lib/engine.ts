@@ -145,6 +145,24 @@ export function showcaseXI(
   });
 }
 
+/* Nombre corto para fichas y slots: último apellido CON sus partículas
+   ("Ángel Di María" → "Di María", "van der Sar" → "van der Sar"), más un
+   puñado de excepciones donde el apellido va primero o el uso manda. */
+const NAME_PARTICLES = new Set(['di', 'de', 'del', 'della', 'da', 'dos', 'das', 'van', 'von', 'der', 'den', 'ter', 'ten', 'le', 'la', 'el', 'al']);
+const SHORT_OVERRIDES: Record<string, string> = {
+  'Son Heung-min': 'Son',
+  'Roberto Carlos': 'R. Carlos',
+};
+
+export function shortName(name: string): string {
+  const clean = name.replace(/"/g, '').trim();
+  if (SHORT_OVERRIDES[clean]) return SHORT_OVERRIDES[clean];
+  const parts = clean.split(/\s+/);
+  let i = parts.length - 1;
+  while (i > 0 && NAME_PARTICLES.has(parts[i - 1].toLowerCase())) i--;
+  return parts.slice(i).join(' ');
+}
+
 /* El once "tipo" de un equipo: sus 11 mejores por rating. */
 export function bestXI(team: Team): Player[] {
   return [...team.players].sort((a, b) => b.r - a.r).slice(0, 11);
@@ -213,7 +231,9 @@ export function xiProfile(xi: Player[]): { atk: number; def: number } {
 
    Indexed by stageIdx → LADDER: [g1, g2, r16, qf, sf, final].
    Pure tuning knob: bump these up for harder, down for softer. */
-export const STAGE_RAMP: number[] = [0, 0, 1, 3, 5, 7];
+/* Rampa suavizada (antes [0,0,1,3,5,7]): ganarla tiene que ser difícil,
+   no castigo. Sigue siendo el knob #1 de dificultad. */
+export const STAGE_RAMP: number[] = [0, 0, 1, 2, 4, 6];
 
 /* The rival as the player faces (and scouts) it at a given stage. Adds the
    ramp bonus to atk/def/overall so the scouting card never lies about how
@@ -262,7 +282,22 @@ export function playHalf(
    Los goles ya están decididos por playHalf; esto solo les asigna un minuto
    dentro de su mitad para el ticker. Presentación derivada del matchSeed:
    no agrega azar nuevo ni toca el share-code. */
-export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; p?: boolean; }
+export interface TickerEvent { min: number; side: 'you' | 'opp'; n?: string; p?: boolean; h?: 1 | 2; }
+
+/* Mitad de un evento (compat con eventos viejos sin h). */
+export const evHalf = (e: TickerEvent): 1 | 2 => e.h ?? (e.min > 45 ? 2 : 1);
+
+/* "47" en el 1er tiempo es 45+2; en el 2do, 47'. Y 90+X en el añadido. */
+export function fmtMin(e: TickerEvent): string {
+  const base = evHalf(e) === 1 ? 45 : 90;
+  return e.min <= base ? `${e.min}’` : `${base}+${e.min - base}’`;
+}
+
+/* Descuento de la mitad: 1 a 7 minutos, determinista del matchSeed. */
+export function addedTime(matchSeed: number, half: 1 | 2): number {
+  const rng = mulberry32((matchSeed ^ Math.imul(half, 0x414444)) >>> 0); // "ADD"
+  return 1 + Math.floor(rng() * 7);
+}
 
 export function halfEvents(
   matchSeed: number,
@@ -271,6 +306,9 @@ export function halfEvents(
   oppXI?: Player[],
 ): TickerEvent[] {
   const base = half === 1 ? 1 : 46;
+  /* Descuentos: la mitad dura hasta 45+X / 90+X (X∈1..7 del seed). Los goles
+     pueden caer en el añadido — drama del 90+6'. */
+  const hi = (half === 1 ? 45 : 90) + addedTime(matchSeed, half);
   /* Minutos ÚNICOS en la mitad (entre ambos equipos): dos goles en el mismo
      minuto rompen la ilusión y el ticker los hace aparecer juntos. Si un
      sorteo cae en minuto ocupado, se corre al hueco libre más cercano.
@@ -278,7 +316,7 @@ export function halfEvents(
   const used = new Set<number>();
   const claim = (m: number): number => {
     let x = m;
-    while (used.has(x) && x < base + 44) x++;
+    while (used.has(x) && x < hi) x++;
     while (used.has(x) && x > base) x--;
     used.add(x);
     return x;
@@ -286,7 +324,7 @@ export function halfEvents(
   const minutesFor = (salt: number, count: number) => {
     const rng = mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ salt) >>> 0);
     const mins: number[] = [];
-    for (let i = 0; i < count; i++) mins.push(claim(base + Math.floor(rng() * 44)));
+    for (let i = 0; i < count; i++) mins.push(claim(base + Math.floor(rng() * (hi - base + 1))));
     return mins.sort((a, b) => a - b);
   };
   const yours = minutesFor(0x474f4c21, out.gf);
@@ -297,8 +335,8 @@ export function halfEvents(
     ? pickScorers(out.ga, oppXI, mulberry32((matchSeed ^ (half * 0x9e3779b1) ^ 0x4e414d45) >>> 0))
     : [];
   const ev: TickerEvent[] = [
-    ...yours.map((min, i) => ({ min, side: 'you' as const, n: out.scorers[i]?.n })),
-    ...theirs.map((min, j) => ({ min, side: 'opp' as const, n: oppScorers[j]?.n })),
+    ...yours.map((min, i) => ({ min, side: 'you' as const, n: out.scorers[i]?.n, h: half })),
+    ...theirs.map((min, j) => ({ min, side: 'opp' as const, n: oppScorers[j]?.n, h: half })),
   ];
   return ev.sort((a, b) => a.min - b.min);
 }
@@ -340,7 +378,7 @@ export function halfPenalty(matchSeed: number, half: 1 | 2, ev: TickerEvent[]): 
   const rng = mulberry32((matchSeed ^ Math.imul(half, 0x50454e21)) >>> 0); // "PEN!"
   const roll = rng();
   const pick = rng(); // se sortean SIEMPRE ambos (estabilidad del stream)
-  if (ev.length === 0 || roll >= 0.06) return null;
+  if (ev.length === 0 || roll >= 0.10) return null; // ~10% por mitad con gol: ~1 penal por corrida
   const e = ev[Math.floor(pick * ev.length)];
   return { min: e.min, side: e.side };
 }
