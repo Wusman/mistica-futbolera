@@ -38,6 +38,11 @@ const STRINGS: Record<Locale, Dict> = {
     'fb.send': 'Enviar', 'fb.sent': '¡Gracias! Tu sugerencia fue enviada.',
     'fb.error': 'No se pudo enviar. Inténtalo de nuevo.', 'fb.close': 'Cerrar',
     'home.playSeed': 'Jugar esta semilla',
+    'leg.first': 'Ida', 'leg.second': 'Vuelta',
+    'leg.agg': 'Global: {gf}–{ga}',
+    'leg.rule': 'Sin gol de visitante: manda el global.',
+    'leg.playReturn': 'Jugar la vuelta',
+    'leg.return': 'La serie se define en la vuelta.',
     'bracket.r16': 'Octavos', 'bracket.qf': 'Cuartos', 'bracket.sf': 'Semis', 'bracket.final': 'Final',
     'nav.leave': '¿Volver al inicio? Se perderá la partida en curso.',
     'footer.tag': 'Draftea · Compite · Desafía',
@@ -124,6 +129,11 @@ const STRINGS: Record<Locale, Dict> = {
     'fb.send': 'Send', 'fb.sent': 'Thanks! Your suggestion was sent.',
     'fb.error': 'Couldn’t send. Try again.', 'fb.close': 'Close',
     'home.playSeed': 'Play this seed',
+    'leg.first': 'First leg', 'leg.second': 'Second leg',
+    'leg.agg': 'Aggregate: {gf}–{ga}',
+    'leg.rule': 'No away goals: the aggregate decides.',
+    'leg.playReturn': 'Play the second leg',
+    'leg.return': 'The tie is decided in the second leg.',
     'bracket.r16': 'R16', 'bracket.qf': 'QF', 'bracket.sf': 'SF', 'bracket.final': 'Final',
     'nav.leave': 'Head back home? Your current run will be lost.',
     'footer.tag': 'Draft · Compete · Challenge',
@@ -210,6 +220,11 @@ const STRINGS: Record<Locale, Dict> = {
     'fb.send': 'Enviar', 'fb.sent': 'Obrigado! Sua sugestão foi enviada.',
     'fb.error': 'Não foi possível enviar. Tente de novo.', 'fb.close': 'Fechar',
     'home.playSeed': 'Jogar esta seed',
+    'leg.first': 'Ida', 'leg.second': 'Volta',
+    'leg.agg': 'Agregado: {gf}–{ga}',
+    'leg.rule': 'Sem gol fora de casa: vale o agregado.',
+    'leg.playReturn': 'Jogar a volta',
+    'leg.return': 'A série se decide na volta.',
     'bracket.r16': 'Oitavas', 'bracket.qf': 'Quartas', 'bracket.sf': 'Semis', 'bracket.final': 'Final',
     'nav.leave': 'Voltar ao início? A partida em andamento será perdida.',
     'footer.tag': 'Drafte · Compita · Desafie',
@@ -296,6 +311,11 @@ const STRINGS: Record<Locale, Dict> = {
     'fb.send': 'Envoyer', 'fb.sent': 'Merci ! Ta suggestion a été envoyée.',
     'fb.error': 'Envoi impossible. Réessaie.', 'fb.close': 'Fermer',
     'home.playSeed': 'Jouer cette seed',
+    'leg.first': 'Aller', 'leg.second': 'Retour',
+    'leg.agg': 'Cumul : {gf}–{ga}',
+    'leg.rule': 'Pas de but à l’extérieur : le cumul décide.',
+    'leg.playReturn': 'Jouer le retour',
+    'leg.return': 'La double confrontation se joue au retour.',
     'bracket.r16': '8es', 'bracket.qf': 'Quarts', 'bracket.sf': 'Demies', 'bracket.final': 'Finale',
     'nav.leave': 'Retour à l’accueil ? La partie en cours sera perdue.',
     'footer.tag': 'Drafte · Joue · Défie',
@@ -369,7 +389,14 @@ const STRINGS: Record<Locale, Dict> = {
 };
 
 export function tr(locale: Locale, key: string): string {
-  return STRINGS[locale][key] ?? STRINGS.es[key] ?? key;
+  const hit = STRINGS[locale][key] ?? STRINGS.es[key];
+  if (hit === undefined) {
+    /* Clave faltante = casi siempre un i18n.ts viejo en el deploy. El juego
+       muestra la clave cruda (visible) y esto lo grita en consola. */
+    console.warn(`[i18n] clave faltante: "${key}" (${locale})`);
+    return key;
+  }
+  return hit;
 }
 
 export interface LocaleCtx { locale: Locale; setLocale: (l: Locale) => void; }
