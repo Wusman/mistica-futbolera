@@ -20,7 +20,7 @@
   --pitch-dark: #184b2f;
 
   --seed-hue: 220;
-  --bg-image: url('/stadium.jpg');   /* foto de estadio en public/stadium.jpg */
+  --bg-image: url('/stadium.png');   /* foto de estadio en public/stadium.png */
   /* Velo oscuro PLANO sobre la foto (0 = nada, 1 = todo). Knob único y
      oficial del fondo: la foto se ve igual arriba que abajo del scroll. */
   --scrim: 0.30;
