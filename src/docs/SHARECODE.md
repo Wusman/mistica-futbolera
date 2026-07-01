@@ -1,6 +1,6 @@
 # SHARE-CODE — spec del formato (v1)
 
-Estado: **propuesta a congelar antes de implementar**. Una vez que un `v1`
+Estado: **formato aprobado, en implementación por módulos.** Una vez que un `v1`
 sale a producción, este layout no se toca: los códigos viejos tienen que
 seguir leyéndose. Cambios de fondo → `v2` (y `v1` se rechaza con mensaje claro,
 no se reinterpreta).
@@ -68,6 +68,7 @@ El codec NO guarda qué equipo salió en cada paso ni los saltos forzados — lo
 1. `draftTeamAt(seed, step)` → equipo del paso.
 2. `eligible` = jugadores del equipo no tomados y con slot abierto compatible.
 3. Si `eligible` está vacío → **salto forzado**, 0 bits, se avanza solo.
+   (En la UI ese caso es el "reroll"; nunca es una decisión del jugador.)
 4. Si hay elegibles, el jugador decidió:
    - **¿le quedan pases?** 1 bit "¿pasó?". Si pasó → fin del paso.
    - si no pasó: índice del jugador dentro de `eligible` (ordenada por `i`):
@@ -138,13 +139,13 @@ free. No hace falta un camino "liviano" aparte.
 1. ✅ **Orquestación pura** — `lib/tournament.ts`: `matchSeedFor`, `settleMatch`,
    `settleH2` extraídas del reducer (mismo comportamiento, reusables headless).
 2. ✅ **Corrida reproducible** — `lib/run.ts`: `RunLog`, `playRun`. Reproduce
-   una corrida entera fuera de React. Validado con 4000 corridas (campeón,
-   eliminación en grupo y en llave, tandas, ida y vuelta, penales en jugada):
-   determinista, stats consistentes, consumo exacto de decisiones.
-   *Pendiente el test de oro: capturar el RunLog en el reducer real y confirmar
-   que `playRun(log)` da idéntico (llega con el módulo 3).*
-3. **Captura** — el reducer anota el RunLog mientras se juega.
-4. **Codec** — `lib/sharecode.ts`: BitWriter/Reader + `encodeRun`/`decodeRun`,
+   una corrida entera fuera de React. Validado con 4000 corridas.
+3. ✅ **Captura** — el reducer anota el RunLog mientras se juega (wrapper
+   `capture`, estado `log` en `GameState`). **Test de oro pasado**: 3000
+   corridas jugadas por el reducer real → `playRun` sobre la captura da idéntico
+   (campeón, etapa y stats), 0 divergencias. En dev, cada corrida terminada
+   loguea `[sharecode] gold test OK ✓`; en prod el chequeo se elimina.
+4. ⏭ **Codec** — `lib/sharecode.ts`: BitWriter/Reader + `encodeRun`/`decodeRun`,
    `v1.` + base64url, en orden de ocurrencia (draft, luego decisiones de
    partido interleaveadas).
 5. **UI de compartir** — botón "copiar código" en la carta de resultado.

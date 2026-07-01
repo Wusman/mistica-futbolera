@@ -37,6 +37,7 @@ import {
 } from './lib/tournament';
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
+import { type RunLog, RUN_VERSION, playRun } from './lib/run';
 import { DailyDone } from './components/DailyDone';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
@@ -58,12 +59,18 @@ const tickerSecsFor = (stage: Stage) => (isGroup(stage) ? 4.2 : 5.4);
    seed inside the brand while still feeling unique. Deterministic. */
 const seedHue = (seed: number) => 205 + (seed % 61);
 
+/* Captura de la corrida: las decisiones del jugador se anotan a medida que
+   ocurren, para reproducir la corrida (share-code) y verificarla. Los saltos
+   forzados del draft NO se anotan: playRun los reproduce solo. */
+type RunInput = Pick<RunLog, 'draft' | 'attitudes' | 'penAims' | 'shoot'>;
+const emptyRunInput = (): RunInput => ({ draft: [], attitudes: [], penAims: [], shoot: [] });
+
 type Phase =
   | { kind: 'setup' }
   | { kind: 'drafting'; step: number; lineup: Lineup; passes: number }
   | { kind: 'campaign'; c: Campaign };
 
-interface GameState { seed: number; formation: FormationName; phase: Phase; mode: 'free' | 'daily'; }
+interface GameState { seed: number; formation: FormationName; phase: Phase; mode: 'free' | 'daily'; log: RunInput; }
 
 type Action =
   | { type: 'SET_FORMATION'; formation: FormationName }
@@ -86,7 +93,7 @@ type Action =
   | { type: 'GO_HOME' }
   | { type: 'RESET'; seed: number };
 
-const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' }, mode: 'free' });
+const init = (): GameState => ({ seed: newSeed(), formation: '4-3-3', phase: { kind: 'setup' }, mode: 'free', log: emptyRunInput() });
 
 const teamById = (id: string) => TEAMS.find((t) => t.id === id)!;
 
@@ -97,11 +104,11 @@ function reducer(state: GameState, action: Action): GameState {
     case 'NEW_SEED':
       return { ...state, seed: action.seed };
     case 'START':
-      return { ...state, mode: 'free', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES } };
+      return { ...state, mode: 'free', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES }, log: emptyRunInput() };
     case 'START_DAILY':
       /* Torneo del día: misma semilla para todos hoy; UN intento (candado en
          localStorage al terminar). El reloj solo elige la semilla. */
-      return { ...state, seed: action.seed, mode: 'daily', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES } };
+      return { ...state, seed: action.seed, mode: 'daily', phase: { kind: 'drafting', step: 0, lineup: emptyLineup(state.formation), passes: STARTING_PASSES }, log: emptyRunInput() };
 
     case 'PICK': {
       if (state.phase.kind !== 'drafting') return state;
@@ -317,14 +324,33 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, phase: { kind: 'setup' } };
 
     case 'RESET':
-      return { seed: action.seed, formation: state.formation, phase: { kind: 'setup' }, mode: 'free' };
+      return { seed: action.seed, formation: state.formation, phase: { kind: 'setup' }, mode: 'free', log: emptyRunInput() };
     default:
       return state;
   }
 }
 
+/* Captura: envuelve al reducer y anota la decisión del jugador cuando la
+   acción tuvo efecto (next !== state descarta los no-op de las guardias).
+   Los saltos forzados del draft no pasan por acá: se reproducen solos. */
+function capture(state: GameState, action: Action): GameState {
+  const next = reducer(state, action);
+  if (next === state) return state;
+  const push = (patch: Partial<RunInput>): GameState => ({ ...next, log: { ...next.log, ...patch } });
+  switch (action.type) {
+    case 'PICK': return push({ draft: [...next.log.draft, { pick: { player: action.player.i, slot: action.slot } }] });
+    case 'PASS': return push({ draft: [...next.log.draft, { pass: true }] });
+    case 'DECIDE': return push({ attitudes: [...next.log.attitudes, action.attitude] });
+    case 'HALF_PEN':
+    case 'H2_PEN': return push({ penAims: [...next.log.penAims, action.aim] });
+    case 'KICK':
+    case 'DIVE': return push({ shoot: [...next.log.shoot, action.aim] });
+    default: return next;
+  }
+}
+
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
+  const [state, dispatch] = useReducer(capture, undefined, init);
   const t = useT();
   const { locale } = useLocale();
   const rootStyle = { '--seed-hue': String(seedHue(state.seed)) } as CSSProperties;
@@ -337,10 +363,28 @@ export default function App() {
   /* Candado del diario: al terminar la corrida (campeón o eliminado) se
      persiste el resultado. Sincronización con sistema externo → effect. */
   useEffect(() => {
-    if (phase.kind !== 'campaign' || state.mode !== 'daily') return;
+    if (phase.kind !== 'campaign') return;
     const c = phase.c;
     const done = c.done;
     if (!done || c.sub.k !== 'fulltime') return;
+
+    /* Test de oro (solo dev): reproducir la corrida capturada con playRun y
+       confirmar que coincide con lo que mostró el reducer. Es el candado que
+       valida la captura antes de construir el codec encima. */
+    if (import.meta.env.DEV) {
+      const log: RunLog = { v: RUN_VERSION, seed: state.seed, formation: state.formation, ...state.log };
+      const r = playRun(log);
+      const same =
+        r.ok && r.champion === done.champion && r.stage === done.stage &&
+        r.stats.w === c.stats.w && r.stats.d === c.stats.d && r.stats.l === c.stats.l &&
+        r.stats.gf === c.stats.gf && r.stats.ga === c.stats.ga;
+      if (same) console.info('[sharecode] gold test OK \u2713', log);
+      else console.warn('[sharecode] gold test FAILED', { error: r.error, replay: r, reducer: { champion: done.champion, stage: done.stage, stats: c.stats } });
+    }
+
+    /* Candado del diario (solo daily): al terminar la corrida se persiste.
+       Sincronización con sistema externo → effect. */
+    if (state.mode !== 'daily') return;
     if (loadDaily()) return; // ya guardado
     const m = c.sub.m;
     saveDaily({
@@ -349,7 +393,7 @@ export default function App() {
       stats: { w: c.stats.w, d: c.stats.d, l: c.stats.l, gf: c.stats.gf, ga: c.stats.ga, avg: Math.round(avg(c.xi)) },
     });
     bumpStreak(done.champion); // racha de días + vitrina de títulos
-  }, [phase, state.mode]);
+  }, [phase, state.mode, state.seed, state.formation, state.log]);
 
   const goHome = () => {
     if (phase.kind === 'setup') return;
