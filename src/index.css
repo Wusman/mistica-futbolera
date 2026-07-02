@@ -487,6 +487,7 @@ button:focus-visible,
 .share-chip:hover { border-color: var(--gold); color: var(--gold); }
 .share-chip--icon { gap: 7px; }
 .share-chip--icon svg { flex: 0 0 auto; }
+.share-chip--ok { border-color: var(--gold); color: var(--gold); }
 
 /* Campaña en grid 2×2: número grande + etiqueta + detalle. */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

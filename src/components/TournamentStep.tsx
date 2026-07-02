@@ -18,6 +18,7 @@ interface Props {
   opp: Team;
   seed: number;
   mode: 'free' | 'daily';
+  shareCode?: string | null;
   onKickoff: () => void;
   onNext: () => void;
   onRetry: () => void;
@@ -99,7 +100,7 @@ function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
   );
 }
 
-export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, onKickoff, onNext, onRetry, onReset }: Props) {
+export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, shareCode, onKickoff, onNext, onRetry, onReset }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const s = c.stats;
@@ -131,6 +132,14 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     navigator.clipboard?.writeText(seed.toString(36)).then(() => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600); // UI-only
+    });
+  };
+  const [codeCopied, setCodeCopied] = useState(false);
+  const copyCode = () => {
+    if (!shareCode) return;
+    navigator.clipboard?.writeText(shareCode).then(() => {
+      setCodeCopied(true);
+      window.setTimeout(() => setCodeCopied(false), 1600); // UI-only
     });
   };
   /* Reset del relato por PARTIDO, no por etapa: entre ida y vuelta el
@@ -271,6 +280,15 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             ><IcoShare /><span>{t('card.share')}</span></button>
           )}
         </motion.div>
+        {shareCode && (
+          <motion.div className="share-row" variants={riseIn}>
+            <button
+              className={`share-chip share-chip--icon ${codeCopied ? 'share-chip--ok' : ''}`}
+              onClick={copyCode}
+              aria-label={t('card.shareCode')}
+            ><IcoShare /><span>{codeCopied ? t('card.shareCodeOk') : t('card.shareCode')}</span></button>
+          </motion.div>
+        )}
         <motion.div className="card-ctas" variants={riseIn}>
           {mode === 'free' && (
             <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>

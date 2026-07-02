@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useReducer, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useReducer, useState } from 'react';
 import { type Player, type FormationName, TEAMS } from './data/players';
 import {
   type Lineup,
@@ -38,6 +38,7 @@ import {
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { type RunLog, RUN_VERSION, playRun } from './lib/run';
+import { encodeRun } from './lib/sharecode';
 import { DailyDone } from './components/DailyDone';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
@@ -360,6 +361,19 @@ export default function App() {
   const [dailyDone, setDailyDone] = useState<DailyRecord | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
 
+  /* Share-code de la corrida terminada: se genera al cerrarse (campeón o
+     eliminado) desde la captura del reducer. Es el string v1.… copiable. */
+  const shareCode = useMemo<string | null>(() => {
+    if (phase.kind !== 'campaign') return null;
+    const cc = phase.c;
+    if (!cc.done || cc.sub.k !== 'fulltime') return null;
+    try {
+      return encodeRun({ v: RUN_VERSION, seed: state.seed, formation: state.formation, ...state.log });
+    } catch {
+      return null;
+    }
+  }, [phase, state.seed, state.formation, state.log]);
+
   /* Candado del diario: al terminar la corrida (campeón o eliminado) se
      persiste el resultado. Sincronización con sistema externo → effect. */
   useEffect(() => {
@@ -524,6 +538,7 @@ export default function App() {
           opp={teamById(phase.c.oppId)}
           seed={state.seed}
           mode={state.mode}
+          shareCode={shareCode}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
           onNext={() => dispatch({ type: 'NEXT' })}
           onRetry={() => {
