@@ -149,5 +149,8 @@ Una sola máquina, tres usos. Sin lógica duplicada que pueda divergir.
    ante basura (siempre `null`, nunca crashea).
 5. ✅ **UI de compartir** — botón "copiar código" en la carta de resultado
    (free y daily), con feedback e i18n en los 4 idiomas.
-6. ⏭ **Modo espectador** — `?r=CODIGO` reproduce con `playRun` (client-side).
+6. ✅ **Modo espectador** — `?r=CODIGO` reproduce con `playRun` (client-side) y
+   muestra un resumen: el once, el camino partido a partido (rotulado con
+   `stagesFor`) y el veredicto, más un botón "jugar esta semilla". Validado:
+   3000 corridas decodean y rotulan sin fallos.
 7. **Worker verify** — POST con código; reproduce y verifica; stats del replay.

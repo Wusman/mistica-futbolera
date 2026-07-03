@@ -37,8 +37,8 @@ import {
 } from './lib/tournament';
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
-import { type RunLog, RUN_VERSION, playRun } from './lib/run';
-import { encodeRun } from './lib/sharecode';
+import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
+import { encodeRun, decodeRun } from './lib/sharecode';
 import { DailyDone } from './components/DailyDone';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
@@ -48,6 +48,7 @@ import { BuildStep } from './components/BuildStep';
 import { MatchStep } from './components/MatchStep';
 import { TournamentStep } from './components/TournamentStep';
 import { PenaltyShootout } from './components/PenaltyShootout';
+import { Spectator } from './components/Spectator';
 
 const newSeed = () => Math.floor(Math.random() * 0xffffffff);
 const STARTING_PASSES = 3;
@@ -374,6 +375,19 @@ export default function App() {
     }
   }, [phase, state.seed, state.formation, state.log]);
 
+  /* Modo espectador: ?r=CODIGO reproduce una corrida ajena (client-side, sin
+     tocar el Worker). Se lee una sola vez al montar. */
+  const [spectator] = useState<{ result: RunResult | null; seed: number } | undefined>(() => {
+    const code = new URLSearchParams(window.location.search).get('r');
+    if (!code) return undefined;
+    const log = decodeRun(code);
+    if (!log) return { result: null, seed: 0 };
+    const res = playRun(log);
+    return { result: res.ok ? res : null, seed: log.seed };
+  });
+  const [showSpectator, setShowSpectator] = useState(true);
+  const spectatorActive = spectator !== undefined && showSpectator;
+
   /* Candado del diario: al terminar la corrida (campeón o eliminado) se
      persiste el resultado. Sincronización con sistema externo → effect. */
   useEffect(() => {
@@ -419,6 +433,14 @@ export default function App() {
     dispatch({ type: 'START' });
   };
 
+  const clearSpectatorUrl = () => window.history.replaceState({}, '', window.location.pathname);
+  const closeSpectator = () => { setShowSpectator(false); clearSpectatorUrl(); };
+  const playSpectatorSeed = (seed: number) => {
+    setShowSpectator(false); clearSpectatorUrl();
+    dispatch({ type: 'NEW_SEED', seed });
+    dispatch({ type: 'START' });
+  };
+
   return (
     <div className="app" style={rootStyle}>
       <div className="backdrop" aria-hidden="true" />
@@ -434,6 +456,14 @@ export default function App() {
       </header>
 
       <main className="stage">
+        {spectatorActive ? (
+          <Spectator
+            result={spectator!.result}
+            seed={spectator!.seed}
+            onPlaySeed={playSpectatorSeed}
+            onClose={closeSpectator}
+          />
+        ) : (<>
         {phase.kind === 'setup' && dailyDone && (
           <DailyDone
             rec={dailyDone}
@@ -549,6 +579,7 @@ export default function App() {
           onReset={() => dispatch({ type: 'RESET', seed: newSeed() })}
         />
       )}
+        </>)}
       </main>
 
       <footer className="footer">

@@ -21,6 +21,22 @@ export const isGroup = (s: Stage) => s === 'g1' || s === 'g2';
    manda el global; si empata tras la vuelta, tanda. */
 export const isTwoLegged = (s: Stage) => s === 'r16' || s === 'qf' || s === 'sf';
 
+/* Etapa de cada partido de una corrida, en orden. Recorre el LADDER en
+   paralelo a los partidos: las eliminatorias a ida y vuelta consumen dos
+   partidos (la ida no cierra la serie), grupo y final uno. Deriva solo de
+   `leg`, así que es determinista. Lo usa el modo espectador para rotular el
+   camino sin tener que guardar la etapa en cada MatchView. */
+export function stagesFor(matches: { leg?: 1 | 2 }[]): Stage[] {
+  const out: Stage[] = [];
+  let li = 0;
+  for (const m of matches) {
+    const st = LADDER[Math.min(li, LADDER.length - 1)];
+    out.push(st);
+    if (isTwoLegged(st)) { if (m.leg === 2) li++; } else li++;
+  }
+  return out;
+}
+
 /* ── Running stats across a run ── */
 export interface Stats {
   pj: number; w: number; d: number; l: number;
