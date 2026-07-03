@@ -1,4 +1,5 @@
-import { type CSSProperties, useEffect, useMemo, useReducer, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { type Player, type FormationName, TEAMS } from './data/players';
 import {
   type Lineup,
@@ -351,6 +352,22 @@ function capture(state: GameState, action: Action): GameState {
   }
 }
 
+/* ── Variantes del corte broadcast ──
+   La pantalla entra deslizando y una banda diagonal la barre UNA vez.
+   Con AnimatePresence initial={false}, el primer render NO anima: la banda
+   nace ya "pasada" (x: 280%) e invisible fuera de cuadro. Solo transform/
+   opacity: costo de compositor, cero repintado. */
+const screenV = {
+  initial: { opacity: 0, x: 28 },
+  enter: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const, when: 'beforeChildren' as const } },
+  exit: { opacity: 0, x: -28, transition: { duration: 0.18, ease: 'easeIn' as const } },
+};
+const wipeV = {
+  initial: { x: '-140%' },
+  enter: { x: '280%', transition: { duration: 0.5, ease: [0.7, 0, 0.3, 1] as const } },
+  exit: {},
+};
+
 export default function App() {
   const [state, dispatch] = useReducer(capture, undefined, init);
   const t = useT();
@@ -387,6 +404,25 @@ export default function App() {
   });
   const [showSpectator, setShowSpectator] = useState(true);
   const spectatorActive = spectator !== undefined && showSpectator;
+
+  /* ── Corte de transmisión entre pantallas ──
+     La clave cambia en los CORTES grandes (fase nueva o partido nuevo);
+     los sub-estados dentro de un partido siguen instantáneos (cada
+     componente ya trae su entrada). Presentación pura: no toca el core. */
+  const screenKey =
+    spectatorActive ? 'spec'
+    : phase.kind === 'setup' ? (dailyDone ? 'daily-done' : 'setup')
+    : phase.kind === 'drafting' ? 'draft'
+    : `match-${phase.c.stageIdx}-${phase.c.leg}`;
+
+  /* Al cortar a una pantalla nueva, arrancarla desde arriba. */
+  const prevKeyRef = useRef(screenKey);
+  useEffect(() => {
+    if (prevKeyRef.current !== screenKey) {
+      prevKeyRef.current = screenKey;
+      window.scrollTo(0, 0);
+    }
+  }, [screenKey]);
 
   /* Candado del diario: al terminar la corrida (campeón o eliminado) se
      persiste el resultado. Sincronización con sistema externo → effect. */
@@ -443,7 +479,9 @@ export default function App() {
 
   return (
     <div className="app" style={rootStyle}>
-      <div className="backdrop" aria-hidden="true" />
+      <div className="backdrop" aria-hidden="true">
+        <span className="backdrop-glow" />
+      </div>
 
       <header className="masthead">
         <h1>
@@ -456,6 +494,18 @@ export default function App() {
       </header>
 
       <main className="stage">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={screenKey}
+            className="screen"
+            variants={screenV}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+          >
+            <span className="screen-wipe-clip" aria-hidden="true">
+              <motion.span className="screen-wipe" variants={wipeV} />
+            </span>
         {spectatorActive ? (
           <Spectator
             result={spectator!.result}
@@ -580,6 +630,8 @@ export default function App() {
         />
       )}
         </>)}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <footer className="footer">

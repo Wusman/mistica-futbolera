@@ -55,6 +55,23 @@ body { margin: 0; background: transparent; }
 .app { position: relative; max-width: 1040px; margin: 0 auto; padding: 20px 20px 28px; min-height: 100%; display: flex; flex-direction: column; }
 .stage { flex: 1; }
 
+/* ── Corte de transmisión ── el wrapper de cada pantalla y la banda diagonal
+   que la barre al entrar (Framer mueve solo transform; ver App.tsx).
+   La banda vive DENTRO de un contenedor que la recorta: estacionada fuera de
+   cuadro (x: 280%) sin recorte, el navegador ensancha el documento para
+   contenerla — overflow horizontal y banda visible a la derecha. */
+.screen { position: relative; }
+.screen-wipe-clip {
+  position: absolute; inset: -4% 0; overflow: hidden;
+  z-index: 5; pointer-events: none;
+}
+.screen-wipe {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 55%;
+  transform: skewX(-14deg);
+  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%) 82%, var(--gold));
+  will-change: transform;
+}
+
 /* Foco de teclado visible en toda la app (a11y). */
 button:focus-visible,
 [role='button']:focus-visible {
@@ -77,8 +94,23 @@ button:focus-visible,
   position: absolute;
   inset: -16px;                         /* overscan: el blur no deja borde */
   background: var(--bg-image, none) center / cover no-repeat;
-  filter: blur(5px) brightness(0.9) saturate(1.05);
-  animation: stadiumLights 12s ease-in-out infinite alternate;
+  filter: blur(5px) brightness(0.92) saturate(1.05);
+}
+/* La "respiración" de las luces del estadio: capa de gradiente cuya OPACITY
+   anima (compositor, costo ~cero). Nunca animar filter/blur en fullscreen:
+   repinta cada frame y es jank garantizado en gama media. */
+.backdrop-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(80% 60% at 50% -10%, hsl(var(--seed-hue) 85% 62% / 0.20), transparent 70%),
+    radial-gradient(60% 40% at 15% 110%, hsl(var(--seed-hue) 70% 50% / 0.10), transparent 70%);
+  opacity: 0.4;
+  animation: glowBreath 9s ease-in-out infinite alternate;
+}
+@keyframes glowBreath {
+  from { opacity: 0.35; }
+  to   { opacity: 1; }
 }
 .backdrop::after {
   content: '';
@@ -87,10 +119,6 @@ button:focus-visible,
   background:
     radial-gradient(70% 50% at 50% -5%, hsl(var(--seed-hue) 85% 60% / 0.18), transparent 70%),
     rgba(6, 10, 26, var(--scrim));
-}
-@keyframes stadiumLights {
-  from { filter: blur(5px) brightness(0.82) saturate(1.03); }
-  to   { filter: blur(5px) brightness(1) saturate(1.10); }
 }
 
 /* ── Masthead ── marca chica, firme y clickeable; el protagonismo es del hero. */
@@ -146,7 +174,7 @@ button:focus-visible,
   width: 100%; max-width: 420px; min-height: 62px; margin-top: 8px;
   padding: 0 20px 0 0; border: none; cursor: pointer; text-align: left;
   font-family: var(--font-display); color: var(--ink);
-  background: linear-gradient(100deg, #04020a, var(--accent) 1%, #0a0a31);
+  background: linear-gradient(100deg, #dfae35, var(--gold) 55%, #f6d379);
   clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   position: relative; overflow: hidden;
@@ -164,7 +192,7 @@ button:focus-visible,
   align-self: stretch; min-width: 76px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 8px 16px 8px 24px;
-  background: var(--ink); color: var(--accent);
+  background: var(--ink); color: var(--gold);
   text-transform: uppercase; line-height: 1.15;
   clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
@@ -696,11 +724,12 @@ button:focus-visible,
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .backdrop::before,
+  .backdrop-glow,
   .pslot--choose,
   .hero-plaque,
   .fixture::after { animation: none !important; }
   .fixture::after { transform: translateX(130%); } /* barrido ya "pasado": sin brillo encima */
+  .screen-wipe { display: none; } /* Framer ya frena el resto vía MotionConfig */
 }
 /* ══ Modo espectador: resumen reproducido de una corrida compartida ══ */
 .spec {
