@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { type Attitude, type PenAim, type Rival, type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
 import { MatchTicker } from './MatchTicker';
@@ -7,6 +7,13 @@ import { PenMoment } from './PenMoment';
 
 /* Pausa de la escena del penal en jugada antes de retomar el relato. */
 const MPEN = { reveal: 1500 };
+
+/* Entrada del entretiempo: chyron → marcador (slam) → dossier → botones.
+   Presentación pura; MotionConfig frena todo con movimiento reducido. */
+const htC = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
+const htRise = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } };
+const htSlam = { hidden: { opacity: 0, scale: 1.5 }, show: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 18 } } };
+const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
 interface Pen1 { min: number; side: 'you' | 'opp'; res?: { aim: PenAim; dive: PenAim; scored: boolean } }
 
@@ -97,33 +104,33 @@ export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSec
   ];
 
   return (
-    <section className="match">
-      <p className="match-tag">{t('match.halftime')}</p>
+    <motion.section className="match" variants={htC} initial="hidden" animate="show">
+      <motion.p className="match-tag" variants={htRise}>{t('match.halftime')}</motion.p>
 
-      <div className="scoreline">
+      <motion.div className="scoreline" variants={htSlam}>
         <span className="score">{gf1}</span>
         <span className="score-sep">–</span>
         <span className="score score--away">{ga1}</span>
-      </div>
+      </motion.div>
 
-      <div className="scout">
+      <motion.div className="scout" variants={htRise}>
         <span className="scout-name">{rival.name} · {rival.edition}</span>
         <div className="scout-bars">
           <span>{t('match.attackRival')} <b>{rival.atk}</b></span>
           <span>{t('match.defenseRival')} <b>{rival.def}</b></span>
         </div>
-      </div>
+      </motion.div>
 
-      <p className="match-note">{note}</p>
+      <motion.p className="match-note" variants={htRise}>{note}</motion.p>
 
       <div className="attitudes">
         {options.map((o) => (
-          <button key={o.key} className="att-btn" onClick={() => onDecide(o.key)}>
+          <motion.button key={o.key} className="att-btn" variants={htRise} {...tap} onClick={() => onDecide(o.key)}>
             <b>{o.label}</b>
             <span>{o.note}</span>
-          </button>
+          </motion.button>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }

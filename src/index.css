@@ -481,10 +481,17 @@ button:focus-visible,
 
 /* ── Relato del partido (ticker) ── el reloj corre, los goles aparecen. */
 .ticker {
+  position: relative; overflow: hidden;
   border: 1px solid var(--line); background: rgba(15, 24, 56, 0.85); border-radius: 10px;
   padding: 22px 18px 14px; cursor: pointer; text-align: center;
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
+/* Momento gol: flash dorado que se apaga (Framer anima solo opacity). */
+.ticker-flash {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(65% 65% at 50% 38%, hsl(45 85% 55% / 0.55), transparent 75%);
+}
+.ticker > *:not(.ticker-flash) { position: relative; z-index: 1; }
 .ticker-half {
   display: inline-block;
   font-family: var(--font-display); font-weight: 600; text-transform: uppercase;

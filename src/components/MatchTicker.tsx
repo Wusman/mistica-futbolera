@@ -30,15 +30,12 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
 
   /* Cinturón de seguridad: si una prop llega rota (típico: archivos
      desfasados al pegar a mano), el relato degrada a valores sanos en vez de
-     congelarse en silencio. */
-  if (!Number.isFinite(to)) {
-    console.warn('[MatchTicker] prop `to` inválida:', to, '— usando fin de mitad por defecto');
-    to = from < 45 ? 45 : 90;
-  }
-  if (!Number.isFinite(duration) || duration <= 0) {
-    console.warn('[MatchTicker] prop `duration` inválida:', duration);
-    duration = TICK.duration;
-  }
+     congelarse en silencio. Sin reasignar props (regla del React Compiler). */
+  if (!Number.isFinite(to)) console.warn('[MatchTicker] prop `to` inválida:', to, '— usando fin de mitad por defecto');
+  if (!Number.isFinite(duration) || duration <= 0) console.warn('[MatchTicker] prop `duration` inválida:', duration);
+  const safeTo = Number.isFinite(to) ? to : from < 45 ? 45 : 90;
+  const safeDur = Number.isFinite(duration) && duration > 0 ? duration : TICK.duration;
+
   const [min, setMin] = useState(from);
   const doneRef = useRef(false);
   const ctrlRef = useRef<ReturnType<typeof animate> | null>(null);
@@ -54,8 +51,8 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
       finish(); // el valor mostrado se deriva (ver shownMin); solo programamos el cierre
       return;
     }
-    const ctrl = animate(from, to, {
-      duration,
+    const ctrl = animate(from, safeTo, {
+      duration: safeDur,
       ease: 'linear',
       onUpdate: (v) => setMin(Math.floor(v)),
       onComplete: finish,
@@ -68,13 +65,13 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
   const skip = () => {
     if (doneRef.current) return;
     ctrlRef.current?.stop();
-    setMin(to);
+    setMin(safeTo);
     doneRef.current = true;
     onDone();
   };
 
-  const shownMin = reduce ? to : min;
-  const ended = shownMin >= to;
+  const shownMin = reduce ? safeTo : min;
+  const ended = shownMin >= safeTo;
   const visible = events.filter((e) => e.min <= shownMin);
   /* Reloj con descuento: pasada la hora de la mitad, muestra 45+X / 90+X. */
   const base = from < 45 ? 45 : 90;
@@ -82,20 +79,40 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
   const gf = baseGf + visible.filter((e) => e.side === 'you').length;
   const ga = baseGa + visible.filter((e) => e.side === 'opp').length;
 
+  /* ── Momento gol ── el marcador PEGA (punch con spring, keyed por valor) y,
+     si el gol es tuyo, un flash dorado que se apaga. Presentación pura:
+     todo deriva de `visible`; nada retroalimenta al core. Solo transform/
+     opacity. Con movimiento reducido no hay punch ni flash. */
+  const punch = reduce
+    ? undefined
+    : { initial: { scale: 1.55, opacity: 0.4 }, animate: { scale: 1, opacity: 1 }, transition: { type: 'spring' as const, stiffness: 320, damping: 17 } };
+
   return (
-    <div
+    <motion.div
       className="ticker"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
       onClick={skip}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); skip(); } }}
       role="button"
       tabIndex={0}
       title={t('ticker.skip')}
     >
+      {!reduce && gf > baseGf && (
+        <motion.div
+          key={`flash-${gf}`}
+          className="ticker-flash"
+          initial={{ opacity: 0.5 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        />
+      )}
       <p className="ticker-half">{ended ? endLabel : halfLabel}</p>
       <div className="ticker-score" aria-live="polite">
-        <span className="ticker-gf">{gf}</span>
+        <motion.span key={`gf-${gf}`} className="ticker-gf" {...punch}>{gf}</motion.span>
         <span className="ticker-sep">–</span>
-        <span className="ticker-ga">{ga}</span>
+        <motion.span key={`ga-${ga}`} className="ticker-ga" {...punch}>{ga}</motion.span>
       </div>
       <p className="ticker-min">{clock}</p>
       <ul className="ticker-events">
@@ -112,6 +129,6 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
         ))}
       </ul>
       <p className="reel-hint">{t('ticker.skip')}</p>
-    </div>
+    </motion.div>
   );
 }
