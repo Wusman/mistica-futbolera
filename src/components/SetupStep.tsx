@@ -21,9 +21,23 @@ interface Props {
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } } };
 const rise = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } } };
+/* Apertura broadcast: la ficha del día entra como lower third, de izquierda
+   a derecha, DESPUÉS de que estampa el título. Presentación pura. */
+const lowerThird = {
+  hidden: { opacity: 0, x: -36 },
+  show: { opacity: 1, x: 0, transition: { delay: 0.4, type: 'spring' as const, stiffness: 260, damping: 26 } },
+};
 const pitchC = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const slotV = { hidden: { opacity: 0, scale: 0.5 }, show: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
+
+/* Fecha localizada para la ficha del día ("VIE" / "03 JUL"). UI pura: el
+   core jamás la ve; el daily ya elige su semilla por fecha en la shell. */
+function fixtureDate(locale: string): { day: string; num: string } {
+  const parts = new Intl.DateTimeFormat(locale, { weekday: 'short', day: '2-digit', month: 'short' }).formatToParts(new Date());
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return { day: get('weekday').replace('.', ''), num: `${get('day')} ${get('month').replace('.', '')}` };
+}
 
 export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
   const t = useT();
@@ -65,26 +79,32 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
   };
 
   const howto = [1, 2, 3].map((n) => ({ n: `0${n}`, t: t(`howto.${n}.t`), d: t(`howto.${n}.d`) }));
+  const fx = fixtureDate(locale);
 
   return (
     <motion.section className="setup" variants={container} initial="hidden" animate="show">
       <div className="hero">
-        {/* ── Promise first: headline + sub + the one obvious action. ── */}
+        {/* ── Promise first: título-estampa + plaqueta chyron + la ficha del día. ── */}
         <motion.div className="hero-copy" variants={rise}>
           <p className="eyebrow">{t('home.eyebrow')}</p>
-          <h2 className="hero-title">
-            {t('home.h1')}
-            <span className="hero-title-gold">{t('tagline')}</span>
-          </h2>
+          <h2 className="hero-title">{t('home.h1')}</h2>
+          <p className="hero-plaque">{t('tagline')}</p>
           <p className="hero-sub">{t('home.sub')}</p>
-          {/* El diario manda: es el hábito y la competencia. El libre acompaña. */}
+          {/* El diario manda: es el hábito y la competencia. Entra como
+              lower third de transmisión, con la fecha de HOY en la celda. */}
           <motion.button
-            className="cta cta--xl cta--hero"
+            className="fixture"
+            variants={lowerThird}
             {...tap}
             onClick={onDaily}
             title={t('home.dailyHint')}
           >
-            🏆 {t('home.daily')} →
+            <span className="fx-date">
+              <span className="fx-day">{fx.day}</span>
+              <span className="fx-num">{fx.num}</span>
+            </span>
+            <span className="fx-label">{t('home.daily')}</span>
+            <span className="fx-arrow" aria-hidden="true">→</span>
           </motion.button>
           <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
             {t('daily.free')}

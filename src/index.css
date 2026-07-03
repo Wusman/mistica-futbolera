@@ -1,5 +1,9 @@
 /* @import must be the first rule in the file. */
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap');
+/* Sistema tipográfico: UNA superfamilia (Archivo) en dos cortes.
+   · Archivo Black  = estampa/marca: wordmark, plaquetas, sellos de resultado.
+   · Archivo Narrow = display condensado: marcadores, chyrons, etiquetas.
+   Reemplaza a Oswald (el condensado default de toda página deportiva). */
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:wght@500;600;700&display=swap');
 
 /* ──────────────────────────────────────────────────────────────
    THEME — Mística Futbolera · "European night"
@@ -25,8 +29,11 @@
      oficial del fondo: la foto se ve igual arriba que abajo del scroll. */
   --scrim: 0.30;
 
-  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+  --font-brand: 'Archivo Black', 'Archivo Narrow', 'Arial Black', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Tinta oscura para texto sobre dorado (ficha del día, plaqueta). */
+  --ink: #16110a;
 
   color: var(--text);
   font-family: var(--font-body);
@@ -90,8 +97,8 @@ button:focus-visible,
 .masthead { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--line); padding-bottom: 10px; margin-bottom: 24px; }
 .masthead h1 { margin: 0; line-height: 1; }
 .brand {
-  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px; font-size: clamp(20px, 5vw, 30px);
+  font-family: var(--font-brand); font-weight: 400; text-transform: uppercase;
+  letter-spacing: 0.5px; font-size: clamp(18px, 4.6vw, 26px);
   color: var(--text); background: none; border: none; padding: 0; cursor: pointer;
   text-shadow: 0 2px 24px hsl(var(--seed-hue) 80% 60% / 0.25);
   border-bottom: 2px solid transparent; transition: border-color 0.15s ease, color 0.15s ease;
@@ -129,15 +136,42 @@ button:focus-visible,
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
 .cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
-.cta--hero {
-  width: 100%; max-width: 380px;
-  box-shadow: 0 10px 34px hsl(var(--seed-hue) 90% 60% / 0.35);
-  animation: ctaGlow 2.6s ease-in-out infinite;
+
+/* ── Ficha del día ── el CTA del daily como gráfica de partido, no botón
+   SaaS: banda dorada de corte diagonal con la fecha en celda oscura, como
+   una franja de fixture de TV. Entra deslizando (lower third) desde
+   SetupStep y le corre un barrido de luz UNA vez. */
+.fixture {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  width: 100%; max-width: 420px; min-height: 62px; margin-top: 8px;
+  padding: 0 20px 0 0; border: none; cursor: pointer; text-align: left;
+  font-family: var(--font-display); color: var(--ink);
+  background: linear-gradient(100deg, #04020a, var(--accent) 1%, #0a0a31);
+  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  position: relative; overflow: hidden;
+  transition: filter 0.12s ease;
 }
-@keyframes ctaGlow {
-  0%, 100% { box-shadow: 0 10px 34px hsl(var(--seed-hue) 90% 60% / 0.30); }
-  50%      { box-shadow: 0 10px 44px hsl(var(--seed-hue) 90% 60% / 0.55); }
+.fixture:hover { filter: brightness(1.07); }
+.fixture::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.55) 50%, transparent 68%);
+  transform: translateX(-130%);
+  animation: fxSweep 0.9s ease-out 0.75s 1 both;
 }
+@keyframes fxSweep { to { transform: translateX(130%); } }
+.fx-date {
+  align-self: stretch; min-width: 76px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px 16px 8px 24px;
+  background: var(--ink); color: var(--accent);
+  text-transform: uppercase; line-height: 1.15;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+.fx-day { font-size: 11px; letter-spacing: 2.5px; opacity: 0.85; }
+.fx-num { font-size: 16px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fx-label { font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.05; padding: 10px 0; }
+.fx-arrow { font-size: 22px; font-weight: 700; }
 
 /* ── Frosted panel (deja ver el estadio detrás) ── */
 .panel {
@@ -181,12 +215,30 @@ button:focus-visible,
   font-size: 12px; color: var(--gold); margin: 0 0 10px;
 }
 .hero-title {
-  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  font-size: clamp(42px, 11vw, 80px); line-height: 0.94; letter-spacing: -1px; margin: 0;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-brand); font-weight: 400; text-transform: uppercase;
+  font-size: clamp(36px, 10vw, 64px); line-height: 0.96; letter-spacing: 0; margin: 0;
+  /* Sombra DURA desplazada (lenguaje de marcador) + halo suave de legibilidad. */
+  text-shadow:
+    0.045em 0.045em 0 hsl(var(--seed-hue) 85% 62% / 0.4),
+    0 4px 30px rgba(0, 0, 0, 0.55);
 }
-.hero-title-gold {
-  display: block; color: var(--gold); font-size: 0.56em; letter-spacing: 0; margin-top: 6px;
+/* Tagline como plaqueta lower-third: el mismo chyron diagonal del juego,
+   subido al hero. Barrido de luz UNA vez al entrar (apertura broadcast). */
+.hero-plaque {
+  display: inline-block; margin: 12px 0 0; padding: 6px 20px 5px;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; font-size: clamp(14px, 3.6vw, 19px); color: #fff;
+  background:
+    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.45) 50%, transparent 62%),
+    linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
+  background-size: 320% 100%, 100% 100%;
+  background-position: 130% 0, 0 0;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  animation: plaqueShine 1s ease-out 0.45s 1 both;
+}
+@keyframes plaqueShine {
+  from { background-position: 130% 0, 0 0; }
+  to   { background-position: -30% 0, 0 0; }
 }
 .hero-sub { color: #bcc7e8; font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65); }
 
@@ -359,7 +411,7 @@ button:focus-visible,
 .verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 .flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--gold); margin: 0; }
-.outcome { display: inline-block; align-self: center; transform: skewX(-8deg); font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 6px; font-size: clamp(20px, 6vw, 26px); margin: 0; }
+.outcome { display: inline-block; align-self: center; transform: skewX(-8deg); font-family: var(--font-brand); font-weight: 400; text-transform: uppercase; letter-spacing: 4px; font-size: clamp(19px, 5.6vw, 24px); margin: 0; }
 .outcome--win { color: var(--gold); }
 .outcome--lose { color: #ff9b9b; }
 .goals-min { list-style: none; margin: 0; padding: 0; text-align: left; }
@@ -619,7 +671,7 @@ button:focus-visible,
   text-shadow: 0.06em 0.06em 0 hsl(45 85% 55% / 0.28);
 }
 .cta--kickoff { align-self: center; width: 100%; max-width: 420px; }
-.cta--daily { display: block; width: 100%; max-width: 380px; margin-top: 10px; font-size: 15px; padding: 13px; }
+.cta--daily { display: block; width: 100%; max-width: 420px; margin-top: 10px; font-size: 15px; padding: 13px; }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {
@@ -646,7 +698,9 @@ button:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .backdrop::before,
   .pslot--choose,
-  .cta--hero { animation: none !important; }
+  .hero-plaque,
+  .fixture::after { animation: none !important; }
+  .fixture::after { transform: translateX(130%); } /* barrido ya "pasado": sin brillo encima */
 }
 /* ══ Modo espectador: resumen reproducido de una corrida compartida ══ */
 .spec {
