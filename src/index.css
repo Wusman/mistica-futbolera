@@ -56,23 +56,6 @@ body { margin: 0; background: transparent; }
 .app { position: relative; max-width: 1040px; margin: 0 auto; padding: 20px 20px 28px; min-height: 100%; display: flex; flex-direction: column; }
 .stage { flex: 1; }
 
-/* ── Corte de transmisión ── el wrapper de cada pantalla y la banda diagonal
-   que la barre al entrar (Framer mueve solo transform; ver App.tsx).
-   La banda vive DENTRO de un contenedor que la recorta: estacionada fuera de
-   cuadro (x: 280%) sin recorte, el navegador ensancha el documento para
-   contenerla — overflow horizontal y banda visible a la derecha. */
-.screen { position: relative; }
-.screen-wipe-clip {
-  position: absolute; inset: -4% 0; overflow: hidden;
-  z-index: 5; pointer-events: none;
-}
-.screen-wipe {
-  position: absolute; top: 0; bottom: 0; left: 0; width: 55%;
-  transform: skewX(-14deg);
-  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%) 82%, var(--gold));
-  will-change: transform;
-}
-
 /* Foco de teclado visible en toda la app (a11y). */
 button:focus-visible,
 [role='button']:focus-visible {
@@ -740,7 +723,6 @@ button:focus-visible,
   .hero-plaque,
   .fixture::after { animation: none !important; }
   .fixture::after { transform: translateX(130%); } /* barrido ya "pasado": sin brillo encima */
-  .screen-wipe { display: none; } /* Framer ya frena el resto vía MotionConfig */
 }
 /* ══ Modo espectador: resumen reproducido de una corrida compartida ══ */
 .spec {

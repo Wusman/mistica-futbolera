@@ -352,20 +352,13 @@ function capture(state: GameState, action: Action): GameState {
   }
 }
 
-/* ── Variantes del corte broadcast ──
-   La pantalla entra deslizando y una banda diagonal la barre UNA vez.
-   Con AnimatePresence initial={false}, el primer render NO anima: la banda
-   nace ya "pasada" (x: 280%) e invisible fuera de cuadro. Solo transform/
-   opacity: costo de compositor, cero repintado. */
+/* ── Corte entre pantallas ──
+   Deslizamiento breve del contenido al cambiar de fase o de partido.
+   (La banda diagonal se probó y se descartó: básica, no sumaba.) */
 const screenV = {
   initial: { opacity: 0, x: 28 },
-  enter: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const, when: 'beforeChildren' as const } },
+  enter: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const } },
   exit: { opacity: 0, x: -28, transition: { duration: 0.18, ease: 'easeIn' as const } },
-};
-const wipeV = {
-  initial: { x: '-140%' },
-  enter: { x: '280%', transition: { duration: 0.5, ease: [0.7, 0, 0.3, 1] as const } },
-  exit: {},
 };
 
 export default function App() {
@@ -503,9 +496,6 @@ export default function App() {
             animate="enter"
             exit="exit"
           >
-            <span className="screen-wipe-clip" aria-hidden="true">
-              <motion.span className="screen-wipe" variants={wipeV} />
-            </span>
         {spectatorActive ? (
           <Spectator
             result={spectator!.result}
