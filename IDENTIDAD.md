@@ -57,7 +57,7 @@ en `:root`. Ningún color hardcodeado en reglas.
 
 ## 3. El fondo
 
-La foto de estadio borrosa **se elimina** (mayor delator de template).
+La foto de estadio borrosa **se elimina** (aunque por desicion puede volver ya que le de identidad de "champions league").
 El fondo es diseñado y propio:
 1. Gradiente vertical `--night-0 → --night-1`.
 2. **Geometría de cancha gigante** (círculo central, media cancha, área) en
