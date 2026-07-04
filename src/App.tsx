@@ -42,7 +42,6 @@ import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily'
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
 import { encodeRun, decodeRun } from './lib/sharecode';
 import { DailyDone } from './components/DailyDone';
-import { NightBackdrop } from './components/NightBackdrop';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
 import { LangSwitch } from './components/LangSwitch';
@@ -477,7 +476,9 @@ export default function App() {
 
   return (
     <div className="app" style={rootStyle}>
-      <NightBackdrop />
+      <div className="backdrop" aria-hidden="true">
+        <span className="backdrop-glow" />
+      </div>
 
       <header className="masthead">
         <h1>
