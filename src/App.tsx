@@ -36,11 +36,13 @@ import {
   settleMatch,
   settleH2,
 } from './lib/tournament';
+import { BRAND } from './config';
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
 import { encodeRun, decodeRun } from './lib/sharecode';
 import { DailyDone } from './components/DailyDone';
+import { NightBackdrop } from './components/NightBackdrop';
 import { SecondHalfPen } from './components/SecondHalfPen';
 import { Feedback } from './components/Feedback';
 import { LangSwitch } from './components/LangSwitch';
@@ -408,6 +410,9 @@ export default function App() {
     : phase.kind === 'drafting' ? 'draft'
     : `match-${phase.c.stageIdx}-${phase.c.leg}`;
 
+  /* El título del documento sale de BRAND: el día del rename, config.ts manda. */
+  useEffect(() => { document.title = BRAND; }, []);
+
   /* Al cortar a una pantalla nueva, arrancarla desde arriba. */
   const prevKeyRef = useRef(screenKey);
   useEffect(() => {
@@ -472,13 +477,11 @@ export default function App() {
 
   return (
     <div className="app" style={rootStyle}>
-      <div className="backdrop" aria-hidden="true">
-        <span className="backdrop-glow" />
-      </div>
+      <NightBackdrop />
 
       <header className="masthead">
         <h1>
-          <button className="brand" onClick={goHome}>Mística Futbolera</button>
+          <button className="brand" onClick={goHome}>{BRAND}</button>
         </h1>
         <div className="masthead-side">
           <LangSwitch />
@@ -625,7 +628,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <button className="footer-brand" onClick={goHome}>Mística Futbolera</button>
+        <button className="footer-brand" onClick={goHome}>{BRAND}</button>
         <button className="footer-tag" onClick={playNow}>{t('footer.tag')}</button>
         <nav className="footer-links">
           <button className="footer-link" onClick={() => setShowFeedback(true)}>{t('fb.link')}</button>
