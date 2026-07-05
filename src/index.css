@@ -136,13 +136,15 @@ button:focus-visible,
 .chip--on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ── CTA ── */
+/* CTA base: plano, recto, sólido. El corte diagonal murió: era el gesto
+   "Fortnite" que contaminaba todos los botones del juego. */
 .cta {
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 18px;
-  color: #fff; background: var(--accent); border: none; padding: 16px; cursor: pointer;
+  color: #fff; background: var(--accent); border: none; border-radius: 4px;
+  padding: 16px; cursor: pointer;
   margin-top: 6px; transition: filter 0.12s ease;
 }
 .cta:hover { filter: brightness(1.12); }
-.cta:not(.cta--ghost) { clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
 .cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; }
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
@@ -580,11 +582,13 @@ button:focus-visible,
 /* ── Selector de idioma (desplegable del masthead) ── */
 .lang { position: relative; }
 .lang-btn {
-  font-family: var(--font-display); font-size: 13px; letter-spacing: 1px;
-  padding: 5px 10px; cursor: pointer; color: #fff;
-  background: var(--accent); border: 1px solid var(--line); border-radius: 6px;
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 1.5px;
+  padding: 5px 10px; cursor: pointer; color: var(--silver);
+  background: transparent; border: 1px solid var(--line); border-radius: 4px;
   display: inline-flex; align-items: center; gap: 5px; min-height: 32px;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
+.lang-btn:hover { border-color: var(--gold); color: var(--text); }
 .lang-caret { font-size: 10px; opacity: 0.85; }
 .lang-menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
@@ -600,8 +604,8 @@ button:focus-visible,
   padding: 8px 12px; cursor: pointer; min-height: 36px;
 }
 .lang-opt:hover { background: rgba(255, 255, 255, 0.06); color: var(--text); }
-.lang-opt--on { color: #fff; background: var(--accent); }
-.lang-opt--on:hover { background: var(--accent); color: #fff; }
+.lang-opt--on { color: var(--gold); background: rgba(255, 255, 255, 0.06); }
+.lang-opt--on:hover { background: rgba(255, 255, 255, 0.06); color: var(--gold); }
 
 /* ── Bracket guía v2: slots por equipo (sin nombres), conectores punteados
    para lo que falta y sólidos para lo recorrido, copa al centro. Los fills
