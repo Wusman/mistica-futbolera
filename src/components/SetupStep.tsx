@@ -234,6 +234,22 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             })}
           </motion.div>
           <p className="board-caption">{t('home.showcase')}</p>
+          {/* ── Formación: dentro de la pizarra, que es lo que modifica. ── */}
+          <div className="board-controls">
+            <p className="board-label">{t('setup.formation')}</p>
+            <div className="formation-grid">
+              {names.map((name) => (
+                <motion.button
+                  key={name}
+                  className={`chip ${name === formation ? 'chip--on' : ''}`}
+                  {...tap}
+                  onClick={() => onFormation(name)}
+                >
+                  {name}
+                </motion.button>
+              ))}
+            </div>
+          </div>
 
           {/* ── Seed: discreta pero editable — pegá la de un amigo y jugá SU torneo. ── */}
           <div className="seed-mini">
@@ -260,22 +276,6 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           </motion.button>
           <p className="seed-hint">{t('home.seedHint')}</p>
 
-          {/* ── Formación: dentro de la pizarra, que es lo que modifica. ── */}
-          <div className="board-controls">
-            <p className="board-label">{t('setup.formation')}</p>
-            <div className="formation-grid">
-              {names.map((name) => (
-                <motion.button
-                  key={name}
-                  className={`chip ${name === formation ? 'chip--on' : ''}`}
-                  {...tap}
-                  onClick={() => onFormation(name)}
-                >
-                  {name}
-                </motion.button>
-              ))}
-            </div>
-          </div>
         </motion.div>
 
         {/* ── El salón de campeones: el objetivo, de frente y premium. ── */}
