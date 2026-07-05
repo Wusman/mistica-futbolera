@@ -72,11 +72,21 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
 
   /* Semilla editable: escribí la de un amigo (o cualquier palabra) y jugás
      SU torneo. Sincronizada con la prop vía prop-change-in-render. */
+  const [playNth, setPlayNth] = useState(0);
   const [seedText, setSeedText] = useState(seed.toString(36));
   const [prevSeed, setPrevSeed] = useState(seed);
   if (prevSeed !== seed) {
     setPrevSeed(seed);
     setSeedText(seed.toString(36));
+    setPlayNth(0); // semilla nueva = pizarra nueva: la jugada espera al once
+  }
+  /* Cambio de formación: la cancha remonta y las burbujas re-entran; la
+     jugada vuelve a "primera" para esperar al once (si no, corría con
+     delay de tap sobre una cancha todavía vacía y parecía rota). */
+  const [prevFormation, setPrevFormation] = useState(formation);
+  if (prevFormation !== formation) {
+    setPrevFormation(formation);
+    setPlayNth(0);
   }
   const commitSeed = () => {
     const n = seedFromInput(seedText);
@@ -108,7 +118,6 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
   /* Tap en la pizarra = otra jugada. nth entra a la sal del rng: cada tap es
      una jugada distinta pero reproducible (misma semilla + mismos taps →
      mismas jugadas). Presentación pura. */
-  const [playNth, setPlayNth] = useState(0);
   const play = boardPlay(seed, formation, playNth);
 
   return (
@@ -169,7 +178,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           >
             <PitchMarkings />
             {!reduce && (() => {
-              const delay = playNth === 0 ? 1.1 : 0.1; // al cargar espera al once; al tap sale ya
+              const delay = playNth === 0 ? 0.95 : 0.12; // al cargar espera al once; al tap sale ya
               const run = 1.9;
               return (
                 <motion.svg
@@ -192,11 +201,12 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
                   <motion.circle
                     className="play-ball"
                     r="2.3"
-                    initial={{ cx: play[0].x, cy: play[0].y }}
-                    animate={{ cx: play.map((p) => p.x), cy: play.map((p) => p.y) }}
+                    initial={{ cx: play[0].x, cy: play[0].y, opacity: 0 }}
+                    animate={{ cx: play.map((p) => p.x), cy: play.map((p) => p.y), opacity: 1 }}
                     transition={{
                       delay, duration: run, times: [0, 0.3, 0.55, 0.78, 1],
                       ease: ['easeOut', 'easeOut', 'easeOut', 'easeOut'],
+                      opacity: { delay: Math.max(delay - 0.2, 0), duration: 0.2 },
                     }}
                   />
                 </motion.svg>
