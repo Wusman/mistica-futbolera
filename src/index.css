@@ -184,19 +184,15 @@ button:focus-visible,
 .fx-arrow { font-size: 22px; font-weight: 700; color: var(--gold); }
 
 /* ── Frosted panel (deja ver el estadio detrás) ── */
+/* Superficie plana del mundo A (IDENTIDAD §2): sólida, radio corto, luz de
+   borde superior. Sin backdrop-filter: sobre el fondo diseñado no hay nada
+   que desenfocar, solo costaba GPU. */
 .panel {
-  background: rgba(17, 25, 60, 0.72);
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 20px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-
-/* Rayado diagonal finísimo: textura de camiseta, mata el "flat de IA". */
-.panel, .card, .ticker, .scout {
-  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 7px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* ── HOME / hero ──
@@ -255,7 +251,17 @@ button:focus-visible,
 }
 .hero-sub { color: #bcc7e8; font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65); }
 
-.hero-board { padding: 14px 14px 16px; }
+.hero-board { padding: 0 14px 16px; }
+/* Cabecera de la pizarra: la formación y la semilla como gráfica de
+   alineación de TV, no como panel genérico. */
+.board-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 0 -14px 14px; padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--silver);
+}
+.board-head b { color: var(--gold); font-weight: 700; }
 .board-caption { font-style: italic; color: var(--muted); font-size: 13px; text-align: center; margin: 12px 0 0; }
 
 /* Semilla: presente pero discreta. El gancho de desafío vive acá. */
@@ -282,7 +288,7 @@ button:focus-visible,
   font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; opacity: 0.75;
 }
 
-.hero-controls { display: flex; flex-direction: column; gap: 14px; }
+.hero-controls { display: flex; flex-direction: column; gap: 14px; padding: 6px 0 0; }
 
 /* Cómo se juega = minutos de partido (01' / 45' / 90') sobre una regla,
    sin cajitas: composición editorial, no grid de features. */
@@ -343,8 +349,9 @@ button:focus-visible,
    (mulberry32 con sal propia, presentación pura). One-shot: se juega y
    queda quieta. Con reduced-motion ni se renderiza. */
 .play { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.play-line { fill: none; stroke: rgba(244, 246, 251, 0.32); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.play-ball { fill: #fff; stroke: rgba(6, 10, 26, 0.4); stroke-width: 0.4; }
+.play-line { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 1.75; vector-effect: non-scaling-stroke; }
+.play-ball { fill: #fff; stroke: rgba(6, 10, 26, 0.45); stroke-width: 0.4; }
+.pitch { cursor: pointer; } /* tap = otra jugada de pizarra */
 
 .pslot-pos { font-family: var(--font-display); letter-spacing: 1px; }
 .pslot--filled { background: #eef2ff; border: 2px solid #0a1024; color: #0a1024; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
@@ -674,7 +681,6 @@ button:focus-visible,
 .vs-side {
   position: relative; border: 1px solid var(--line); border-radius: 10px;
   background: rgba(15, 24, 56, 0.85);
-  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 7px);
   padding: 22px 12px 18px; display: flex; flex-direction: column; align-items: center; gap: 2px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); overflow: hidden;

@@ -44,9 +44,9 @@ function fixtureDate(locale: string): { day: string; num: string } {
    stream con nada del core). Presentación pura: dibuja, no decide. */
 const DEF = new Set<Pos>(['RB', 'CB', 'LB']);
 const MID = new Set<Pos>(['DM', 'CM', 'AM', 'RM', 'LM']);
-function boardPlay(seed: number, formation: FormationName): { x: number; y: number }[] {
+function boardPlay(seed: number, formation: FormationName, nth: number): { x: number; y: number }[] {
   const slots = FORMATIONS[formation].slots;
-  const rng = mulberry32((seed ^ 0x5eba11) >>> 0);
+  const rng = mulberry32(((seed ^ 0x5eba11) + nth * 0x9e3779b9) >>> 0);
   const idxs = (test: (p: Pos) => boolean) =>
     slots.map((sl, i) => (test(sl.pos) ? i : -1)).filter((i) => i >= 0);
   const pick = (arr: number[]) => arr[Math.floor(rng() * arr.length)];
@@ -105,7 +105,11 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
   const howto = [1, 2, 3].map((n) => ({ n: MINS[n - 1], t: t(`howto.${n}.t`), d: t(`howto.${n}.d`) }));
   const fx = fixtureDate(locale);
   const reduce = useReducedMotion();
-  const play = boardPlay(seed, formation);
+  /* Tap en la pizarra = otra jugada. nth entra a la sal del rng: cada tap es
+     una jugada distinta pero reproducible (misma semilla + mismos taps →
+     mismas jugadas). Presentación pura. */
+  const [playNth, setPlayNth] = useState(0);
+  const play = boardPlay(seed, formation, playNth);
 
   return (
     <motion.section className="setup" variants={container} initial="hidden" animate="show">
@@ -151,35 +155,53 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
 
         {/* ── The carrot: a dream XI you could draft, re-rolled per seed. ── */}
         <motion.div className="hero-board panel" variants={rise}>
+          <div className="board-head">
+            <span><b>{formation}</b></span>
+            <span>#{seed.toString(36).toUpperCase()}</span>
+          </div>
           <motion.div
             className="pitch"
             key={`${seed.toString(36)}:${formation}`}
             variants={pitchC}
             initial="hidden"
             animate="show"
+            onClick={() => setPlayNth((n) => n + 1)}
           >
             <PitchMarkings />
-            {!reduce && (
-              <svg className="play" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                <motion.path
-                  className="play-line"
-                  d={`M ${play.map((p) => `${p.x} ${p.y}`).join(' L ')}`}
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ delay: 1.3, duration: 2.2, ease: 'easeInOut' }}
-                />
-                <motion.circle
-                  className="play-ball"
-                  r="1.7"
-                  initial={{ cx: play[0].x, cy: play[0].y, opacity: 0 }}
-                  animate={{ cx: play.map((p) => p.x), cy: play.map((p) => p.y), opacity: 1 }}
-                  transition={{
-                    delay: 1.3, duration: 2.2, ease: 'easeInOut', times: [0, 0.3, 0.55, 0.78, 1],
-                    opacity: { delay: 1.3, duration: 0.25 },
-                  }}
-                />
-              </svg>
-            )}
+            {!reduce && (() => {
+              const delay = playNth === 0 ? 1.1 : 0.1; // al cargar espera al once; al tap sale ya
+              const run = 1.9;
+              return (
+                <motion.svg
+                  key={`play-${playNth}`}
+                  className="play"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: [1, 1, 0] }}
+                  transition={{ delay, duration: run + 0.6, times: [0, 0.78, 1] }}
+                >
+                  <motion.path
+                    className="play-line"
+                    d={`M ${play.map((p) => `${p.x} ${p.y}`).join(' L ')}`}
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay, duration: run, ease: 'easeInOut' }}
+                  />
+                  <motion.circle
+                    className="play-ball"
+                    r="2.3"
+                    initial={{ cx: play[0].x, cy: play[0].y }}
+                    animate={{ cx: play.map((p) => p.x), cy: play.map((p) => p.y) }}
+                    transition={{
+                      delay, duration: run, times: [0, 0.3, 0.55, 0.78, 1],
+                      ease: ['easeOut', 'easeOut', 'easeOut', 'easeOut'],
+                    }}
+                  />
+                </motion.svg>
+              );
+            })()}
             {slots.map((slot, i) => {
               const p = xi[i];
               return (
@@ -230,7 +252,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
         </motion.div>
 
         {/* ── Formation: optional tuning, default already sane. ── */}
-        <motion.div className="hero-controls panel" variants={rise}>
+        <motion.div className="hero-controls" variants={rise}>
           <h2 className="step-title">{t('setup.formation')}</h2>
           <div className="formation-grid">
             {names.map((name) => (
