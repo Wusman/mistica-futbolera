@@ -259,23 +259,28 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             ▶ {t('home.playSeed')}
           </motion.button>
           <p className="seed-hint">{t('home.seedHint')}</p>
+
+          {/* ── Formación: dentro de la pizarra, que es lo que modifica. ── */}
+          <div className="board-controls">
+            <p className="board-label">{t('setup.formation')}</p>
+            <div className="formation-grid">
+              {names.map((name) => (
+                <motion.button
+                  key={name}
+                  className={`chip ${name === formation ? 'chip--on' : ''}`}
+                  {...tap}
+                  onClick={() => onFormation(name)}
+                >
+                  {name}
+                </motion.button>
+              ))}
+            </div>
+          </div>
         </motion.div>
 
-        {/* ── Formation: optional tuning, default already sane. ── */}
-        <motion.div className="hero-controls" variants={rise}>
-          <h2 className="step-title">{t('setup.formation')}</h2>
-          <div className="formation-grid">
-            {names.map((name) => (
-              <motion.button
-                key={name}
-                className={`chip ${name === formation ? 'chip--on' : ''}`}
-                {...tap}
-                onClick={() => onFormation(name)}
-              >
-                {name}
-              </motion.button>
-            ))}
-          </div>
+        {/* ── El salón de campeones: el objetivo, de frente y premium. ── */}
+        <motion.div className="hero-champs" variants={rise}>
+          <ChampionsBoard />
         </motion.div>
       </div>
 
@@ -291,9 +296,6 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
         ))}
       </motion.ol>
 
-      <motion.div variants={rise}>
-        <ChampionsBoard />
-      </motion.div>
 
       <motion.p className="setup-stats" variants={rise}>
         {t('setup.stats')}
