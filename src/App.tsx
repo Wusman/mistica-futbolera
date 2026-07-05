@@ -458,8 +458,17 @@ export default function App() {
   }, [phase, state.mode, state.seed, state.formation, state.log]);
 
   const goHome = () => {
-    if (phase.kind === 'setup') return;
-    if (window.confirm(t('nav.leave'))) dispatch({ type: 'GO_HOME' });
+    if (phase.kind === 'setup') {
+      /* Desde el resultado del diario (fase setup + dailyDone), el título
+         vuelve al home real. Antes retornaba seco y el título era un botón
+         muerto: solo se salía arrancando otra run. */
+      setDailyDone(null);
+      return;
+    }
+    if (window.confirm(t('nav.leave'))) {
+      dispatch({ type: 'GO_HOME' });
+      setDailyDone(null); // que al salir de una run no reaparezca el resultado viejo
+    }
   };
 
   const playNow = () => {
