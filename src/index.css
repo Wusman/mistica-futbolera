@@ -164,13 +164,6 @@ button:focus-visible,
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .fixture:hover { border-color: rgba(242, 193, 78, 0.55); transform: translateY(-2px); }
-.fixture::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.16) 50%, transparent 68%);
-  transform: translateX(-130%);
-  animation: fxSweep 0.9s ease-out 0.75s 1 both;
-}
-@keyframes fxSweep { to { transform: translateX(130%); } }
 .fx-date {
   align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding-right: 16px; border-right: 1px solid var(--line);
@@ -204,16 +197,12 @@ button:focus-visible,
 @media (min-width: 920px) {
   .hero {
     grid-template-columns: minmax(0, 1fr) 400px;
-    grid-template-areas:
-      'copy board'
-      'controls board';
+    grid-template-areas: 'copy board';
     column-gap: 48px;
-    row-gap: 22px;
     align-items: start;
   }
   .hero-copy { grid-area: copy; }
   .hero-board { grid-area: board; }
-  .hero-controls { grid-area: controls; }
 }
 
 .hero-copy { padding-top: 8px; }
@@ -231,23 +220,14 @@ button:focus-visible,
     0.045em 0.045em 0 hsl(var(--seed-hue) 85% 62% / 0.4),
     0 4px 30px rgba(0, 0, 0, 0.55);
 }
-/* Tagline como plaqueta lower-third: el mismo chyron diagonal del juego,
-   subido al hero. Barrido de luz UNA vez al entrar (apertura broadcast). */
+/* Tagline de himno (mundo A): plata con tracking y filete hairline.
+   Nada de plaqueta con gradiente ni barrido: eso gritaba "win de Fortnite"
+   y acá la solemnidad manda. */
 .hero-plaque {
-  display: inline-block; margin: 12px 0 0; padding: 6px 20px 5px;
+  display: inline-block; margin: 12px 0 0; padding: 0 0 10px;
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1.5px; font-size: clamp(14px, 3.6vw, 19px); color: #fff;
-  background:
-    linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.45) 50%, transparent 62%),
-    linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
-  background-size: 320% 100%, 100% 100%;
-  background-position: 130% 0, 0 0;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-  animation: plaqueShine 1s ease-out 0.45s 1 both;
-}
-@keyframes plaqueShine {
-  from { background-position: 130% 0, 0 0; }
-  to   { background-position: -30% 0, 0 0; }
+  letter-spacing: 4px; font-size: clamp(13px, 3.2vw, 16px); color: var(--silver);
+  border-bottom: 1px solid var(--line);
 }
 .hero-sub { color: #bcc7e8; font-size: 16px; line-height: 1.55; max-width: 46ch; margin: 16px 0 22px; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65); }
 
@@ -288,7 +268,10 @@ button:focus-visible,
   font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; opacity: 0.75;
 }
 
-.hero-controls { display: flex; flex-direction: column; gap: 14px; padding: 6px 0 0; }
+/* La formación vive DENTRO de la pizarra: los controles con lo que
+   controlan. Separada por regla fina, con etiqueta chica de gráfica. */
+.board-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.board-label { margin: 0; font-family: var(--font-display); font-size: 11.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--silver); }
 
 /* Cómo se juega = minutos de partido (01' / 45' / 90') sobre una regla,
    sin cajitas: composición editorial, no grid de features. */
@@ -733,10 +716,7 @@ button:focus-visible,
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .bd-geo circle, .bd-geo line, .bd-geo path { animation: none !important; stroke-dashoffset: 0; }
-  .pslot--choose,
-  .hero-plaque,
-  .fixture::after { animation: none !important; }
-  .fixture::after { transform: translateX(130%); } /* barrido ya "pasado": sin brillo encima */
+  .pslot--choose { animation: none !important; }
 }
 /* ══ Modo espectador: resumen reproducido de una corrida compartida ══ */
 .spec {
