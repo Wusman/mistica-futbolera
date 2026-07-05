@@ -148,41 +148,40 @@ button:focus-visible,
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
 .cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
 
-/* ── Ficha del día ── el CTA del daily como gráfica de partido, no botón
-   SaaS: banda dorada de corte diagonal con la fecha en celda oscura, como
-   una franja de fixture de TV. Entra deslizando (lower third) desde
-   SetupStep y le corre un barrido de luz UNA vez. */
+/* ── Placa de fixture ── el diario como gráfica de partido (IDENTIDAD §4):
+   plana, oscura, con FILETE dorado arriba (nunca plancha dorada). La celda
+   de fecha va separada por regla fina; el hint del daily se hace visible
+   como metadata. Al hover, la energía C: borde que enciende y lift.
+   El barrido de luz corre UNA vez al montar (apertura). */
 .fixture {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
-  width: 100%; max-width: 420px; min-height: 62px; margin-top: 8px;
-  padding: 0 20px 0 0; border: none; cursor: pointer; text-align: left;
-  font-family: var(--font-display); color: var(--ink);
-  background: linear-gradient(100deg, #dfae35, var(--gold) 55%, #f6d379);
-  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+  width: 100%; max-width: 440px; min-height: 64px; margin-top: 8px;
+  padding: 12px 18px; border: 1px solid var(--line); border-top: 2px solid var(--gold);
+  cursor: pointer; text-align: left;
+  font-family: var(--font-display); color: var(--text);
+  background: linear-gradient(180deg, #111b3e, var(--surface));
   position: relative; overflow: hidden;
-  transition: filter 0.12s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.fixture:hover { filter: brightness(1.07); }
+.fixture:hover { border-color: rgba(242, 193, 78, 0.55); transform: translateY(-2px); }
 .fixture::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.55) 50%, transparent 68%);
+  background: linear-gradient(105deg, transparent 32%, rgba(255, 255, 255, 0.16) 50%, transparent 68%);
   transform: translateX(-130%);
   animation: fxSweep 0.9s ease-out 0.75s 1 both;
 }
 @keyframes fxSweep { to { transform: translateX(130%); } }
 .fx-date {
-  align-self: stretch; min-width: 76px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 8px 16px 8px 24px;
-  background: var(--ink); color: var(--gold);
+  align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-right: 16px; border-right: 1px solid var(--line);
   text-transform: uppercase; line-height: 1.15;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
-.fx-day { font-size: 11px; letter-spacing: 2.5px; opacity: 0.85; }
-.fx-num { font-size: 16px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.fx-label { font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.05; padding: 10px 0; }
-.fx-arrow { font-size: 22px; font-weight: 700; }
+.fx-day { font-size: 11px; letter-spacing: 2.5px; color: var(--silver); }
+.fx-num { font-family: var(--font-brand); font-size: 17px; color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fx-main { display: flex; flex-direction: column; gap: 2px; }
+.fx-label { font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.05; }
+.fx-meta { font-size: 11.5px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--silver); }
+.fx-arrow { font-size: 22px; font-weight: 700; color: var(--gold); }
 
 /* ── Frosted panel (deja ver el estadio detrás) ── */
 .panel {
@@ -223,9 +222,11 @@ button:focus-visible,
 
 .hero-copy { padding-top: 8px; }
 .eyebrow {
+  display: flex; align-items: center; gap: 10px;
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px;
-  font-size: 12px; color: var(--gold); margin: 0 0 10px;
+  font-size: 12px; color: var(--silver); margin: 0 0 10px;
 }
+.eyebrow::before { content: ''; width: 26px; height: 3px; background: var(--gold); }
 .hero-title {
   font-family: var(--font-brand); font-weight: 400; text-transform: uppercase;
   font-size: clamp(36px, 10vw, 64px); line-height: 0.96; letter-spacing: 0; margin: 0;
@@ -283,10 +284,18 @@ button:focus-visible,
 
 .hero-controls { display: flex; flex-direction: column; gap: 14px; }
 
-.howto { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px; }
+/* Cómo se juega = minutos de partido (01' / 45' / 90') sobre una regla,
+   sin cajitas: composición editorial, no grid de features. */
+.howto { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--line); }
 @media (min-width: 820px) { .howto { grid-template-columns: repeat(3, 1fr); } }
-.howto li { display: flex; align-items: center; gap: 12px; background: rgba(17, 25, 60, 0.55); border: 1px solid var(--line-soft); border-radius: 10px; padding: 14px 16px; }
-.howto-n { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--gold); line-height: 1; }
+.howto li { display: flex; flex-direction: column; gap: 3px; padding: 18px 0 0; border-top: 1px solid var(--line); }
+.howto li:first-child { border-top: none; }
+@media (min-width: 820px) {
+  .howto li { border-top: none; border-left: 1px solid var(--line); padding: 20px 18px 0; }
+  .howto li:first-child { border-left: none; padding-left: 0; }
+}
+.howto-n { font-family: var(--font-brand); font-size: 28px; color: var(--gold); line-height: 1; }
+.howto-n small { font-size: 15px; }
 .howto-txt { display: flex; flex-direction: column; gap: 2px; }
 .howto b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 .howto small { color: var(--muted); font-size: 13px; }
@@ -329,6 +338,14 @@ button:focus-visible,
   text-align: center; font-size: 11px; line-height: 1.05;
 }
 .pslot--empty { border: 2px dashed rgba(255, 255, 255, 0.55); color: rgba(255, 255, 255, 0.85); }
+/* ── La jugada de pizarra ── al cargar (y con cada semilla nueva), la
+   pelota ejecuta UNA jugada GK→defensa→medio→ataque derivada de la semilla
+   (mulberry32 con sal propia, presentación pura). One-shot: se juega y
+   queda quieta. Con reduced-motion ni se renderiza. */
+.play { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.play-line { fill: none; stroke: rgba(244, 246, 251, 0.32); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.play-ball { fill: #fff; stroke: rgba(6, 10, 26, 0.4); stroke-width: 0.4; }
+
 .pslot-pos { font-family: var(--font-display); letter-spacing: 1px; }
 .pslot--filled { background: #eef2ff; border: 2px solid #0a1024; color: #0a1024; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
 .pslot-name { max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
@@ -677,7 +694,14 @@ button:focus-visible,
   text-shadow: 0.06em 0.06em 0 hsl(45 85% 55% / 0.28);
 }
 .cta--kickoff { align-self: center; width: 100%; max-width: 420px; }
-.cta--daily { display: block; width: 100%; max-width: 420px; margin-top: 10px; font-size: 15px; padding: 13px; }
+/* El libre acompaña sin competir: link editorial, no otra caja. */
+.cta--daily {
+  display: inline-block; width: auto; margin-top: 16px; padding: 2px 0;
+  background: none; border: none; border-bottom: 1px solid transparent; border-radius: 0;
+  color: var(--silver); font-size: 13.5px; letter-spacing: 2.5px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.cta--daily:hover { background: none; color: var(--text); border-bottom-color: var(--gold); }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {

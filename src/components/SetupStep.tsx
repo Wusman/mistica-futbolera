@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FORMATIONS, type FormationName } from '../data/players';
+import { motion, useReducedMotion } from 'framer-motion';
+import { FORMATIONS, type FormationName, type Pos } from '../data/players';
 import { posLabel } from '../labels';
-import { showcaseXI, seedFromInput, shortName } from '../lib/engine';
+import { showcaseXI, seedFromInput, shortName, mulberry32 } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
@@ -37,6 +37,28 @@ function fixtureDate(locale: string): { day: string; num: string } {
   const parts = new Intl.DateTimeFormat(locale, { weekday: 'short', day: '2-digit', month: 'short' }).formatToParts(new Date());
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
   return { day: get('weekday').replace('.', ''), num: `${get('day')} ${get('month').replace('.', '')}` };
+}
+
+/* ── La jugada de pizarra ── GK → defensa → medio → medio → ataque, elegida
+   determinísticamente de la semilla (mulberry32 con sal propia: no comparte
+   stream con nada del core). Presentación pura: dibuja, no decide. */
+const DEF = new Set<Pos>(['RB', 'CB', 'LB']);
+const MID = new Set<Pos>(['DM', 'CM', 'AM', 'RM', 'LM']);
+function boardPlay(seed: number, formation: FormationName): { x: number; y: number }[] {
+  const slots = FORMATIONS[formation].slots;
+  const rng = mulberry32((seed ^ 0x5eba11) >>> 0);
+  const idxs = (test: (p: Pos) => boolean) =>
+    slots.map((sl, i) => (test(sl.pos) ? i : -1)).filter((i) => i >= 0);
+  const pick = (arr: number[]) => arr[Math.floor(rng() * arr.length)];
+  const gk = idxs((p) => p === 'GK');
+  const df = idxs((p) => DEF.has(p));
+  const md = idxs((p) => MID.has(p));
+  const fw = idxs((p) => p !== 'GK' && !DEF.has(p) && !MID.has(p));
+  const m1 = pick(md.length ? md : df);
+  const rest = md.filter((i) => i !== m1);
+  const m2 = pick(rest.length ? rest : md.length ? md : df);
+  const path = [pick(gk), pick(df.length ? df : md), m1, m2, pick(fw.length ? fw : md)];
+  return path.map((i) => ({ x: slots[i].x, y: slots[i].y }));
 }
 
 export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
@@ -78,8 +100,12 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
     });
   };
 
-  const howto = [1, 2, 3].map((n) => ({ n: `0${n}`, t: t(`howto.${n}.t`), d: t(`howto.${n}.d`) }));
+  /* Cómo se juega = minutos de partido: 01' drafteás, 45' competís, 90' desafiás. */
+  const MINS = ['01', '45', '90'];
+  const howto = [1, 2, 3].map((n) => ({ n: MINS[n - 1], t: t(`howto.${n}.t`), d: t(`howto.${n}.d`) }));
   const fx = fixtureDate(locale);
+  const reduce = useReducedMotion();
+  const play = boardPlay(seed, formation);
 
   return (
     <motion.section className="setup" variants={container} initial="hidden" animate="show">
@@ -97,13 +123,15 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             variants={lowerThird}
             {...tap}
             onClick={onDaily}
-            title={t('home.dailyHint')}
           >
             <span className="fx-date">
               <span className="fx-day">{fx.day}</span>
               <span className="fx-num">{fx.num}</span>
             </span>
-            <span className="fx-label">{t('home.daily')}</span>
+            <span className="fx-main">
+              <span className="fx-label">{t('home.daily')}</span>
+              <span className="fx-meta">{t('home.dailyHint')}</span>
+            </span>
             <span className="fx-arrow" aria-hidden="true">→</span>
           </motion.button>
           <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
@@ -131,6 +159,27 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             animate="show"
           >
             <PitchMarkings />
+            {!reduce && (
+              <svg className="play" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <motion.path
+                  className="play-line"
+                  d={`M ${play.map((p) => `${p.x} ${p.y}`).join(' L ')}`}
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ delay: 1.3, duration: 2.2, ease: 'easeInOut' }}
+                />
+                <motion.circle
+                  className="play-ball"
+                  r="1.7"
+                  initial={{ cx: play[0].x, cy: play[0].y, opacity: 0 }}
+                  animate={{ cx: play.map((p) => p.x), cy: play.map((p) => p.y), opacity: 1 }}
+                  transition={{
+                    delay: 1.3, duration: 2.2, ease: 'easeInOut', times: [0, 0.3, 0.55, 0.78, 1],
+                    opacity: { delay: 1.3, duration: 0.25 },
+                  }}
+                />
+              </svg>
+            )}
             {slots.map((slot, i) => {
               const p = xi[i];
               return (
@@ -201,7 +250,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
       <motion.ol className="howto" variants={rise}>
         {howto.map((h) => (
           <li key={h.n}>
-            <span className="howto-n">{h.n}</span>
+            <span className="howto-n">{h.n}<small>’</small></span>
             <span className="howto-txt">
               <b>{h.t}</b>
               <small>{h.d}</small>
