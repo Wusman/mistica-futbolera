@@ -79,7 +79,11 @@ export interface RunLog {
   shoot: PenAim[];
 }
 
-export const RUN_VERSION = 1;
+/* v2 (ene 2026): rebalance del motor (STAGE_RAMP + ATT). Los share-codes v1
+   reproducirían resultados DISTINTOS a los originales bajo el motor nuevo,
+   así que el bump los rechaza limpio (version_incompatible) en vez de
+   dejarlos mentir. */
+export const RUN_VERSION = 2;
 
 export interface RunResult {
   ok: boolean;

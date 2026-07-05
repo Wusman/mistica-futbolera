@@ -233,7 +233,12 @@ export function xiProfile(xi: Player[]): { atk: number; def: number } {
    Pure tuning knob: bump these up for harder, down for softer. */
 /* Rampa suavizada (antes [0,0,1,3,5,7]): ganarla tiene que ser difícil,
    no castigo. Sigue siendo el knob #1 de dificultad. */
-export const STAGE_RAMP: number[] = [0, 0, 1, 2, 4, 6];
+/* Rampa de dificultad por etapa. Calibrada con el banco de balance
+   (scripts/balance.ts, ene 2026): la anterior [0,0,1,2,4,6] hacía el diario
+   matemáticamente imposible el ~80% de los días (0 caminos ganadores en
+   59k combinaciones de decisiones). Con esta, ~45% de los días son ganables
+   jugando bien, ~22% jugando naive, 0% con draft malo: difícil, no imposible. */
+export const STAGE_RAMP: number[] = [0, 0, 1, 1, 2, 3];
 
 /* The rival as the player faces (and scouts) it at a given stage. Adds the
    ramp bonus to atk/def/overall so the scouting card never lies about how
@@ -253,10 +258,16 @@ export interface HalfOutcome { gf: number; ga: number; scorers: Scorer[]; }
 export interface MatchResult { gf: number; ga: number; power: number; isPerfect: boolean; opp: string; }
 
 const clampHalf = (n: number) => Math.max(0, Math.min(6, Math.round(n)));
+/* Actitudes con dientes (calibradas con el banco de balance): antes el
+   efecto neto en la diferencia de gol era ~+0.2/+0.1 — la decisión dramática
+   del entretiempo era estratégicamente casi neutra. Ahora `def` ACHICA el
+   partido (protege ventajas) y `off` lo ABRE (persigue resultados): la
+   elección correcta depende del marcador, que es exactamente lo que una
+   decisión de entretiempo debe ser. */
 const ATT: Record<Attitude, { gf: number; ga: number }> = {
-  def: { gf: -0.4, ga: -0.6 },
+  def: { gf: -0.5, ga: -0.9 },
   eq: { gf: 0, ga: 0 },
-  off: { gf: 0.6, ga: 0.5 },
+  off: { gf: 0.9, ga: 0.6 },
 };
 
 /* One half vs an opponent of strength `oppOverall`. Deterministic from
