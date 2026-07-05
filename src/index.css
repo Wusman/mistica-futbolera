@@ -38,10 +38,6 @@
   --pitch-dark: #184b2f;
 
   --seed-hue: 220;
-  --bg-image: url('/stadium.png');   /* foto de estadio en public/stadium.png */
-  /* Velo oscuro PLANO sobre la foto (0 = nada, 1 = todo). Knob único y
-     oficial del fondo: la foto se ve igual arriba que abajo del scroll. */
-  --scrim: 0.30;
 
   --font-display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
   --font-brand: 'Archivo Black', 'Archivo Narrow', 'Arial Black', sans-serif;
@@ -56,13 +52,13 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 
-/* ── EL BUG DEL FONDO, explicado ──
-   La foto vive en .backdrop (fixed, z-index: -1). Los elementos con z
-   negativo se pintan DEBAJO del fondo del body: si el body es opaco, tapa
-   la foto en toda la página (menos donde termina su caja: el footer).
+/* ── EL BUG DEL FONDO, explicado (lección que sobrevive al rediseño) ──
+   El backdrop vive fixed con z-index: -1. Los elementos con z negativo se
+   pintan DEBAJO del fondo del body: si el body es opaco, tapa el backdrop
+   en toda la página (menos donde termina su caja: el footer).
    Fix: el html pinta el color de fallback (debajo de todo) y el body va
-   TRANSPARENTE. La foto se ve siempre; el velo se regula solo con --scrim. */
-html { background: #070b1c; }
+   TRANSPARENTE. Así el cielo diseñado se ve siempre, arriba y abajo. */
+html { background: var(--night-0); }
 body { margin: 0; background: transparent; }
 
 /* Página completa: el contenido crece y el footer queda abajo. */
@@ -76,46 +72,42 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-/* ── Backdrop ÚNICO: foto de estadio con blur + tinte por semilla ──
-   ::before = la foto (blur). ::after = tinte de semilla + scrim legible.
-   Si la foto no carga, queda el color sólido de .backdrop como fallback. */
+/* ── Backdrop ÚNICO: la noche europea DISEÑADA (IDENTIDAD.md §3) ──
+   Nada de foto de stock. Capas, todas estáticas o one-shot:
+   1. Cielo — gradiente vertical night-0 → night-1.
+   2. Geometría de cancha gigante que se DIBUJA una vez al cargar.
+   3. Haz de luz frío desde arriba a la derecha.
+   4. Grano de transmisión (SVG estático en data-URI).
+   Cero loops de fondo: la vida sale de los momentos, no del wallpaper. */
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  background: #070b1c;
+  background: linear-gradient(180deg, var(--night-0), var(--night-1) 58%, #071026);
 }
-.backdrop::before {
-  content: '';
-  position: absolute;
-  inset: -16px;                         /* overscan: el blur no deja borde */
-  background: var(--bg-image, none) center / cover no-repeat;
-  filter: blur(5px) brightness(0.92) saturate(1.05);
+.bd-geo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bd-geo circle, .bd-geo line, .bd-geo path {
+  fill: none;
+  stroke: rgba(185, 194, 216, 0.06);
+  stroke-width: 2;
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  animation: bdDraw 2.4s ease-out forwards; /* one-shot: se dibuja y queda */
 }
-/* La "respiración" de las luces del estadio: capa de gradiente cuya OPACITY
-   anima (compositor, costo ~cero). Nunca animar filter/blur en fullscreen:
-   repinta cada frame y es jank garantizado en gama media. */
-.backdrop-glow {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(80% 60% at 50% -10%, hsl(var(--seed-hue) 85% 62% / 0.20), transparent 70%),
-    radial-gradient(60% 40% at 15% 110%, hsl(var(--seed-hue) 70% 50% / 0.10), transparent 70%);
-  opacity: 0.4;
-  animation: glowBreath 9s ease-in-out infinite alternate;
-}
-@keyframes glowBreath {
-  from { opacity: 0.35; }
-  to   { opacity: 1; }
-}
-.backdrop::after {
-  content: '';
+.bd-geo .d2 { animation-delay: 0.35s; }
+.bd-geo .d3 { animation-delay: 0.6s; }
+@keyframes bdDraw { to { stroke-dashoffset: 0; } }
+.bd-flood {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(70% 50% at 50% -5%, hsl(var(--seed-hue) 85% 60% / 0.18), transparent 70%),
-    rgba(6, 10, 26, var(--scrim));
+  background: radial-gradient(60% 42% at 70% -8%, rgba(88, 126, 255, 0.15), transparent 70%);
+}
+.bd-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ── Masthead ── marca chica, firme y clickeable; el protagonismo es del hero. */
@@ -142,12 +134,6 @@ button:focus-visible,
 }
 .chip:hover { border-color: var(--accent); }
 .chip--on { background: var(--accent); border-color: var(--accent); color: #fff; }
-.seed-row { display: flex; align-items: stretch; gap: 10px; }
-.seed-pill {
-  flex: 1; font-family: var(--font-display); letter-spacing: 2px; font-size: 20px;
-  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
-  padding: 12px 16px; display: flex; align-items: center;
-}
 
 /* ── CTA ── */
 .cta {
@@ -434,7 +420,6 @@ button:focus-visible,
 .score-sep { font-family: var(--font-display); font-size: clamp(48px, 14vw, 64px); color: var(--muted); }
 .vs { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; }
 .verdict { font-style: italic; color: var(--text); margin: 0; }
-.verdict--out { color: #ff9b9b; font-style: normal; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 .flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--gold); margin: 0; }
 .outcome { display: inline-block; align-self: center; transform: skewX(-8deg); font-family: var(--font-brand); font-weight: 400; text-transform: uppercase; letter-spacing: 4px; font-size: clamp(19px, 5.6vw, 24px); margin: 0; }
@@ -452,14 +437,6 @@ button:focus-visible,
 /* ── Tournament preview ── */
 .tour-record { font-family: var(--font-display); letter-spacing: 1px; font-size: 13px; color: var(--muted); margin: 0; text-align: center; }
 .reveal { display: flex; flex-direction: column; gap: 16px; }
-.reveal-tag {
-  display: inline-block; align-self: center;
-  font-family: var(--font-display); font-weight: 600; text-transform: uppercase;
-  letter-spacing: 2px; font-size: 12px; color: #fff;
-  background: linear-gradient(100deg, var(--accent), hsl(var(--seed-hue) 75% 42%));
-  padding: 4px 16px 3px; margin: 0;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-}
 .tension { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
 
 /* ── Reel (casino-style draw) ── */
@@ -526,12 +503,6 @@ button:focus-visible,
 }
 .pen-result--goal { color: var(--gold); }
 .pen-result--miss { color: #ff9b9b; }
-.pen-opp {
-  position: absolute; bottom: 8%; left: 0; right: 0; margin: 0; text-align: center;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px;
-  font-size: 14px; color: var(--muted); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-}
 .pen-board { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line-soft); background: var(--panel-2); border-radius: 6px; padding: 10px 14px; }
 .pen-row { display: flex; justify-content: space-between; align-items: center; }
 .pen-side { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 12px; color: var(--muted); }
@@ -731,7 +702,7 @@ button:focus-visible,
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .backdrop-glow,
+  .bd-geo circle, .bd-geo line, .bd-geo path { animation: none !important; stroke-dashoffset: 0; }
   .pslot--choose,
   .hero-plaque,
   .fixture::after { animation: none !important; }
