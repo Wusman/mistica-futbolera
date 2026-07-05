@@ -490,7 +490,12 @@ export default function App() {
       </header>
 
       <main className="stage">
-        <AnimatePresence mode="wait" initial={false}>
+        {/* Sin initial={false}: ese flag suprime (vía PresenceContext) las
+            animaciones iniciales de TODO el subárbol en el primer render —
+            la apertura del hero y la jugada de pizarra nacían muertas al
+            cargar/refrescar, y solo revivían al volver de una run. Con el
+            default, el primer load entra igual que cualquier corte. */}
+        <AnimatePresence mode="wait">
           <motion.div
             key={screenKey}
             className="screen"
