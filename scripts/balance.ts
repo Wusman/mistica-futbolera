@@ -10,7 +10,12 @@
 
    Objetivos calibrados (ene 2026): techo ~45%, naive ~20-25%, draft malo 0%.
    Si un cambio los mueve fuerte, es una decisión de diseño, no un accidente. */
-import { seedFromInput, type Attitude, type PenAim, type Player } from '../src/lib/engine';
+import { seedFromInput, type Attitude, type PenAim } from '../src/lib/engine';
+import { type Player } from '../src/data/players';
+
+/* Script de Node fuera del build de la app: declaramos lo mínimo de process
+   nosotros para no depender de @types/node ni del tsconfig que lo mire. */
+declare const process: { argv: string[] };
 import { runWith, type RunDriver, type DraftMove } from '../src/lib/run';
 
 const ATTS: Attitude[] = ['def', 'eq', 'off'];
@@ -34,7 +39,7 @@ const arg = process.argv[2];
 if (arg) {
   /* Fuerza bruta de una semilla: 3 palos × 3^9 secuencias de actitud. */
   const seed = seedFromInput(arg);
-  if (seed === null) { console.error('Semilla inválida:', arg); process.exit(1); }
+  if (seed === null) throw new Error(`Semilla inválida: ${arg}`);
   let wins = 0; let sample = '';
   for (const aim of ['L', 'C', 'R'] as PenAim[]) {
     for (let mask = 0; mask < 3 ** 9; mask++) {
