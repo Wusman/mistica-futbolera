@@ -147,9 +147,6 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             </span>
             <span className="fx-arrow" aria-hidden="true">→</span>
           </motion.button>
-          <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
-            {t('daily.free')}
-          </motion.button>
           {(() => {
             const meta = loadStreak();
             if (!meta || (meta.streak < 2 && meta.titles === 0)) return null;
@@ -160,6 +157,9 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
               </p>
             );
           })()}
+          <motion.button className="cta cta--ghost cta--daily" {...tap} onClick={onStart}>
+            {t('daily.free')}
+          </motion.button>
         </motion.div>
 
         {/* ── The carrot: a dream XI you could draft, re-rolled per seed. ── */}
