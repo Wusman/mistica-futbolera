@@ -84,19 +84,23 @@ function ClubStripe({ colors }: { colors: string[] }) {
   );
 }
 
-/* Tus goles con minuto (del relato): "23' Benzema" pega más que una lista. */
-function GoalsWithMinutes({ m, title }: { m: MatchView; title: string }) {
-  const yours = m.ev.filter((e) => e.side === 'you');
-  if (yours.length === 0) return null;
+/* ── Ficha de partido ── la línea de tiempo de AMBOS equipos, como en un
+   informe de partido de verdad: tus goles alineados a la izquierda, los del
+   rival a la derecha, ordenados por minuto sobre la regla central. La
+   alineación dice de quién es cada gol: cero claves de i18n nuevas. Los
+   autores rivales ya vienen nombrados del engine (halfEvents + oppXI). */
+function MatchTimeline({ m }: { m: MatchView }) {
+  const goals = [...m.ev].sort((a, b) => a.min - b.min);
+  if (goals.length === 0) return null;
   return (
-    <motion.div className="scorers" variants={riseIn}>
-      <h3 className="scorers-title">{title}</h3>
-      <ul className="goals-min">
-        {yours.map((e, k) => (
-          <li key={k}><span className="gm-min">{fmtMin(e)}</span> {e.n}{e.p ? ' (p)' : ''}</li>
-        ))}
-      </ul>
-    </motion.div>
+    <motion.ol className="timeline" variants={riseIn}>
+      {goals.map((e, k) => (
+        <li key={k} className={`tl-goal ${e.side === 'you' ? 'tl-goal--you' : 'tl-goal--opp'}`}>
+          <span className="tl-min">{fmtMin(e)}</span>
+          <span className="tl-name">{e.n ?? m.oppName}{e.p ? ' (p)' : ''}</span>
+        </li>
+      ))}
+    </motion.ol>
   );
 }
 
@@ -200,6 +204,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         )}
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
         <motion.p className={`outcome ${champ ? 'outcome--win' : 'outcome--lose'}`} variants={riseIn}>{headline}</motion.p>
+        <MatchTimeline m={m} />
         <motion.div className="scorers" variants={riseIn}>
           <h3 className="scorers-title">{t('card.campaign')}</h3>
           <div className="stat-grid">
@@ -259,36 +264,44 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
           </>
         )}
-        <motion.div className="share-row" variants={riseIn}>
-          <a
-            className="share-chip share-chip--icon"
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTxt)}&url=${encodeURIComponent(SITE_URL)}`}
-            target="_blank" rel="noopener noreferrer" aria-label="X"
-          ><IcoX /><span>X</span></a>
-          <a
-            className="share-chip share-chip--icon"
-            href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
-            target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
-          ><IcoWa /><span>WhatsApp</span></a>
-          {typeof navigator !== 'undefined' && !!navigator.share && (
+        {/* ── Compartir con jerarquía ── un primario (share nativo en mobile,
+            WhatsApp como fallback de escritorio) y el resto en fila callada.
+            Antes: dos share-rows apiladas + semilla = amontonamiento. */}
+        <motion.div className="share-zone" variants={riseIn}>
+          {typeof navigator !== 'undefined' && navigator.share ? (
             <button
-              className="share-chip share-chip--icon"
-              aria-label={t('card.share')}
-              onClick={() => {
-                navigator.share({ text: shareTxt, url: SITE_URL }).catch(() => {});
-              }}
+              className="cta cta--share"
+              onClick={() => { navigator.share({ text: shareTxt, url: SITE_URL }).catch(() => {}); }}
             ><IcoShare /><span>{t('card.share')}</span></button>
+          ) : (
+            <a
+              className="cta cta--share"
+              href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
+              target="_blank" rel="noopener noreferrer"
+            ><IcoWa /><span>WhatsApp</span></a>
           )}
+          <div className="share-quiet">
+            <a
+              className="share-chip share-chip--icon"
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTxt)}&url=${encodeURIComponent(SITE_URL)}`}
+              target="_blank" rel="noopener noreferrer" aria-label="X"
+            ><IcoX /><span>X</span></a>
+            {typeof navigator !== 'undefined' && !!navigator.share && (
+              <a
+                className="share-chip share-chip--icon"
+                href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
+                target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+              ><IcoWa /><span>WhatsApp</span></a>
+            )}
+            {shareCode && (
+              <button
+                className={`share-chip share-chip--icon ${codeCopied ? 'share-chip--ok' : ''}`}
+                onClick={copyCode}
+                aria-label={t('card.shareCode')}
+              ><IcoShare /><span>{codeCopied ? t('card.shareCodeOk') : t('card.shareCode')}</span></button>
+            )}
+          </div>
         </motion.div>
-        {shareCode && (
-          <motion.div className="share-row" variants={riseIn}>
-            <button
-              className={`share-chip share-chip--icon ${codeCopied ? 'share-chip--ok' : ''}`}
-              onClick={copyCode}
-              aria-label={t('card.shareCode')}
-            ><IcoShare /><span>{codeCopied ? t('card.shareCodeOk') : t('card.shareCode')}</span></button>
-          </motion.div>
-        )}
         <motion.div className="card-ctas" variants={riseIn}>
           {mode === 'free' && (
             <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
@@ -338,8 +351,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
         <motion.p className={`outcome ${lost ? 'outcome--lose' : 'outcome--win'}`} variants={riseIn}>{t(`result.${m.outcome}`)}</motion.p>
         {m.leg === 1 && <motion.p className="match-note" variants={riseIn}>{t('leg.return')}</motion.p>}
+        <MatchTimeline m={m} />
         <motion.p className="flavor-line" variants={riseIn}>{line}</motion.p>
-        <GoalsWithMinutes m={m} title={t('card.yourGoals')} />
         <motion.button className="cta" variants={riseIn} {...tap} onClick={onNext}>
           {m.leg === 1 ? `${t('leg.playReturn')} →` : t('card.nextRound')}
         </motion.button>

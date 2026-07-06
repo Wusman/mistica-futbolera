@@ -441,12 +441,31 @@ button:focus-visible,
 .verdict { font-style: italic; color: var(--text); margin: 0; }
 .flavor-line { font-style: italic; color: var(--text); margin: 0; }
 .perfect-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 3px; color: var(--gold); margin: 0; }
-.outcome { display: inline-block; align-self: center; transform: skewX(-8deg); font-family: var(--font-brand); font-weight: 400; text-transform: uppercase; letter-spacing: 4px; font-size: clamp(19px, 5.6vw, 24px); margin: 0; }
+/* La estampa del veredicto: energía C (cursiva por skew + sombra dura doble
+   eléctrico/violeta). El momento del resultado GOLPEA, ganes o pierdas. */
+.outcome {
+  display: inline-block; align-self: center; transform: skewX(-8deg);
+  font-family: var(--font-brand); font-weight: 400; text-transform: uppercase;
+  letter-spacing: 3px; font-size: clamp(24px, 7vw, 32px); margin: 2px 0;
+  text-shadow: 0.05em 0.05em 0 rgba(46, 107, 255, 0.55), 0.1em 0.1em 0 rgba(91, 61, 245, 0.3);
+}
 .outcome--win { color: var(--gold); }
 .outcome--lose { color: #ff9b9b; }
-.goals-min { list-style: none; margin: 0; padding: 0; text-align: left; }
-.goals-min li { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-.goals-min .gm-min { font-family: var(--font-display); font-weight: 700; color: var(--gold); min-width: 32px; text-align: right; }
+/* ── Ficha de partido ── goles de ambos lados sobre la regla central:
+   los tuyos a la izquierda (punto dorado), los del rival a la derecha
+   (punto plata). La alineación cuenta la historia sin una sola etiqueta. */
+.timeline { list-style: none; margin: 4px 0 0; padding: 6px 0; position: relative; }
+.timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--line); }
+.tl-goal { position: relative; display: flex; align-items: baseline; gap: 8px; width: 50%; padding: 3px 16px; font-size: 13.5px; font-family: var(--font-display); }
+.tl-goal::before { content: ''; position: absolute; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translateY(-50%); }
+.tl-goal--you { margin-right: 50%; justify-content: flex-end; text-align: right; flex-direction: row-reverse; }
+.tl-goal--you::before { right: -3.5px; background: var(--gold); }
+.tl-goal--opp { margin-left: 50%; }
+.tl-goal--opp::before { left: -3.5px; background: var(--silver); }
+.tl-min { font-weight: 700; font-variant-numeric: tabular-nums; }
+.tl-goal--you .tl-min { color: var(--gold); }
+.tl-goal--opp .tl-min { color: var(--silver); }
+.tl-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scorers { text-align: left; }
 .scorers-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 0 0 8px; }
 .scorers ul { list-style: none; padding: 0; margin: 0; }
@@ -584,7 +603,9 @@ button:focus-visible,
 @media (max-width: 420px) { .card-ctas { flex-direction: column; gap: 10px; } }
 
 /* Compartir el desafío: chips a X / WhatsApp / share nativo. */
-.share-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.share-zone { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.cta--share { display: inline-flex; align-items: center; justify-content: center; gap: 9px; width: 100%; max-width: 320px; font-size: 16px; padding: 13px; }
+.share-quiet { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .share-chip {
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
   color: var(--text); background: transparent; border: 1.5px solid var(--line); border-radius: 6px;
