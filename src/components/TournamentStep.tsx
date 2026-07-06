@@ -32,6 +32,9 @@ const OUT_CAT: Record<Stage, Cat> = {
 const cardV = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } };
 const riseIn = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
+/* La ficha "repite" el partido: cada gol cae en orden de minuto. */
+const tlC = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
+const tlGoal = { hidden: { opacity: 0, y: -7 }, show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 380, damping: 26 } } };
 
 function groupVerdictCat(m: MatchView): Cat {
   if (m.outcome === 'D') return 'draw';
@@ -93,12 +96,12 @@ function MatchTimeline({ m }: { m: MatchView }) {
   const goals = [...m.ev].sort((a, b) => a.min - b.min);
   if (goals.length === 0) return null;
   return (
-    <motion.ol className="timeline" variants={riseIn}>
+    <motion.ol className="timeline" variants={tlC}>
       {goals.map((e, k) => (
-        <li key={k} className={`tl-goal ${e.side === 'you' ? 'tl-goal--you' : 'tl-goal--opp'}`}>
+        <motion.li key={k} variants={tlGoal} className={`tl-goal ${e.side === 'you' ? 'tl-goal--you' : 'tl-goal--opp'}`}>
           <span className="tl-min">{fmtMin(e)}</span>
           <span className="tl-name">{e.n ?? m.oppName}{e.p ? ' (p)' : ''}</span>
-        </li>
+        </motion.li>
       ))}
     </motion.ol>
   );
@@ -203,7 +206,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           <motion.p className="perfect-tag" variants={riseIn}>{t('leg.agg', { gf: m.agg.gf, ga: m.agg.ga })}</motion.p>
         )}
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
-        <motion.p className={`outcome ${champ ? 'outcome--win' : 'outcome--lose'}`} variants={riseIn}>{headline}</motion.p>
+        <motion.p className={`headline ${champ ? 'headline--win' : 'headline--lose'}`} variants={riseIn}>{headline}</motion.p>
         <MatchTimeline m={m} />
         <motion.div className="scorers" variants={riseIn}>
           <h3 className="scorers-title">{t('card.campaign')}</h3>
