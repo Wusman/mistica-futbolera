@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { type DailyRecord, loadStreak } from '../lib/daily';
 import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
+import { Emblem } from './Emblem';
+import { YOU_EMBLEM } from '../config';
 
 interface Props {
   rec: DailyRecord;
@@ -12,6 +14,12 @@ interface Props {
    libre. El torneo diario es UN intento; mañana hay semilla nueva. */
 export function DailyDone({ rec, onFree }: Props) {
   const t = useT();
+  const st = rec.stats;
+  const pj = st.w + st.d + st.l;
+  const diff = st.gf - st.ga;
+  const meta = loadStreak();
+  const showStreak = !!meta && (meta.streak >= 2 || meta.titles > 0);
+
   return (
     <motion.section
       className="match"
@@ -23,26 +31,48 @@ export function DailyDone({ rec, onFree }: Props) {
 
       <div className={`card ${rec.champion ? 'card--perfect' : 'card--out'}`}>
         <p className="card-club">{rec.champion ? t('daily.champ') : t('stage.' + rec.stage)}</p>
-        <div className="scoreline">
-          <span className="score">{rec.gf}</span>
-          <span className="score-sep">–</span>
-          <span className="score score--away">{rec.ga}</span>
+
+        <div className="duel">
+          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <div className="scoreline">
+            <span className="score">{rec.gf}</span>
+            <span className="score-sep">–</span>
+            <span className="score score--away">{rec.ga}</span>
+          </div>
+          <Emblem colors={rec.colors ?? []} size={46} className="emb" />
         </div>
+
         <p className="vs">{t('card.vs', { opp: rec.opp })}</p>
-        <p className="tour-record">
-          {t('stats.record', { pj: rec.stats.w + rec.stats.d + rec.stats.l, w: rec.stats.w, d: rec.stats.d, l: rec.stats.l, gf: rec.stats.gf, ga: rec.stats.ga })}
-        </p>
+
+        <div className="stat-grid stat-grid--3">
+          <div className="stat">
+            <span className="stat-v">{pj}</span>
+            <span className="stat-l">{t('stats.played')}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-v">{st.w}·{st.d}·{st.l}</span>
+            <span className="stat-l">{t('rec.w')}·{t('rec.d')}·{t('rec.l')}</span>
+          </div>
+          <div className="stat" title={t('stats.goals', { gf: st.gf, ga: st.ga })}>
+            <span className="stat-v">
+              <span className="gf-you">{st.gf}</span>
+              <span className="gf-sep">:</span>
+              <span className="gf-opp">{st.ga}</span>
+            </span>
+            <span className="stat-l">{t('stats.goalsShort')}</span>
+            <span className="stat-s">{diff >= 0 ? '+' : ''}{diff}</span>
+          </div>
+        </div>
+
         {rec.name && <p className="seed-hint">{t('daily.submitted')}</p>}
-        {(() => {
-          const meta = loadStreak();
-          if (!meta || (meta.streak < 2 && meta.titles === 0)) return null;
-          return (
-            <p className="streak-chip">
-              {meta.streak >= 2 && <span>🔥 {t('streak.days', { n: meta.streak })}</span>}
-              {meta.titles > 0 && <span>🏆 {t('streak.titles', { n: meta.titles })}</span>}
-            </p>
-          );
-        })()}
+
+        {showStreak && meta && (
+          <p className="streak-chip">
+            {meta.streak >= 2 && <span>{t('streak.days', { n: meta.streak })}</span>}
+            {meta.titles > 0 && <span>{t('streak.titles', { n: meta.titles })}</span>}
+          </p>
+        )}
+
         <p className="match-note">{t('daily.back')}</p>
       </div>
 

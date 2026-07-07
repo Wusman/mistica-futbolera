@@ -654,6 +654,11 @@ button:focus-visible,
 .stat-v { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.05; color: var(--text); font-variant-numeric: tabular-nums; }
 .stat-l { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); }
 .stat-s { font-size: 12px; color: var(--gold); font-family: var(--font-display); letter-spacing: 0.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* DailyDone: 3 celdas simétricas. GF a favor en claro, GC en contra apagado. */
+.stat-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.gf-you { color: var(--text); }
+.gf-sep { color: var(--muted); margin: 0 1px; }
+.gf-opp { color: var(--muted); }
 
 /* Semilla discreta en la carta final: el protagonismo es de compartir. */
 .seed-mini--compact { max-width: 280px; margin-inline: auto; border-top: none; padding-top: 0; margin-top: 12px; }
@@ -740,12 +745,13 @@ button:focus-visible,
 /* Tu historial del diario: metadata callada pegada a la placa del día,
    alineada a su ancho — no un chip flotando en el vacío. */
 .streak-chip {
-  display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 6px 18px;
-  max-width: 440px; margin: 10px 0 0; padding-left: 2px;
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 20px;
+  max-width: 440px; margin: 12px auto 0;
   font-family: var(--font-display);
   font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--silver);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
+.streak-chip span::before { content: '·'; color: var(--gold); margin-right: 7px; font-weight: 700; }
 
 .footer-link {
   background: none; border: none; cursor: pointer; padding: 0; font: inherit;

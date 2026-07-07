@@ -10,6 +10,7 @@ export interface DailyStats { w: number; d: number; l: number; gf: number; ga: n
 export interface DailyRecord {
   champion: boolean;
   gf: number; ga: number; opp: string; stage: string; // partido decisivo
+  colors?: string[]; // colores propios del rival decisivo (para su escudo)
   stats: DailyStats;
   name?: string; // ya inscripto en la tabla
 }

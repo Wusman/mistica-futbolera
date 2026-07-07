@@ -452,6 +452,7 @@ export default function App() {
     saveDaily({
       champion: done.champion,
       gf: m.gf, ga: m.ga, opp: `${m.oppName} · ${m.oppEdition}`, stage: done.stage,
+      colors: teamById(m.oppId).colors,
       stats: { w: c.stats.w, d: c.stats.d, l: c.stats.l, gf: c.stats.gf, ga: c.stats.ga, avg: Math.round(avg(c.xi)) },
     });
     bumpStreak(done.champion); // racha de días + vitrina de títulos
