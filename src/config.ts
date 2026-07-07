@@ -4,6 +4,9 @@
    (+ textos de i18n y privacidad.html).
 ══════════════════════════════════════════ */
 export const BRAND = 'Mística Futbolera';
+/* Colores del escudo por defecto de "tu once" (hasta que el jugador cree el
+   suyo, Paso 2). Identidad propia, IP-safe. */
+export const YOU_EMBLEM = ['#1b2c58', '#2b4079'];
 export const SITE_URL = 'https://misticafutbolera.wusman.com';
 export const DAILY_WORKER_URL = 'https://mistica-daily-champions.wusman.workers.dev';
 /* Sugerencias → mail (contact@wusman.com) vía web3forms. Pegá acá la misma

@@ -4,13 +4,14 @@ import { type Team } from '../data/players';
 import { type Campaign, type Stage, type MatchView, LADDER, isGroup, isTwoLegged } from '../lib/tournament';
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
-import { BRAND, SITE_URL } from '../config';
+import { BRAND, SITE_URL, YOU_EMBLEM } from '../config';
 import { scaledRivalOf, xiProfile, evHalf } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 import { Timeline } from './Timeline';
+import { Emblem } from './Emblem';
 
 interface Props {
   campaign: Campaign;
@@ -182,10 +183,14 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
         <ClubStripe colors={opp.colors} />
         <motion.p className="card-club" variants={riseIn}>{champ ? BRAND : stageLabel}</motion.p>
-        <motion.div className="scoreline" variants={riseIn}>
-          <CountScore n={m.gf} />
-          <span className="score-sep">–</span>
-          <CountScore n={m.ga} away />
+        <motion.div className="duel" variants={riseIn}>
+          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <div className="scoreline">
+            <CountScore n={m.gf} />
+            <span className="score-sep">–</span>
+            <CountScore n={m.ga} away />
+          </div>
+          <Emblem colors={opp.colors} size={46} className="emb" />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (
@@ -328,10 +333,14 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <motion.p className="card-club" variants={riseIn}>
           {stageLabel}{m.leg ? ` · ${t(m.leg === 1 ? 'leg.first' : 'leg.second')}` : ''}
         </motion.p>
-        <motion.div className="scoreline" variants={riseIn}>
-          <CountScore n={m.gf} />
-          <span className="score-sep">–</span>
-          <CountScore n={m.ga} away />
+        <motion.div className="duel" variants={riseIn}>
+          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <div className="scoreline">
+            <CountScore n={m.gf} />
+            <span className="score-sep">–</span>
+            <CountScore n={m.ga} away />
+          </div>
+          <Emblem colors={opp.colors} size={46} className="emb" />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (

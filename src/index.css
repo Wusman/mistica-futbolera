@@ -430,6 +430,11 @@ button:focus-visible,
   padding: 5px 18px 4px; margin: 2px 0 0;
   clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
 }
+/* Duelo: escudo propio · marcador · escudo rival — simetría de gráfico de
+   partido. Cada escudo (Emblem) es determinista desde los colores del equipo. */
+.duel { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.duel .scoreline { gap: 12px; }
+.emb { flex-shrink: 0; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)); }
 .scoreline { display: flex; justify-content: center; align-items: center; gap: 14px; }
 .score {
   font-family: var(--font-display); font-weight: 700;
