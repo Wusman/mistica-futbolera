@@ -465,23 +465,21 @@ button:focus-visible,
 /* ── Ficha de partido ── goles de ambos lados sobre la regla central:
    los tuyos a la izquierda (punto dorado), los del rival a la derecha
    (punto plata). La alineación cuenta la historia sin una sola etiqueta. */
-/* Ficha de partido: eje central estable. Punto dorado/plata SOBRE la línea;
-   nombre + minuto cuelgan a su lado, con el minuto pegado al eje. Cada fila
-   ocupa el ancho completo (el padding llega hasta el eje) → el punto queda
-   clavado al 50% caigan goles de uno o de ambos lados, sin corrimiento
-   óptico. Cero claves de i18n nuevas. */
-.timeline { list-style: none; margin: 8px auto 2px; padding: 4px 0; position: relative; width: 100%; max-width: 420px; }
-.timeline::before { content: ''; position: absolute; top: 9px; bottom: 9px; left: 50%; width: 1px; background: var(--line); transform: translateX(-50%); }
-.tl-goal { position: relative; display: flex; align-items: baseline; gap: 8px; padding: 3.5px 0; font-size: 13.5px; font-family: var(--font-display); }
-.tl-goal::before { content: ''; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translate(-50%, -50%); z-index: 1; }
-.tl-goal--you { flex-direction: row-reverse; justify-content: flex-end; text-align: right; padding-right: calc(50% + 14px); }
-.tl-goal--you::before { background: var(--gold); }
-.tl-goal--opp { justify-content: flex-start; padding-left: calc(50% + 14px); }
-.tl-goal--opp::before { background: var(--silver); }
-.tl-min { font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-.tl-goal--you .tl-min { color: var(--gold); }
-.tl-goal--opp .tl-min { color: var(--silver); }
+/* Ficha de partido: eje = el MINUTO. El minuto (ancho constante) queda clavado
+   al centro formando una escalera vertical; los nombres cuelgan a su lado
+   (tuyos a la izquierda, rivales a la derecha) y truncan con "…" si no entran.
+   El ancla central es fuerte, así que el largo dispar de los nombres ya no
+   corre la masa. Interlineado apretado para que no se sienta disperso.
+   Cero claves de i18n nuevas. */
+.timeline { list-style: none; margin: 8px auto 2px; padding: 4px 0; position: relative; width: 100%; max-width: 440px; }
+.timeline::before { content: ''; position: absolute; top: 10px; bottom: 10px; left: 50%; width: 1px; background: var(--line); transform: translateX(-50%); }
+.tl-goal { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 12px; padding: 2px 0; font-family: var(--font-display); font-size: 13.5px; }
 .tl-name { min-width: 0; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-min { grid-column: 2; justify-self: center; position: relative; z-index: 1; min-width: 30px; padding: 0 6px; text-align: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; background: var(--surface); }
+.tl-goal--you .tl-name { grid-column: 1; text-align: right; }
+.tl-goal--you .tl-min { color: var(--gold); }
+.tl-goal--opp .tl-name { grid-column: 3; text-align: left; }
+.tl-goal--opp .tl-min { color: var(--silver); }
 .scorers { text-align: left; }
 .scorers-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 0 0 8px; }
 .scorers ul { list-style: none; padding: 0; margin: 0; }
