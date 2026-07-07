@@ -12,6 +12,7 @@ import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 import { Timeline } from './Timeline';
 import { Emblem } from './Emblem';
+import { loadEscudo } from '../lib/escudo';
 
 interface Props {
   campaign: Campaign;
@@ -184,7 +185,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <ClubStripe colors={opp.colors} />
         <motion.p className="card-club" variants={riseIn}>{champ ? BRAND : stageLabel}</motion.p>
         <motion.div className="duel" variants={riseIn}>
-          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <Emblem colors={loadEscudo() ?? YOU_EMBLEM} size={46} className="emb" />
           <div className="scoreline">
             <CountScore n={m.gf} />
             <span className="score-sep">–</span>
@@ -334,7 +335,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           {stageLabel}{m.leg ? ` · ${t(m.leg === 1 ? 'leg.first' : 'leg.second')}` : ''}
         </motion.p>
         <motion.div className="duel" variants={riseIn}>
-          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <Emblem colors={loadEscudo() ?? YOU_EMBLEM} size={46} className="emb" />
           <div className="scoreline">
             <CountScore n={m.gf} />
             <span className="score-sep">–</span>

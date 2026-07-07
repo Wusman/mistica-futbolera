@@ -18,6 +18,7 @@ import {
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
 import { PitchMarkings } from './PitchMarkings';
+import { EscudoCreator } from './EscudoCreator';
 
 interface Props {
   seed: number;
@@ -227,6 +228,7 @@ export function BuildStep({
             );
           })}
         </ul>
+        <EscudoCreator />
       </div>
     </section>
   );

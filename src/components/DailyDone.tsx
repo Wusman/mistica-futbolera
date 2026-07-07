@@ -4,6 +4,7 @@ import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
 import { Emblem } from './Emblem';
 import { YOU_EMBLEM } from '../config';
+import { loadEscudo } from '../lib/escudo';
 
 interface Props {
   rec: DailyRecord;
@@ -33,7 +34,7 @@ export function DailyDone({ rec, onFree }: Props) {
         <p className="card-club">{rec.champion ? t('daily.champ') : t('stage.' + rec.stage)}</p>
 
         <div className="duel">
-          <Emblem colors={YOU_EMBLEM} size={46} className="emb" />
+          <Emblem colors={loadEscudo() ?? YOU_EMBLEM} size={46} className="emb" />
           <div className="scoreline">
             <span className="score">{rec.gf}</span>
             <span className="score-sep">–</span>
@@ -68,25 +69,8 @@ export function DailyDone({ rec, onFree }: Props) {
 
         {showStreak && meta && (
           <p className="streak-chip">
-            {meta.streak >= 2 && (
-              <span>
-                <svg className="streak-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M8 2.2c1.4 1.9 2.8 2.9 2.8 5.2a2.8 2.8 0 0 1-5.6 0c0-1 .5-1.9 1.1-2.5.3 1 .9 1.3 1.5.8C8.3 5 8 3.3 8 2.2Z" />
-                </svg>
-                {t('streak.days', { n: meta.streak })}
-              </span>
-            )}
-            {meta.titles > 0 && (
-              <span>
-                <svg className="streak-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
-                  <path d="M5 3h6v2.4a3 3 0 0 1-6 0V3Z" />
-                  <path d="M5 3.6H3.6v.5A1.6 1.6 0 0 0 5 5.6" />
-                  <path d="M11 3.6h1.4v.5A1.6 1.6 0 0 1 11 5.6" />
-                  <path d="M8 8.4v2M6.2 11.5h3.6" />
-                </svg>
-                {t('streak.titles', { n: meta.titles })}
-              </span>
-            )}
+            {meta.streak >= 2 && <span>{t('streak.days', { n: meta.streak })}</span>}
+            {meta.titles > 0 && <span>{t('streak.titles', { n: meta.titles })}</span>}
           </p>
         )}
 
