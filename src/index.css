@@ -465,18 +465,23 @@ button:focus-visible,
 /* ── Ficha de partido ── goles de ambos lados sobre la regla central:
    los tuyos a la izquierda (punto dorado), los del rival a la derecha
    (punto plata). La alineación cuenta la historia sin una sola etiqueta. */
-.timeline { list-style: none; margin: 6px 0 2px; padding: 10px 0; position: relative; }
-.timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--line); }
-.tl-goal { position: relative; display: flex; align-items: baseline; gap: 8px; width: 50%; padding: 4px 16px; font-size: 13.5px; font-family: var(--font-display); }
-.tl-goal::before { content: ''; position: absolute; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translateY(-50%); }
-.tl-goal--you { margin-right: 50%; justify-content: flex-end; text-align: right; flex-direction: row-reverse; }
-.tl-goal--you::before { right: -3.5px; background: var(--gold); }
-.tl-goal--opp { margin-left: 50%; }
-.tl-goal--opp::before { left: -3.5px; background: var(--silver); }
-.tl-min { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Ficha de partido: eje central estable. Punto dorado/plata SOBRE la línea;
+   nombre + minuto cuelgan a su lado, con el minuto pegado al eje. Cada fila
+   ocupa el ancho completo (el padding llega hasta el eje) → el punto queda
+   clavado al 50% caigan goles de uno o de ambos lados, sin corrimiento
+   óptico. Cero claves de i18n nuevas. */
+.timeline { list-style: none; margin: 8px auto 2px; padding: 4px 0; position: relative; width: 100%; max-width: 420px; }
+.timeline::before { content: ''; position: absolute; top: 9px; bottom: 9px; left: 50%; width: 1px; background: var(--line); transform: translateX(-50%); }
+.tl-goal { position: relative; display: flex; align-items: baseline; gap: 8px; padding: 3.5px 0; font-size: 13.5px; font-family: var(--font-display); }
+.tl-goal::before { content: ''; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translate(-50%, -50%); z-index: 1; }
+.tl-goal--you { flex-direction: row-reverse; justify-content: flex-end; text-align: right; padding-right: calc(50% + 14px); }
+.tl-goal--you::before { background: var(--gold); }
+.tl-goal--opp { justify-content: flex-start; padding-left: calc(50% + 14px); }
+.tl-goal--opp::before { background: var(--silver); }
+.tl-min { font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .tl-goal--you .tl-min { color: var(--gold); }
 .tl-goal--opp .tl-min { color: var(--silver); }
-.tl-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-name { min-width: 0; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scorers { text-align: left; }
 .scorers-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 0 0 8px; }
 .scorers ul { list-style: none; padding: 0; margin: 0; }
