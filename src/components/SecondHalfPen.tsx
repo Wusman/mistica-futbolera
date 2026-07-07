@@ -43,6 +43,7 @@ export function SecondHalfPen({ stageLabel, oppName, ev1, ev2, end2, pen, ticker
           from={45}
           to={pen.min}
           events={ev2.filter((e) => e.min < pen.min)}
+          priorEvents={ev1}
           baseGf={ev1.filter((e) => e.side === 'you').length}
           baseGa={ev1.filter((e) => e.side === 'opp').length}
           oppName={oppName}

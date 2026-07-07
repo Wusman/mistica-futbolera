@@ -462,25 +462,28 @@ button:focus-visible,
 }
 .outcome--win { color: var(--gold); }
 .outcome--lose { color: #ff9b9b; }
-/* ── Ficha de partido ── goles de ambos lados sobre la regla central.
-   Punto en el eje (dorado = tuyo, plata = rival); el minuto pegado al eje y
-   el autor colgando afuera, a su lado. Cada fila es flex de UNA línea (nada
-   de grilla: evita el bug de auto-placement que tiraba tus nombres abajo) y
-   ocupa el ancho completo vía padding hasta el eje, así el punto y la línea
-   quedan clavados al centro caigan goles de uno o de ambos lados. Los nombres
-   largos truncan con "…". Cero claves de i18n nuevas. */
+/* ── Ficha de partido ── (componente Timeline.tsx, compartido) goles de ambos
+   lados sobre la regla central. Punto en el eje (dorado = tuyo, plata = rival);
+   el AUTOR pegado al eje y el minuto afuera, en el borde. Cada fila es flex de
+   UNA línea (nada de grilla: evita el bug de auto-placement) y ocupa el ancho
+   completo vía padding hasta el eje, así el punto y la línea quedan clavados al
+   centro caigan goles de uno o de ambos lados. Nombres largos truncan con "…"
+   (el minuto y el chip de penal no encogen). En vivo el ticker pinta esta
+   misma ficha gol a gol; la carta final la muestra terminada. */
 .timeline { list-style: none; margin: 10px auto 2px; padding: 2px 0; position: relative; width: 100%; max-width: 440px; }
 .timeline::before { content: ''; position: absolute; top: 11px; bottom: 11px; left: 50%; width: 1px; background: var(--line); transform: translateX(-50%); }
 .tl-goal { position: relative; display: flex; align-items: center; gap: 9px; min-height: 22px; font-size: 13.5px; font-family: var(--font-display); }
 .tl-goal::before { content: ''; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translate(-50%, -50%); z-index: 1; }
-.tl-goal--you { flex-direction: row-reverse; justify-content: flex-end; text-align: right; padding-right: calc(50% + 13px); }
+.tl-goal--you { flex-direction: row; justify-content: flex-end; text-align: right; padding-right: calc(50% + 13px); }
 .tl-goal--you::before { background: var(--gold); }
-.tl-goal--opp { justify-content: flex-start; padding-left: calc(50% + 13px); }
+.tl-goal--opp { flex-direction: row-reverse; justify-content: flex-end; text-align: left; padding-left: calc(50% + 13px); }
 .tl-goal--opp::before { background: var(--silver); }
-.tl-min { flex-shrink: 0; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tl-min { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
 .tl-goal--you .tl-min { color: var(--gold); }
 .tl-goal--opp .tl-min { color: var(--silver); }
 .tl-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+/* Chip de penal: marca sobria, no emoji. Vive junto al minuto (no trunca). */
+.tl-pen { flex-shrink: 0; font-size: 8.5px; font-weight: 700; line-height: 1; letter-spacing: 0.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1.5px 3px; }
 .scorers { text-align: left; }
 .scorers-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 0 0 8px; }
 .scorers ul { list-style: none; padding: 0; margin: 0; }
@@ -538,9 +541,9 @@ button:focus-visible,
 .ticker-ga { color: var(--text); }
 .ticker-sep { font-family: var(--font-display); font-size: 40px; color: var(--muted); }
 .ticker-min { font-family: var(--font-display); font-weight: 600; font-size: 28px; color: var(--text); letter-spacing: 1px; margin: 6px 0 10px; font-variant-numeric: tabular-nums; opacity: 0.85; }
-.ticker-events { list-style: none; margin: 0; padding: 0; min-height: 24px; display: flex; flex-direction: column; gap: 4px; }
-.ticker-ev { font-family: var(--font-display); letter-spacing: 0.5px; font-size: 15px; color: var(--muted); }
-.ticker-ev--you { color: var(--gold); }
+/* El ticker ahora pinta el componente Timeline (mismo de la carta final); un
+   pelín de aire arriba para separarlo del reloj. */
+.ticker .timeline { margin-top: 6px; }
 
 /* ── Tanda de penales ── arco SVG propio + arquero abstracto. */
 .goalbox { position: relative; }

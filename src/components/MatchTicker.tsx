@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate, useReducedMotion } from 'framer-motion';
-import { type TickerEvent, fmtMin } from '../lib/engine';
+import { type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
+import { Timeline } from './Timeline';
 
 /* ── Tunables del relato (ajustá a gusto) ──
    duration: segundos que corre el reloj por mitad.
@@ -11,7 +12,8 @@ const TICK = { duration: 4.2, holdEnd: 0.7 };
 interface Props {
   from: number;            // 0 (1er tiempo) ó 45 (2do)
   to: number;              // 45 ó 90
-  events: TickerEvent[];   // solo los goles de esta mitad
+  events: TickerEvent[];   // solo los goles de este segmento
+  priorEvents?: TickerEvent[]; // goles ya ocurridos antes (para no reiniciar la ficha)
   baseGf?: number;         // marcador acumulado al arrancar (2do tiempo)
   baseGa?: number;
   oppName: string;
@@ -24,7 +26,7 @@ interface Props {
 /* Presentación pura: los goles ya están decididos por el engine; esto solo
    los "transmite" con un reloj que corre. Tocá para saltar; con movimiento
    reducido va directo al final. No toca semilla ni estado del juego. */
-export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
+export function MatchTicker({ from, to, events, priorEvents = [], baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
 
@@ -115,19 +117,7 @@ export function MatchTicker({ from, to, events, baseGf = 0, baseGa = 0, oppName,
         <motion.span key={`ga-${ga}`} className="ticker-ga" {...punch}>{ga}</motion.span>
       </div>
       <p className="ticker-min">{clock}</p>
-      <ul className="ticker-events">
-        {visible.map((e, k) => (
-          <motion.li
-            key={k}
-            className={`ticker-ev ${e.side === 'you' ? 'ticker-ev--you' : ''}`}
-            initial={{ opacity: 0, scale: 0.7, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-          >
-            {fmtMin(e)} ⚽ {e.n ?? t('ticker.goalOpp', { opp: oppName })}{e.p ? ' (p)' : ''}
-          </motion.li>
-        ))}
-      </ul>
+      <Timeline events={[...priorEvents, ...visible]} oppName={oppName} prior={priorEvents} />
       <p className="reel-hint">{t('ticker.skip')}</p>
     </motion.div>
   );

@@ -5,11 +5,12 @@ import { type Campaign, type Stage, type MatchView, LADDER, isGroup, isTwoLegged
 import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
 import { BRAND, SITE_URL } from '../config';
-import { scaledRivalOf, xiProfile, evHalf, fmtMin } from '../lib/engine';
+import { scaledRivalOf, xiProfile, evHalf } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
+import { Timeline } from './Timeline';
 
 interface Props {
   campaign: Campaign;
@@ -32,9 +33,6 @@ const OUT_CAT: Record<Stage, Cat> = {
 const cardV = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } };
 const riseIn = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
-/* La ficha "repite" el partido: cada gol cae en orden de minuto. */
-const tlC = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
-const tlGoal = { hidden: { opacity: 0, y: -7 }, show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 380, damping: 26 } } };
 
 function groupVerdictCat(m: MatchView): Cat {
   if (m.outcome === 'D') return 'draw';
@@ -87,24 +85,11 @@ function ClubStripe({ colors }: { colors: string[] }) {
   );
 }
 
-/* ── Ficha de partido ── la línea de tiempo de AMBOS equipos, como en un
-   informe de partido de verdad: tus goles alineados a la izquierda, los del
-   rival a la derecha, ordenados por minuto sobre la regla central. La
-   alineación dice de quién es cada gol: cero claves de i18n nuevas. Los
-   autores rivales ya vienen nombrados del engine (halfEvents + oppXI). */
+/* ── Ficha de partido ── la línea de tiempo de AMBOS equipos (componente
+   Timeline, el mismo que el ticker pinta en vivo): la ficha que viste nacer
+   gol a gol, ya terminada. Con cascada al abrir la carta. */
 function MatchTimeline({ m }: { m: MatchView }) {
-  const goals = [...m.ev].sort((a, b) => a.min - b.min);
-  if (goals.length === 0) return null;
-  return (
-    <motion.ol className="timeline" variants={tlC}>
-      {goals.map((e, k) => (
-        <motion.li key={k} variants={tlGoal} className={`tl-goal ${e.side === 'you' ? 'tl-goal--you' : 'tl-goal--opp'}`}>
-          <span className="tl-min">{fmtMin(e)}</span>
-          <span className="tl-name">{e.n ?? m.oppName}{e.p ? ' (p)' : ''}</span>
-        </motion.li>
-      ))}
-    </motion.ol>
-  );
+  return <Timeline events={m.ev} oppName={m.oppName} stagger />;
 }
 
 export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, shareCode, onKickoff, onNext, onRetry, onReset }: Props) {
@@ -170,6 +155,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           from={resume ?? 45}
           to={m.end2}
           events={m.ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
+          priorEvents={m.ev.filter((e) => evHalf(e) === 1 || e.min < (resume ?? 46))}
           baseGf={m.ev.filter((e) => e.side === 'you' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           baseGa={m.ev.filter((e) => e.side === 'opp' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           oppName={m.oppName}

@@ -82,6 +82,7 @@ export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSec
           from={pen1.min}
           to={end1}
           events={ev1.filter((e) => e.min >= pen1.min)}
+          priorEvents={ev1.filter((e) => e.min < pen1.min)}
           baseGf={ev1.filter((e) => e.min < pen1.min && e.side === 'you').length}
           baseGa={ev1.filter((e) => e.min < pen1.min && e.side === 'opp').length}
           oppName={rival.name}

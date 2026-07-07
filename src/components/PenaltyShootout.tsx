@@ -77,6 +77,7 @@ export function PenaltyShootout({
           from={resume ?? 45}
           to={end2}
           events={ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
+          priorEvents={ev.filter((e) => evHalf(e) === 1 || e.min < (resume ?? 46))}
           baseGf={ev.filter((e) => e.side === 'you' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           baseGa={ev.filter((e) => e.side === 'opp' && (evHalf(e) === 1 || e.min < (resume ?? 46))).length}
           oppName={oppName}
