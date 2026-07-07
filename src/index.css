@@ -363,6 +363,19 @@ button:focus-visible,
 .bs-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bs-rat { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
 
+/* ── Creador de escudo ── columna derecha del draft, debajo del boxscore.
+   Alto FIJO en los swatches (no aspect-ratio, que colapsaba a una línea). */
+.escudo { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.escudo-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.escudo-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.escudo-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; line-height: 1.1; color: var(--silver); }
+.escudo-hint { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.5px; line-height: 1.1; color: var(--muted); }
+.escudo-swatches { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.swatch { height: 24px; border-radius: 5px; border: 1px solid var(--line); background: var(--sw); cursor: pointer; padding: 0; position: relative; transition: transform 0.12s ease; }
+.swatch:hover { transform: scale(1.08); }
+.swatch--on { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+.swatch-n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+
 /* ── The champion on offer ── */
 .draft-pick { border-left: 6px solid var(--club, var(--accent)); padding: 12px 0 12px 14px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 60%); }
 .draft-champ { margin-bottom: 10px; }
