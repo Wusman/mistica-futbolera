@@ -4,7 +4,7 @@ import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
 import { Emblem } from './Emblem';
 import { YOU_EMBLEM } from '../config';
-import { loadEscudo, loadTeamName } from '../lib/escudo';
+import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
 
 interface Props {
   rec: DailyRecord;
@@ -34,13 +34,13 @@ export function DailyDone({ rec, onFree }: Props) {
         <p className="card-club">{rec.champion ? t('daily.champ') : t('stage.' + rec.stage)}</p>
 
         <div className="duel">
-          <Emblem colors={loadEscudo() ?? YOU_EMBLEM} size={46} className="emb" />
+          <Emblem colors={loadEscudo() ?? YOU_EMBLEM} pattern={loadPattern()} size={46} className="emb" />
           <div className="scoreline">
             <span className="score">{rec.gf}</span>
             <span className="score-sep">–</span>
             <span className="score score--away">{rec.ga}</span>
           </div>
-          <Emblem colors={rec.colors ?? []} size={46} className="emb" />
+          <Emblem colors={rec.colors ?? []} pattern={teamPattern(rec.colors ?? [])} size={46} className="emb" />
         </div>
 
         <p className="vs">{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: rec.opp })}</p>

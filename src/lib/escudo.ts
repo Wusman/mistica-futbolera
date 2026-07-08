@@ -64,3 +64,38 @@ export function saveTeamName(name: string): void {
     /* almacenamiento no disponible */
   }
 }
+/* ── Patrones del escudo ── vocabulario propio tipo camiseta (IP-safe). El
+   jugador elige el suyo; los equipos existentes reciben uno determinista. */
+export const PATTERNS = ['solid', 'halves', 'vstripe', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters'] as const;
+export type Pattern = (typeof PATTERNS)[number];
+
+const PAT_KEY = 'mf.pattern.v1';
+
+export function loadPattern(): Pattern {
+  try {
+    const p = localStorage.getItem(PAT_KEY);
+    return p && (PATTERNS as readonly string[]).includes(p) ? (p as Pattern) : 'diagonal';
+  } catch {
+    return 'diagonal';
+  }
+}
+
+export function savePattern(p: Pattern): void {
+  try {
+    localStorage.setItem(PAT_KEY, p);
+  } catch {
+    /* ignore */
+  }
+}
+
+/* Determinista desde los colores del equipo (mismo equipo → mismo patrón),
+   elegido por NUESTRO sistema, nunca calcado de la camiseta real. */
+export function teamPattern(colors: string[]): Pattern {
+  const s = colors.join('');
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return PATTERNS[(h >>> 0) % PATTERNS.length];
+}
