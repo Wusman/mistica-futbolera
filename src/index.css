@@ -380,11 +380,16 @@ button:focus-visible,
 
 /* ── Creador de escudo ── columna derecha del draft, debajo del boxscore.
    Alto FIJO en los swatches (no aspect-ratio, que colapsaba a una línea). */
-.escudo { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
-.escudo-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.escudo-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.escudo-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; line-height: 1.1; color: var(--silver); }
-.escudo-hint { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.5px; line-height: 1.1; color: var(--muted); }
+/* ── Panel "Tu equipo" ── nombre + escudo, columna derecha del draft.
+   Caja con filete dorado arriba para que se note e invite a editar. */
+.escudo { margin-top: 16px; padding: 13px 12px 12px; border: 1px solid var(--line); border-top: 2px solid var(--gold); border-radius: 5px; background: rgba(255, 255, 255, 0.02); }
+.escudo-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.escudo-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.escudo-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; line-height: 1.1; color: var(--gold); }
+.escudo-name { width: 100%; padding: 4px 7px; font-family: var(--font-display); font-size: 13.5px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; }
+.escudo-name:focus { outline: none; border-color: var(--gold); }
+.escudo-name::placeholder { color: var(--muted); }
+.escudo-hint { display: block; font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.5px; line-height: 1.1; color: var(--muted); margin: 0 0 8px; }
 .escudo-swatches { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .swatch { height: 24px; border-radius: 5px; border: 1px solid var(--line); background: var(--sw); cursor: pointer; padding: 0; position: relative; transition: transform 0.12s ease; }
 .swatch:hover { transform: scale(1.08); }
@@ -563,6 +568,7 @@ button:focus-visible,
   background: radial-gradient(65% 65% at 50% 38%, hsl(45 85% 55% / 0.55), transparent 75%);
 }
 .ticker > *:not(.ticker-flash) { position: relative; z-index: 1; }
+.ticker-crest { display: block; margin: 0 auto 8px; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)); }
 .ticker-half {
   display: inline-block;
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
@@ -799,8 +805,8 @@ button:focus-visible,
   overflow: hidden;
 }
 .vs-side--you { border-color: hsl(45 70% 55% / 0.45); }
-.club-colors--vs { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 3px; height: 5px; margin: 0; }
-.club-colors--vs span { flex: 1; width: auto; height: 100%; border: none; }
+/* Escudo de cada lado en la cartelera de vs (tu once vs rival). */
+.vs-crest { margin-bottom: 6px; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)); }
 .vs-tag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; color: var(--text); margin: 0; }
 .vs-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(54px, 13vw, 76px); line-height: 1; margin: 2px 0 0; color: var(--text); text-shadow: 0.05em 0.05em 0 hsl(var(--seed-hue) 80% 60% / 0.25); }
 .vs-num--gold { color: var(--gold); text-shadow: 0.05em 0.05em 0 hsl(45 85% 55% / 0.22); }

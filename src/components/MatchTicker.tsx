@@ -3,6 +3,9 @@ import { motion, animate, useReducedMotion } from 'framer-motion';
 import { type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
 import { Timeline } from './Timeline';
+import { Emblem } from './Emblem';
+import { loadEscudo } from '../lib/escudo';
+import { YOU_EMBLEM } from '../config';
 
 /* ── Tunables del relato (ajustá a gusto) ──
    duration: segundos que corre el reloj por mitad.
@@ -110,6 +113,7 @@ export function MatchTicker({ from, to, events, priorEvents = [], baseGf = 0, ba
           transition={{ duration: 0.7, ease: 'easeOut' }}
         />
       )}
+      <Emblem colors={loadEscudo() ?? YOU_EMBLEM} size={30} className="ticker-crest" />
       <p className="ticker-half">{ended ? endLabel : halfLabel}</p>
       <div className="ticker-score" aria-live="polite">
         <motion.span key={`gf-${gf}`} className="ticker-gf" {...punch}>{gf}</motion.span>
