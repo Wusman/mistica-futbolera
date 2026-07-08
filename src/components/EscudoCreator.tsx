@@ -1,15 +1,16 @@
 import { type CSSProperties, useState } from 'react';
 import { Emblem } from './Emblem';
-import { ESCUDO_PALETTE, loadEscudo, saveEscudo } from '../lib/escudo';
+import { ESCUDO_PALETTE, loadEscudo, saveEscudo, loadTeamName, saveTeamName } from '../lib/escudo';
 import { YOU_EMBLEM } from '../config';
 import { useT } from '../i18n';
 
-/* Creador de escudo dentro del draft: tap 1–3 colores de la paleta curada y el
-   emblema de "tu once" se arma en vivo. Persiste solo (localStorage); no toca
-   estado de juego ni semilla. */
+/* Panel de identidad dentro del draft: nombre del equipo + escudo (1–3 colores
+   de la paleta curada). El emblema se arma en vivo. Persiste solo (localStorage);
+   no toca estado de juego ni semilla. */
 export function EscudoCreator() {
   const t = useT();
   const [colors, setColors] = useState<string[]>(() => loadEscudo() ?? []);
+  const [name, setName] = useState<string>(() => loadTeamName());
 
   const toggle = (c: string) => {
     setColors((prev) => {
@@ -22,17 +23,27 @@ export function EscudoCreator() {
     });
   };
 
+  const onName = (v: string) => { setName(v); saveTeamName(v); };
   const preview = colors.length ? colors : YOU_EMBLEM;
 
   return (
     <div className="escudo">
       <div className="escudo-head">
-        <Emblem colors={preview} size={42} />
+        <Emblem colors={preview} size={44} />
         <div className="escudo-txt">
-          <span className="escudo-title">{t('escudo.title')}</span>
-          <span className="escudo-hint">{t('escudo.hint')}</span>
+          <span className="escudo-title">{t('team.title')}</span>
+          <input
+            className="escudo-name"
+            type="text"
+            value={name}
+            maxLength={24}
+            placeholder={t('vs.you')}
+            onChange={(e) => onName(e.target.value)}
+            aria-label={t('team.title')}
+          />
         </div>
       </div>
+      <span className="escudo-hint">{t('escudo.hint')}</span>
       <div className="escudo-swatches">
         {ESCUDO_PALETTE.map((c) => {
           const i = colors.indexOf(c);

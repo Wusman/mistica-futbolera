@@ -12,7 +12,7 @@ import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 import { Timeline } from './Timeline';
 import { Emblem } from './Emblem';
-import { loadEscudo } from '../lib/escudo';
+import { loadEscudo, loadTeamName } from '../lib/escudo';
 
 interface Props {
   campaign: Campaign;
@@ -193,7 +193,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           </div>
           <Emblem colors={opp.colors} size={46} className="emb" />
         </motion.div>
-        <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
+        <motion.p className="vs" variants={riseIn}>{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (
           <motion.p className="perfect-tag" variants={riseIn}>{t('leg.agg', { gf: m.agg.gf, ga: m.agg.ga })}</motion.p>
         )}
@@ -343,7 +343,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           </div>
           <Emblem colors={opp.colors} size={46} className="emb" />
         </motion.div>
-        <motion.p className="vs" variants={riseIn}>{t('card.vs', { opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
+        <motion.p className="vs" variants={riseIn}>{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (
           <motion.p className="perfect-tag" variants={riseIn}>{t('leg.agg', { gf: m.agg.gf, ga: m.agg.ga })}</motion.p>
         )}

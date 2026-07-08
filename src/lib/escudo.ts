@@ -43,3 +43,24 @@ export function saveEscudo(colors: string[]): void {
     /* almacenamiento no disponible: el escudo cae al default de marca */
   }
 }
+
+/* Nombre del equipo (identidad, no juego). Vacío → la UI usa "Tu once". */
+const NAME_KEY = 'mf.team.v1';
+
+export function loadTeamName(): string {
+  try {
+    return (localStorage.getItem(NAME_KEY) ?? '').slice(0, 24);
+  } catch {
+    return '';
+  }
+}
+
+export function saveTeamName(name: string): void {
+  try {
+    const n = name.trim().slice(0, 24);
+    if (n) localStorage.setItem(NAME_KEY, n);
+    else localStorage.removeItem(NAME_KEY);
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}

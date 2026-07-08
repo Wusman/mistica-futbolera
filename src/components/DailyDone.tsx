@@ -4,7 +4,7 @@ import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
 import { Emblem } from './Emblem';
 import { YOU_EMBLEM } from '../config';
-import { loadEscudo } from '../lib/escudo';
+import { loadEscudo, loadTeamName } from '../lib/escudo';
 
 interface Props {
   rec: DailyRecord;
@@ -43,7 +43,7 @@ export function DailyDone({ rec, onFree }: Props) {
           <Emblem colors={rec.colors ?? []} size={46} className="emb" />
         </div>
 
-        <p className="vs">{t('card.vs', { opp: rec.opp })}</p>
+        <p className="vs">{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: rec.opp })}</p>
 
         <div className="stat-grid stat-grid--3">
           <div className="stat">
