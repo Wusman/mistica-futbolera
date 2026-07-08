@@ -17,6 +17,7 @@ import {
   type RunLog, type RunDriver, type DraftMove,
   RUN_VERSION, runWith, RunError,
 } from './run';
+import { ESCUDO_PALETTE } from './escudo';
 
 const PREFIX = 'v1.';
 
@@ -164,7 +165,8 @@ export function encodeRun(log: RunLog): string {
 export function decodeRun(code: string): RunLog | null {
   if (!code.startsWith(PREFIX)) return null;
   let bytes: Uint8Array;
-  try { bytes = b64urlDecode(code.slice(PREFIX.length)); } catch { return null; }
+  // El run es el 1er segmento; un `.escudo` opcional viene después y se ignora acá.
+  try { bytes = b64urlDecode(code.slice(PREFIX.length).split('.')[0]); } catch { return null; }
 
   const br = new BitReader(bytes);
   const seed = br.read(32) >>> 0;
@@ -179,4 +181,32 @@ export function decodeRun(code: string): RunLog | null {
     return null;
   }
   return out;
+}
+/* ── Escudo del jugador como segmento aparte: `v1.{run}.{escudo}` ──
+   Es IDENTIDAD, no run: no toca RUN_VERSION ni la reproducción. Los códigos
+   sin tercer segmento (viejos, o de quien no creó escudo) caen al default.
+   Cada color es un índice de ESCUDO_PALETTE (4 bits); el count 1-3 va en 2 bits. */
+export function encodeEscudo(colors: string[]): string {
+  const idx = colors.slice(0, 3).map((c) => ESCUDO_PALETTE.indexOf(c)).filter((i) => i >= 0);
+  if (!idx.length) return '';
+  const bw = new BitWriter();
+  bw.write(idx.length - 1, 2);         // 1-3 colores → 0-2
+  for (const i of idx) bw.write(i, 4); // índice de paleta 0-13
+  return b64urlEncode(bw.bytes());
+}
+
+export function decodeEscudo(code: string): string[] | null {
+  if (!code.startsWith(PREFIX)) return null;
+  const seg = code.slice(PREFIX.length).split('.')[1];
+  if (!seg) return null;
+  let bytes: Uint8Array;
+  try { bytes = b64urlDecode(seg); } catch { return null; }
+  const br = new BitReader(bytes);
+  const count = Math.min(br.read(2) + 1, 3);
+  const out: string[] = [];
+  for (let k = 0; k < count; k++) {
+    const i = br.read(4);
+    if (i >= 0 && i < ESCUDO_PALETTE.length) out.push(ESCUDO_PALETTE[i]);
+  }
+  return out.length ? out : null;
 }

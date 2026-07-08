@@ -3,10 +3,13 @@ import { useT, useLocale } from '../i18n';
 import { posLabel } from '../labels';
 import { type RunResult } from '../lib/run';
 import { stagesFor } from '../lib/tournament';
+import { Emblem } from './Emblem';
+import { YOU_EMBLEM } from '../config';
 
 interface Props {
   result: RunResult | null; // null = código inválido / irreproducible
   seed: number;
+  escudo?: string[] | null;  // escudo del autor de la corrida (viene en el share-code)
   onPlaySeed: (seed: number) => void;
   onClose: () => void;
 }
@@ -15,7 +18,7 @@ const cardV = { hidden: {}, show: { transition: { staggerChildren: 0.07, delayCh
 const riseIn = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } };
 const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 
-export function Spectator({ result, seed, onPlaySeed, onClose }: Props) {
+export function Spectator({ result, seed, escudo, onPlaySeed, onClose }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const seed36 = seed.toString(36);
@@ -45,7 +48,7 @@ export function Spectator({ result, seed, onPlaySeed, onClose }: Props) {
 
       {/* El once drafteado */}
       <motion.div className="spec-block" variants={riseIn}>
-        <h3 className="spec-h3">{t('spec.squad')} <span className="spec-avg">{t('spec.avg', { n: result.xiAvg })}</span></h3>
+        <h3 className="spec-h3"><Emblem colors={escudo ?? YOU_EMBLEM} size={22} className="spec-crest" />{t('spec.squad')} <span className="spec-avg">{t('spec.avg', { n: result.xiAvg })}</span></h3>
         <ul className="spec-xi">
           {result.xi.map((p) => (
             <li key={p.i} className="spec-xi-row">
