@@ -5,7 +5,7 @@
 Juego web gratuito: la semilla sortea glorias de Europa — campeones y
 finalistas míticos (1993–2025) —, de cada equipo eliges un crack hasta
 completar tu once, y sales a ganar el torneo: fase de grupos, eliminatorias y
-la gran final, con relato minuto a minuto, decisión táctica en el entretiempo
+la gran final, con relato minuto a minuto, decisión tactica en el entretiempo
 y tandas de penaltis donde pateas **y** eliges la estirada de tu portero.
 
 🎮 **Juega ahora:** [misticafutbolera.wusman.com](https://misticafutbolera.wusman.com)
