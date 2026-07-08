@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FORMATIONS, type FormationName, type Pos } from '../data/players';
 import { posLabel } from '../labels';
-import { showcaseXI, seedFromInput, shortName, mulberry32 } from '../lib/engine';
+import { showcaseXI, seedFromInput, shortName, mulberry32, plateTier } from '../lib/engine';
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
@@ -214,16 +214,18 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             })()}
             {slots.map((slot, i) => {
               const p = xi[i];
+              const nm = p ? shortName(p.n) : '';
+              const tierCls = p ? ` pslot--${plateTier(p.r)}${nm.length > 12 ? ' pslot--long' : ''}` : '';
               return (
                 <motion.div
                   key={`${formation}:${i}`}
-                  className={`pslot ${p ? 'pslot--filled' : 'pslot--empty'}`}
+                  className={`pslot ${p ? 'pslot--filled' : 'pslot--empty'}${tierCls}`}
                   style={{ left: `${slot.x}%`, top: `${slot.y}%`, x: '-50%', y: '-50%' }}
                   variants={slotV}
                 >
                   {p ? (
                     <>
-                      <span className="pslot-name">{shortName(p.n)}</span>
+                      <span className="pslot-name">{nm}</span>
                       <span className="pslot-rating">{p.r}</span>
                     </>
                   ) : (

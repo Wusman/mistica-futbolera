@@ -154,6 +154,11 @@ const SHORT_OVERRIDES: Record<string, string> = {
   'Roberto Carlos': 'R. Carlos',
 };
 
+/* Tier de material de la placa por rating (umbrales de diseño). */
+export function plateTier(r: number): 'gold' | 'silver' | 'base' {
+  return r >= 88 ? 'gold' : r >= 85 ? 'silver' : 'base';
+}
+
 export function shortName(name: string): string {
   const clean = name.replace(/"/g, '').trim();
   if (SHORT_OVERRIDES[clean]) return SHORT_OVERRIDES[clean];

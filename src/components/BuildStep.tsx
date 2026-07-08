@@ -15,6 +15,7 @@ import {
   openSlotsFor,
   lineupFilled,
   shortName,
+  plateTier,
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
 import { PitchMarkings } from './PitchMarkings';
@@ -185,10 +186,12 @@ export function BuildStep({
           {slots.map((slot, i) => {
             const player = lineup[i];
             const isChoosable = choosable.includes(i);
+            const nm = player ? shortName(player.n) : '';
+            const tierCls = player ? ` pslot--${plateTier(player.r)}${nm.length > 12 ? ' pslot--long' : ''}` : '';
             return (
               <motion.div
                 key={`${i}-${player ? player.i : 'empty'}`}
-                className={`pslot ${player ? 'pslot--filled' : 'pslot--empty'} ${isChoosable ? 'pslot--choose' : ''}`}
+                className={`pslot ${player ? 'pslot--filled' : 'pslot--empty'}${tierCls} ${isChoosable ? 'pslot--choose' : ''}`}
                 style={{ left: `${slot.x}%`, top: `${slot.y}%`, x: '-50%', y: '-50%' }}
                 initial={{ scale: 0.4, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -198,7 +201,7 @@ export function BuildStep({
               >
                 {player ? (
                   <>
-                    <span className="pslot-name">{shortName(player.n)}</span>
+                    <span className="pslot-name">{nm}</span>
                     <span className="pslot-rating">{player.r}</span>
                   </>
                 ) : (

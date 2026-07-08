@@ -334,11 +334,10 @@ button:focus-visible,
 .pitch-markings .mk-fill { fill: rgba(255, 255, 255, 0.34); stroke: none; }
 .pslot {
   position: absolute; z-index: 1; transform: translate(-50%, -50%);
-  width: 60px; height: 60px; border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; font-size: 11px; line-height: 1.05;
 }
-.pslot--empty { border: 2px dashed rgba(255, 255, 255, 0.55); color: rgba(255, 255, 255, 0.85); }
+.pslot--empty { width: 52px; height: 52px; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, 0.4); color: rgba(255, 255, 255, 0.8); }
 /* ── La jugada de pizarra ── al cargar (y con cada semilla nueva), la
    pelota ejecuta UNA jugada GK→defensa→medio→ataque derivada de la semilla
    (mulberry32 con sal propia, presentación pura). One-shot: se juega y
@@ -349,9 +348,25 @@ button:focus-visible,
 .pitch { cursor: pointer; } /* tap = otra jugada de pizarra */
 
 .pslot-pos { font-family: var(--font-display); letter-spacing: 1px; }
-.pslot--filled { background: #eef2ff; border: 2px solid #0a1024; color: #0a1024; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
-.pslot-name { max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.pslot-rating { font-family: var(--font-display); font-weight: 700; color: #b8860b; }
+/* Placa de leyenda: barra oscura tipo transmisión con corte diagonal de
+   camiseta. El nombre se lee claro (achica la fuente si es largo); el rating
+   es el dorsal. Material por tier: 88+ oro, 85+ plata, resto neutro. */
+.pslot--filled {
+  width: max-content; min-width: 50px; max-width: 84px;
+  padding: 4px 10px 3px;
+  background: var(--surface); border: 1px solid var(--line);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+}
+.pslot-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 11px; color: var(--text); }
+.pslot--long .pslot-name { font-size: 9.5px; }
+.pslot-rating { font-family: var(--font-display); font-weight: 700; font-size: 13px; line-height: 1.1; }
+.pslot--gold { border-top: 2px solid var(--gold); }
+.pslot--gold .pslot-rating { color: var(--gold); }
+.pslot--silver { border-top: 2px solid var(--silver); }
+.pslot--silver .pslot-rating { color: var(--silver); }
+.pslot--base { border-top: 2px solid rgba(255, 255, 255, 0.22); }
+.pslot--base .pslot-rating { color: var(--muted); }
 .pslot--choose { cursor: pointer; border-color: var(--gold); color: var(--gold); background: hsl(45 80% 55% / 0.15); animation: pulse 1s ease-in-out infinite; }
 
 /* ── Box score ── */
@@ -362,19 +377,6 @@ button:focus-visible,
 .bs-pos { font-family: var(--font-display); width: 38px; color: var(--muted); letter-spacing: 1px; }
 .bs-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bs-rat { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
-
-/* ── Creador de escudo ── columna derecha del draft, debajo del boxscore.
-   Alto FIJO en los swatches (no aspect-ratio, que colapsaba a una línea). */
-.escudo { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
-.escudo-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.escudo-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.escudo-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; line-height: 1.1; color: var(--silver); }
-.escudo-hint { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.5px; line-height: 1.1; color: var(--muted); }
-.escudo-swatches { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.swatch { height: 24px; border-radius: 5px; border: 1px solid var(--line); background: var(--sw); cursor: pointer; padding: 0; position: relative; transition: transform 0.12s ease; }
-.swatch:hover { transform: scale(1.08); }
-.swatch--on { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
-.swatch-n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 
 /* ── The champion on offer ── */
 .draft-pick { border-left: 6px solid var(--club, var(--accent)); padding: 12px 0 12px 14px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 60%); }
