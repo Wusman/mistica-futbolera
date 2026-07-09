@@ -147,14 +147,17 @@ button:focus-visible,
   color: #fff; background: linear-gradient(135deg, var(--cta-a), var(--cta-b)); border: none; border-radius: 4px;
   padding: 16px; cursor: pointer;
   margin-top: 6px; box-shadow: 4px 4px 0 var(--cta-shadow);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
+  transition: translate 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
 }
 .cta:hover { filter: brightness(1.12); }
-.cta:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--cta-shadow); }
-.cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; box-shadow: none; transform: none; }
+/* Press: propiedad `translate` (no `transform`), que Framer no pisa aun cuando
+   deja un transform inline por la entrada (variants). Así el hundido funciona
+   en TODOS los .cta, con o sin animación de entrada. */
+.cta:active { translate: 2px 2px; box-shadow: 2px 2px 0 var(--cta-shadow); }
+.cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; box-shadow: none; translate: none; }
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; box-shadow: none; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
-.cta--ghost:active { transform: none; }
+.cta--ghost:active { translate: none; box-shadow: none; }
 .cta--xl { font-size: 20px; padding: 18px; margin-top: 4px; }
 
 /* ── Placa de fixture ── el diario como gráfica de partido (IDENTIDAD §4):
@@ -844,7 +847,7 @@ button:focus-visible,
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .cta--daily:hover { background: none; color: var(--text); border-bottom-color: var(--gold); }
-.cta--daily:active { transform: none; box-shadow: none; }
+.cta--daily:active { translate: none; box-shadow: none; }
 
 /* ── Footer del sitio ── cierra la página en todas las fases. */
 .footer {
