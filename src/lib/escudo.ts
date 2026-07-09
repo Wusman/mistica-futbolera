@@ -64,9 +64,14 @@ export function saveTeamName(name: string): void {
     /* almacenamiento no disponible */
   }
 }
+import { TEAMS } from '../data/players';
+
 /* ── Patrones del escudo ── vocabulario propio tipo camiseta (IP-safe). El
    jugador elige el suyo; los equipos existentes reciben uno determinista. */
-export const PATTERNS = ['solid', 'halves', 'vstripe', 'vtri', 'htri', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters'] as const;
+/* ORDEN CONGELADO: el índice viaja en el share-code (4 bits). Patrones nuevos
+   se agregan SOLO AL FINAL. band = banda vertical central (con filos del 3er
+   color); chest = franja horizontal al pecho. */
+export const PATTERNS = ['solid', 'halves', 'vstripe', 'vtri', 'htri', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters', 'band', 'chest'] as const;
 export type Pattern = (typeof PATTERNS)[number];
 
 const PAT_KEY = 'mf.pattern.v1';
@@ -90,11 +95,21 @@ export function savePattern(p: Pattern): void {
 
 /* Determinista desde los colores del equipo (mismo equipo → mismo patrón),
    elegido por NUESTRO sistema, nunca calcado de la camiseta real. */
+/* Patrón determinista por equipo. Primero la CURADURÍA del dataset (cada
+   equipo declara el patrón que evoca su camiseta histórica — geometría
+   genérica, jamás el escudo real); si no hay, hash estable de los colores.
+   La clave son los colores: los registros viejos del daily (que guardan solo
+   colores) heredan la curaduría gratis. */
+const CURATED = new Map<string, Pattern>();
+for (const tm of TEAMS) if (tm.pattern) CURATED.set(tm.colors.join('|'), tm.pattern);
+
 export function teamPattern(colors: string[]): Pattern {
-  const s = colors.join('');
+  const key = colors.join('|');
+  const curated = CURATED.get(key);
+  if (curated) return curated;
   let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
   return PATTERNS[(h >>> 0) % PATTERNS.length];

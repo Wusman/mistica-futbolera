@@ -9,7 +9,7 @@ interface Props {
   className?: string;
 }
 
-const GOLD = '#d9b24a';
+const GOLD = '#d9b24a'; // = --gold del tema (canónico, IDENTIDAD §2); si cambia uno, cambia el otro
 /* Un solo path de escudo, IGUAL para todos → sistema propio, no reproduce ningún
    crest. La identidad la dan el color y el patrón, no la forma. */
 const SHIELD = 'M6 5 L42 5 L42 32 C42 44 24 51 24 51 C24 51 6 44 6 32 Z';
@@ -95,6 +95,24 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
           <rect y="10" width="48" height="6" fill={a} />
           <rect y="22" width="48" height="6" fill={c} />
           <rect y="34" width="48" height="6" fill={a} />
+        </>
+      );
+    case 'band':
+      return (
+        <>
+          <rect width="48" height="56" fill={a} />
+          <rect x="14" width="2.5" height="56" fill={c} />
+          <rect x="16.5" width="15" height="56" fill={b} />
+          <rect x="31.5" width="2.5" height="56" fill={c} />
+        </>
+      );
+    case 'chest':
+      return (
+        <>
+          <rect width="48" height="56" fill={a} />
+          <rect y="18" width="48" height="2.5" fill={c} />
+          <rect y="20.5" width="48" height="15" fill={b} />
+          <rect y="35.5" width="48" height="2.5" fill={c} />
         </>
       );
     case 'chevron':
