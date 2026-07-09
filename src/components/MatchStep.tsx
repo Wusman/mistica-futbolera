@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { type Attitude, type PenAim, type Rival, type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
-import { MatchTicker } from './MatchTicker';
+import { MatchTicker, type Crest } from './MatchTicker';
 import { PenMoment } from './PenMoment';
 
 /* Pausa de la escena del penal en jugada antes de retomar el relato. */
@@ -18,6 +18,8 @@ const tap = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } };
 interface Pen1 { min: number; side: 'you' | 'opp'; res?: { aim: PenAim; dive: PenAim; scored: boolean } }
 
 interface Props {
+  youCrest: Crest;   // escudo del jugador
+  rivalCrest: Crest; // escudo del rival (los stats de combate van en `rival`)
   rival: Rival;
   gf1: number;
   ga1: number;
@@ -34,7 +36,7 @@ interface Props {
    Con penal en jugada: relato 0'→min → "¡PENAL!" (pateás o atajás según el
    lado) → escena del arco → relato min→45 con el marcador YA ajustado por
    el resultado (gf1/ga1/ev1 llegan ajustados desde el reducer). */
-export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSecs, onDecide, onPen }: Props) {
+export function MatchStep({ youCrest, rivalCrest, rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSecs, onDecide, onPen }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
 
@@ -54,6 +56,8 @@ export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSec
     return (
       <section className="match">
         <MatchTicker
+          you={youCrest}
+          rival={rivalCrest}
           from={0}
           to={pen1 ? pen1.min : end1}
           events={ev1.filter((e) => e.min < cut)}
@@ -79,6 +83,8 @@ export function MatchStep({ rival, gf1, ga1, ev1, end1, pen1, oppName, tickerSec
     return (
       <section className="match">
         <MatchTicker
+          you={youCrest}
+          rival={rivalCrest}
           from={pen1.min}
           to={end1}
           events={ev1.filter((e) => e.min >= pen1.min)}

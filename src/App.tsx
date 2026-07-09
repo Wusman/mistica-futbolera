@@ -41,7 +41,7 @@ import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
 import { encodeRun, decodeRun, encodeEscudo, decodeEscudo, type EscudoTag } from './lib/sharecode';
-import { loadEscudo, loadPattern, loadTeamName } from './lib/escudo';
+import { loadEscudo, loadPattern, loadTeamName, teamPattern } from './lib/escudo';
 import { DailyDone } from './components/DailyDone';
 import { NightBackdrop } from './components/NightBackdrop';
 import { SecondHalfPen } from './components/SecondHalfPen';
@@ -390,6 +390,12 @@ export default function App() {
     }
   }, [phase, state.seed, state.formation, state.log]);
 
+  /* Escudos para el ticker: se arman en el shell, no en la presentación. El del
+     jugador sale de localStorage (barato: App re-renderiza en dispatches, no por
+     frame); el del rival deriva de sus colores de marca + nuestro patrón. */
+  const youCrest = { colors: loadEscudo() ?? [], pattern: loadPattern() };
+  const crestOf = (team: { colors: string[] }) => ({ colors: team.colors, pattern: teamPattern(team.colors) });
+
   /* Modo espectador: ?r=CODIGO reproduce una corrida ajena (client-side, sin
      tocar el Worker). Se lee una sola vez al montar. */
   const [spectator] = useState<{ result: RunResult | null; seed: number; escudo: EscudoTag | null } | undefined>(() => {
@@ -575,6 +581,8 @@ export default function App() {
       {phase.kind === 'campaign' && phase.c.sub.k === 'half' && (
         <MatchStep
           key={phase.c.stageIdx}
+          youCrest={youCrest}
+          rivalCrest={crestOf(teamById(phase.c.oppId))}
           rival={scaledRivalOf(teamById(phase.c.oppId), phase.c.stageIdx)}
           gf1={phase.c.sub.gf1}
           ga1={phase.c.sub.ga1}
@@ -590,6 +598,8 @@ export default function App() {
 
       {phase.kind === 'campaign' && phase.c.sub.k === 'h2pen' && (
         <SecondHalfPen
+          youCrest={youCrest}
+          rivalCrest={crestOf(teamById(phase.c.oppId))}
           stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
           oppName={teamById(phase.c.oppId).name}
           ev1={phase.c.sub.ev1}
@@ -604,6 +614,8 @@ export default function App() {
       {phase.kind === 'campaign' && phase.c.sub.k === 'pens' && (
         <PenaltyShootout
           key={`${phase.c.stageIdx}:${phase.c.leg}`}
+          youCrest={youCrest}
+          rivalCrest={crestOf(teamById(phase.c.oppId))}
           stageLabel={t('stage.' + LADDER[phase.c.stageIdx])}
           oppName={teamById(phase.c.oppId).name}
           gf={phase.c.sub.gf}

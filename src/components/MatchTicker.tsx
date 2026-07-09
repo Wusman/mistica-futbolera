@@ -4,15 +4,21 @@ import { type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
 import { Timeline } from './Timeline';
 import { Emblem } from './Emblem';
-import { loadEscudo, loadPattern } from '../lib/escudo';
-import { YOU_EMBLEM } from '../config';
+import { type Pattern } from '../lib/escudo';
 
 /* ── Tunables del relato (ajustá a gusto) ──
    duration: segundos que corre el reloj por mitad.
    holdEnd:  pausa en 45'/90' antes de avanzar solo. */
 const TICK = { duration: 4.2, holdEnd: 0.7 };
 
+/* Identidad mínima para pintar un escudo (colores propios + patrón). NO es IP
+   real: la paleta es curada y el patrón lo elige nuestro sistema. Se pasa por
+   props para que la presentación no lea localStorage. */
+export interface Crest { colors: string[]; pattern?: Pattern }
+
 interface Props {
+  you: Crest;              // escudo del jugador
+  rival: Crest;            // escudo del rival (team.colors + teamPattern)
   from: number;            // 0 (1er tiempo) ó 45 (2do)
   to: number;              // 45 ó 90
   events: TickerEvent[];   // solo los goles de este segmento
@@ -29,7 +35,7 @@ interface Props {
 /* Presentación pura: los goles ya están decididos por el engine; esto solo
    los "transmite" con un reloj que corre. Tocá para saltar; con movimiento
    reducido va directo al final. No toca semilla ni estado del juego. */
-export function MatchTicker({ from, to, events, priorEvents = [], baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
+export function MatchTicker({ you, rival, from, to, events, priorEvents = [], baseGf = 0, baseGa = 0, oppName, halfLabel, endLabel, duration = TICK.duration, onDone }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
 
@@ -113,12 +119,15 @@ export function MatchTicker({ from, to, events, priorEvents = [], baseGf = 0, ba
           transition={{ duration: 0.7, ease: 'easeOut' }}
         />
       )}
-      <Emblem colors={loadEscudo() ?? YOU_EMBLEM} pattern={loadPattern()} size={30} className="ticker-crest" />
       <p className="ticker-half">{ended ? endLabel : halfLabel}</p>
-      <div className="ticker-score" aria-live="polite">
-        <motion.span key={`gf-${gf}`} className="ticker-gf" {...punch}>{gf}</motion.span>
-        <span className="ticker-sep">–</span>
-        <motion.span key={`ga-${ga}`} className="ticker-ga" {...punch}>{ga}</motion.span>
+      <div className="ticker-scoreline">
+        <Emblem colors={you.colors} pattern={you.pattern} size={30} className="ticker-crest" />
+        <div className="ticker-score" aria-live="polite">
+          <motion.span key={`gf-${gf}`} className="ticker-gf" {...punch}>{gf}</motion.span>
+          <span className="ticker-sep">–</span>
+          <motion.span key={`ga-${ga}`} className="ticker-ga" {...punch}>{ga}</motion.span>
+        </div>
+        <Emblem colors={rival.colors} pattern={rival.pattern} size={30} className="ticker-crest" />
       </div>
       <p className="ticker-min">{clock}</p>
       <Timeline events={[...priorEvents, ...visible]} oppName={oppName} prior={priorEvents} />

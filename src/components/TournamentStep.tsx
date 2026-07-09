@@ -154,6 +154,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
       <section className="match">
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
+          you={{ colors: loadEscudo() ?? [], pattern: loadPattern() }}
+          rival={{ colors: opp.colors, pattern: teamPattern(opp.colors) }}
           from={resume ?? 45}
           to={m.end2}
           events={m.ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}

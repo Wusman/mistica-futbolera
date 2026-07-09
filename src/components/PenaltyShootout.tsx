@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { type PenAim, type PenKickResult, type OppPenResult, type TickerEvent, pensTurn, evHalf } from '../lib/engine';
 import { useT } from '../i18n';
-import { MatchTicker } from './MatchTicker';
+import { MatchTicker, type Crest } from './MatchTicker';
 import { GoalScene } from './GoalScene';
 
 /* ── Tunables de la tanda ──
@@ -11,6 +11,8 @@ import { GoalScene } from './GoalScene';
 const PEN = { reveal: 1250, toss: 1700 };
 
 interface Props {
+  youCrest: Crest;
+  rivalCrest: Crest;
   stageLabel: string;
   oppName: string;
   gf: number;
@@ -35,7 +37,7 @@ interface Props {
      TU arquero (DIVE). Cada dispatch resuelve UN penal; acá solo se anima
      el último. Nada de azar en el componente. */
 export function PenaltyShootout({
-  stageLabel, oppName, gf, ga, ev, end2, resume, agg, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
+  youCrest, rivalCrest, stageLabel, oppName, gf, ga, ev, end2, resume, agg, first, you, opp, winner, tickerSecs, onKick, onDive, onDone,
 }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
@@ -74,6 +76,8 @@ export function PenaltyShootout({
       <section className="match">
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
+          you={youCrest}
+          rival={rivalCrest}
           from={resume ?? 45}
           to={end2}
           events={ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}

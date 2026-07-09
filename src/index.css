@@ -573,7 +573,10 @@ button:focus-visible,
   background: radial-gradient(65% 65% at 50% 38%, hsl(45 85% 55% / 0.55), transparent 75%);
 }
 .ticker > *:not(.ticker-flash) { position: relative; z-index: 1; }
-.ticker-crest { display: block; margin: 0 auto 8px; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)); }
+/* Escudos flanqueando el marcador (tú a la izq, rival a la der): mismo
+   lenguaje dual-emblem del DailyDone. El marcador sigue siendo el héroe. */
+.ticker-scoreline { display: flex; align-items: center; justify-content: center; gap: clamp(10px, 4vw, 20px); }
+.ticker-crest { flex: 0 0 auto; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)); }
 .ticker-half {
   display: inline-block;
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;

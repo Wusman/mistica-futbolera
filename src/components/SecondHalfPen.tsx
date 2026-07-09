@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { type PenAim, type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
-import { MatchTicker } from './MatchTicker';
+import { MatchTicker, type Crest } from './MatchTicker';
 import { PenMoment } from './PenMoment';
 
 const MPEN = { reveal: 1500 };
 
 interface Props {
+  youCrest: Crest;
+  rivalCrest: Crest;
   stageLabel: string;
   oppName: string;
   ev1: TickerEvent[];          // 1er tiempo YA ajustado (para el marcador base)
@@ -22,7 +24,7 @@ interface Props {
 /* Penal en jugada del 2do tiempo: relato 45'→min → ¡PENALTI! → escena →
    se liquida el partido (H2_DONE) y el resto del relato (min→90+X) lo juega
    el flujo normal de fulltime/tanda con `resume`. */
-export function SecondHalfPen({ stageLabel, oppName, ev1, ev2, end2, pen, tickerSecs, onPen, onSettle }: Props) {
+export function SecondHalfPen({ youCrest, rivalCrest, stageLabel, oppName, ev1, ev2, end2, pen, tickerSecs, onPen, onSettle }: Props) {
   const t = useT();
   const reduce = useReducedMotion();
   const [seg, setSeg] = useState<'live' | 'pen'>('live');
@@ -40,6 +42,8 @@ export function SecondHalfPen({ stageLabel, oppName, ev1, ev2, end2, pen, ticker
       <section className="match">
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
+          you={youCrest}
+          rival={rivalCrest}
           from={45}
           to={pen.min}
           events={ev2.filter((e) => e.min < pen.min)}
