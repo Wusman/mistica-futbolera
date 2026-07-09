@@ -22,7 +22,10 @@ export type Pos =
   | 'DM' | 'CM' | 'AM' | 'RM' | 'LM'
   | 'RW' | 'LW' | 'ST';
 
-import { type Pattern } from '../lib/escudo';
+/* IMPORT TYPE a nivel sentencia, NO `import { type ... }`: con
+   verbatimModuleSyntax el inline deja un import de efecto y crea un CICLO
+   runtime players↔escudo que revienta el init (pantalla en negro). */
+import type { Pattern } from '../lib/escudo';
 
 export interface Player {
   i: number;

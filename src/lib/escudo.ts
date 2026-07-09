@@ -100,10 +100,13 @@ export function savePattern(p: Pattern): void {
    genérica, jamás el escudo real); si no hay, hash estable de los colores.
    La clave son los colores: los registros viejos del daily (que guardan solo
    colores) heredan la curaduría gratis. */
-const CURATED = new Map<string, Pattern>();
-for (const tm of TEAMS) if (tm.pattern) CURATED.set(tm.colors.join('|'), tm.pattern);
+let CURATED: Map<string, Pattern> | null = null; // LAZY: jamás tocar TEAMS en el init del módulo (ciclos)
 
 export function teamPattern(colors: string[]): Pattern {
+  if (!CURATED) {
+    CURATED = new Map();
+    for (const tm of TEAMS) if (tm.pattern) CURATED.set(tm.colors.join('|'), tm.pattern);
+  }
   const key = colors.join('|');
   const curated = CURATED.get(key);
   if (curated) return curated;
