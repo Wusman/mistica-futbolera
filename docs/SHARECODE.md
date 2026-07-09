@@ -1,15 +1,17 @@
-# SHARE-CODE — spec del formato (v1)
+# SHARE-CODE — spec del formato (prefijo versionado; hoy `v2.`)
 
-Estado: **formato congelado, en implementación por módulos.** Una vez que un `v1`
-sale a producción, este layout no se toca: los códigos ya emitidos tienen que
-seguir leyéndose. Cambios de fondo → `v2` (y `v1` se rechaza con mensaje claro,
-no se reinterpreta).
+Estado: **formato congelado.** El prefijo del código VIAJA con `RUN_VERSION`
+(`PREFIX = \`v${RUN_VERSION}.\``): un bump del motor invalida limpio los
+códigos anteriores (caen al mensaje "otra versión") en vez de dejar que
+reproduzcan una corrida que el autor nunca jugó. Actual: **v2**
+(post-rebalance jul 2026). Dentro de una misma versión, este layout no se
+toca: los códigos ya emitidos tienen que seguir leyéndose.
 
 ---
 
 ## Qué es
 
-Un string corto y versionado (`v1.AbC123…`, ~18–37 chars) que comprime **la
+Un string corto y versionado (`v2.AbC123…`, ~18–37 chars; +identidad opcional) que comprime **la
 semilla + todas las decisiones del jugador** de una corrida. Como el core es
 determinista, ese string ES la corrida completa, gol por gol. No guarda
 resultados: los **reproduce** corriendo el mismo engine.
@@ -49,7 +51,7 @@ rivales, etc.).
 
 ## Layout de bits (orden de escritura)
 
-El prefijo `v1.` va como texto; el resto es el payload en base64url.
+El prefijo `v{RUN_VERSION}.` va como texto; el resto es el payload en base64url.
 
 ```
 [ seed: 32 bits ]
@@ -80,7 +82,7 @@ decisión del jugador: se reproducen solos, 0 bits.
 ### Tamaño real (medido)
 
 Sobre 4000 corridas: **18–37 caracteres**, promedio **22**, incluyendo el
-prefijo `v1.`.
+prefijo versionado.
 
 ---
 
@@ -92,7 +94,7 @@ reproduciría otra corrida. v1 **no** intenta ser eterno:
 
 - El código vale en la ventana que importa: el día del torneo, el momento de
   compartir. No se reproducen corridas de hace meses.
-- El prefijo `v1.` sirve para **rechazar limpio** un código de versión
+- El prefijo versionado sirve para **rechazar limpio** un código de versión
   incompatible, no para reinterpretarlo.
 
 ---
@@ -145,7 +147,7 @@ Una sola máquina, tres usos. Sin lógica duplicada que pueda divergir.
 3. ✅ **Captura** — el reducer anota el RunLog mientras se juega. Test de oro:
    `playRun(captura) == reducer`, 0 divergencias.
 4. ✅ **Codec** — `lib/sharecode.ts`: BitWriter/Reader + `encodeRun`/`decodeRun`,
-   `v1.` + base64url. Round-trip exacto en 4000 corridas; `decodeRun` robusto
+   prefijo + base64url. Round-trip exacto en 4000+ corridas; `decodeRun` robusto
    ante basura (siempre `null`, nunca crashea).
 5. ✅ **UI de compartir** — botón "copiar código" en la carta de resultado
    (free y daily), con feedback e i18n en los 4 idiomas.
@@ -154,3 +156,31 @@ Una sola máquina, tres usos. Sin lógica duplicada que pueda divergir.
    `stagesFor`) y el veredicto, más un botón "jugar esta semilla". Validado:
    3000 corridas decodean y rotulan sin fallos.
 7. **Worker verify** — POST con código; reproduce y verifica; stats del replay.
+
+---
+
+## Segmento de identidad (`v2.{run}.{identidad}`) — jul 2026
+
+Tercer segmento OPCIONAL, separado por `.`. Es **identidad, no run**: no
+participa de la reproducción ni de `RUN_VERSION` — pero al vivir bajo el
+mismo prefijo, un bump del motor también lo resetea (por eso este layout
+pudo estrenarse fresco con `v2.`).
+
+```
+[ count: 2 bits (0–3 colores) ]
+[ color: 4 bits × count  — índice de ESCUDO_PALETTE ]
+[ pattern: 4 bits        — índice de PATTERNS ]
+[ nameLen: 6 bits        — BYTES UTF-8 del nombre, 0–63 ]
+[ name: 8 bits × nameLen — UTF-8, sin partir caracteres multibyte ]
+```
+
+- **El orden de `PATTERNS` está CONGELADO** (el índice es parte del
+  formato): patrones nuevos se agregan SOLO AL FINAL de la lista.
+- `encodeEscudo` devuelve `''` si no hay nada que declarar (sin colores,
+  patrón default, sin nombre): el código queda corto.
+- Decodificación tolerante: índices fuera de rango se descartan; nombre
+  corrupto cae a `''`; segmento ausente → el espectador usa los defaults
+  de marca ("Tu once" + escudo default).
+- Validado con harness de round-trip (1800+ casos: 0–3 colores × todos los
+  patrones × nombres con acentos/emojis/24 chars, códigos v1/v3/basura
+  rechazados).
