@@ -15,7 +15,11 @@ export interface DailyRecord {
   name?: string; // ya inscripto en la tabla
 }
 
-export interface ChampionEntry extends Partial<DailyStats> { name: string; at: number; }
+/* Identidad del campeón (Paso 3b): opcional — las entradas viejas no la
+   tienen y el salón las muestra sin escudo. `pattern` viaja como string y el
+   front lo valida contra PATTERNS antes de renderizar. */
+export interface ChampionIdentity { colors?: string[]; pattern?: string; team?: string; }
+export interface ChampionEntry extends Partial<DailyStats>, ChampionIdentity { name: string; at: number; }
 
 export const dateKeyUTC = (d = new Date()) => d.toISOString().slice(0, 10);
 const yesterdayUTC = () => new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
@@ -75,7 +79,7 @@ export async function fetchChampions(date = dateKeyUTC()): Promise<ChampionEntry
   return Array.isArray(list) ? (list as ChampionEntry[]) : [];
 }
 
-export async function submitChampion(entry: { name: string } & DailyStats, date = dateKeyUTC()): Promise<void> {
+export async function submitChampion(entry: { name: string } & DailyStats & ChampionIdentity, date = dateKeyUTC()): Promise<void> {
   const res = await fetch(`${DAILY_WORKER_URL}/daily/${date}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

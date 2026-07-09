@@ -9,22 +9,35 @@
    cuando exista el share-code se puede exigir como comprobante.
 ══════════════════════════════════════════ */
 
-const CORS = {
-  // Endurecer luego: cambiar '*' por 'https://misticafutbolera.wusman.com'
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+/* CORS endurecido: solo el sitio (+ dev local). Requests sin Origin (curl)
+   reciben el valor de producción — inofensivo. Al hacer el rename de marca,
+   actualizar la lista. */
+const ALLOWED_ORIGINS = [
+  'https://misticafutbolera.wusman.com',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+const corsFor = (req) => {
+  const origin = req.headers.get('Origin');
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Vary': 'Origin',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
 };
 
-const json = (obj, status = 200) =>
+const jsonWith = (cors) => (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS },
+    headers: { 'Content-Type': 'application/json', ...cors },
   });
 
 export default {
   async fetch(req, env) {
-    if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    const cors = corsFor(req);
+    const json = jsonWith(cors);
+    if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
 
     const m = new URL(req.url).pathname.match(/^\/daily\/(\d{4}-\d{2}-\d{2})$/);
     if (!m) return json({ error: 'not_found' }, 404);
@@ -56,12 +69,28 @@ export default {
 
       // Stats para el orden de mérito (números saneados 0–999).
       const num = (v) => Math.max(0, Math.min(999, Number(v) || 0));
-      list.push({
+
+      // Identidad del campeón (Paso 3b) — OPCIONAL y saneada; las entradas
+      // viejas sin estos campos siguen siendo válidas (el front las tolera).
+      const HEX = /^#[0-9a-fA-F]{6}$/;
+      const colors = Array.isArray(body.colors)
+        ? body.colors.filter((c) => typeof c === 'string' && HEX.test(c)).slice(0, 3)
+        : [];
+      const pattern = typeof body.pattern === 'string' && /^[a-z]{3,12}$/.test(body.pattern)
+        ? body.pattern : undefined;
+      const team = String(body.team ?? '')
+        .trim().slice(0, 24).replace(/[^\p{L}\p{N} _.\-]/gu, '');
+
+      const entry = {
         name,
         at: Date.now(),
         w: num(body.w), d: num(body.d), l: num(body.l),
         gf: num(body.gf), ga: num(body.ga), avg: num(body.avg),
-      });
+      };
+      if (colors.length) entry.colors = colors;
+      if (pattern) entry.pattern = pattern;
+      if (team.length >= 2) entry.team = team;
+      list.push(entry);
       // TTL 40 días: las listas viejas se limpian solas (KV gratis y prolijo).
       await env.CHAMPIONS.put(key, JSON.stringify(list), { expirationTtl: 60 * 60 * 24 * 40 });
       return json({ ok: true, count: list.length });

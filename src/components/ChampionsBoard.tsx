@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { fetchChampions, sortChampions, type ChampionEntry } from '../lib/daily';
 import { useT } from '../i18n';
+import { Emblem } from './Emblem';
+import { PATTERNS, type Pattern } from '../lib/escudo';
+
+/* El patrón llega como string del worker: solo se renderiza si es del
+   vocabulario (defensa ante datos viejos o ajenos). */
+const validPattern = (p?: string): Pattern | undefined =>
+  p && (PATTERNS as readonly string[]).includes(p) ? (p as Pattern) : undefined;
 
 /* ── Salón de campeones ── el palmarés del torneo del día: EL objetivo del
    que entra a jugar, tratado como joya (filete dorado, el 1º como rey).
@@ -32,7 +39,12 @@ export function ChampionsBoard() {
           {list.slice(0, 10).map((c, i) => (
             <li key={`${c.name}:${c.at}`} className={`champs-row ${i === 0 ? 'champs-row--top' : ''}`}>
               <span className="champs-pos">{i + 1}</span>
-              <span className="champs-name">{c.name}</span>
+              <span className="champs-name">
+                {c.colors && c.colors.length > 0 && (
+                  <Emblem colors={c.colors} pattern={validPattern(c.pattern)} size={18} className="champs-crest" />
+                )}
+                {c.name}
+              </span>
               <span className="champs-rec">
                 {c.w ?? '–'}{t('rec.w')} {c.d ?? '–'}{t('rec.d')} {c.l ?? '–'}{t('rec.l')} · {c.gf ?? '–'}:{c.ga ?? '–'} · {c.avg ?? '–'}
               </span>

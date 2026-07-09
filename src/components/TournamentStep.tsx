@@ -114,7 +114,10 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     if (name.length < 2 || boardState === 'sending' || boardState === 'done') return;
     const stats: DailyStats = { w: s.w, d: s.d, l: s.l, gf: s.gf, ga: s.ga, avg: xiAvg };
     setBoardState('sending');
-    submitChampion({ name, ...stats })
+    /* Identidad (Paso 3b): opcional — el worker la sanea y el salón la pinta. */
+    const colors = loadEscudo() ?? undefined;
+    const team = loadTeamName() || undefined;
+    submitChampion({ name, ...stats, colors, pattern: loadPattern(), team })
       .then(() => {
         const rec = loadDaily();
         if (rec) saveDaily({ ...rec, name });
