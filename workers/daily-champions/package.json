@@ -1,0 +1,8 @@
+{
+  "name": "mistica-daily-champions",
+  "private": true,
+  "description": "Worker de campeones del día. Deploy MANUAL: npx wrangler deploy (wrangler pineado: el latest rompía deploys).",
+  "devDependencies": {
+    "wrangler": "4.107.0"
+  }
+}

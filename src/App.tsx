@@ -40,8 +40,8 @@ import { BRAND } from './config';
 import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
-import { encodeRun, decodeRun, encodeEscudo, decodeEscudo } from './lib/sharecode';
-import { loadEscudo } from './lib/escudo';
+import { encodeRun, decodeRun, encodeEscudo, decodeEscudo, type EscudoTag } from './lib/sharecode';
+import { loadEscudo, loadPattern, loadTeamName } from './lib/escudo';
 import { DailyDone } from './components/DailyDone';
 import { NightBackdrop } from './components/NightBackdrop';
 import { SecondHalfPen } from './components/SecondHalfPen';
@@ -383,8 +383,7 @@ export default function App() {
     if (!cc.done || cc.sub.k !== 'fulltime') return null;
     try {
       const run = encodeRun({ v: RUN_VERSION, seed: state.seed, formation: state.formation, ...state.log });
-      const esc = loadEscudo();
-      const suf = esc ? encodeEscudo(esc) : '';
+      const suf = encodeEscudo({ colors: loadEscudo() ?? [], pattern: loadPattern(), name: loadTeamName() });
       return suf ? `${run}.${suf}` : run;
     } catch {
       return null;
@@ -393,7 +392,7 @@ export default function App() {
 
   /* Modo espectador: ?r=CODIGO reproduce una corrida ajena (client-side, sin
      tocar el Worker). Se lee una sola vez al montar. */
-  const [spectator] = useState<{ result: RunResult | null; seed: number; escudo: string[] | null } | undefined>(() => {
+  const [spectator] = useState<{ result: RunResult | null; seed: number; escudo: EscudoTag | null } | undefined>(() => {
     const code = new URLSearchParams(window.location.search).get('r');
     if (!code) return undefined;
     const log = decodeRun(code);

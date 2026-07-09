@@ -17,9 +17,12 @@ import {
   type RunLog, type RunDriver, type DraftMove,
   RUN_VERSION, runWith, RunError,
 } from './run';
-import { ESCUDO_PALETTE } from './escudo';
+import { ESCUDO_PALETTE, PATTERNS, type Pattern } from './escudo';
 
-const PREFIX = 'v1.';
+/* El prefijo VIAJA con la versión del motor: un bump de RUN_VERSION invalida
+   limpio los códigos viejos (caen al mensaje "otra versión") en vez de dejar
+   que reproduzcan una corrida que el autor nunca jugó. */
+const PREFIX = `v${RUN_VERSION}.`;
 
 /* Órdenes canónicos (índice = valor serializado). CONGELADOS en v1. */
 const FORM_LIST = Object.keys(FORMATIONS) as FormationName[]; // el orden de FORMATIONS es parte del formato
@@ -182,31 +185,71 @@ export function decodeRun(code: string): RunLog | null {
   }
   return out;
 }
-/* ── Escudo del jugador como segmento aparte: `v1.{run}.{escudo}` ──
-   Es IDENTIDAD, no run: no toca RUN_VERSION ni la reproducción. Los códigos
-   sin tercer segmento (viejos, o de quien no creó escudo) caen al default.
-   Cada color es un índice de ESCUDO_PALETTE (4 bits); el count 1-3 va en 2 bits. */
-export function encodeEscudo(colors: string[]): string {
-  const idx = colors.slice(0, 3).map((c) => ESCUDO_PALETTE.indexOf(c)).filter((i) => i >= 0);
-  if (!idx.length) return '';
+/* ── Identidad del jugador como segmento aparte: `v2.{run}.{identidad}` ──
+   Es IDENTIDAD, no run: no participa de la reproducción. Layout v2 (fresco —
+   el bump de prefijo ya invalidó los segmentos del formato viejo):
+
+     count (2 bits, 0–3) | color (4 bits) × count | pattern (4 bits)
+     | nameLen (6 bits, BYTES UTF-8, 0–63) | name (8 bits × nameLen)
+
+   ORDEN DE `PATTERNS` CONGELADO desde acá: el índice de 4 bits es parte del
+   formato. Agregar patrones nuevos = SOLO al final de la lista. */
+
+export interface EscudoTag {
+  colors: string[];      // [] → la UI cae al escudo de marca
+  pattern?: Pattern;     // ausente/corrupto → Emblem deriva su default
+  name: string;          // '' → la UI cae a "Tu once"
+}
+
+/* Devuelve '' si no hay nada que declarar (sin colores, patrón default
+   irrelevante y sin nombre): el código queda corto, como antes. */
+export function encodeEscudo(tag: EscudoTag): string {
+  const idx = tag.colors.slice(0, 3).map((c) => ESCUDO_PALETTE.indexOf(c)).filter((i) => i >= 0);
+  const pi = tag.pattern ? PATTERNS.indexOf(tag.pattern) : -1;
+
+  /* Nombre → UTF-8, tope 63 bytes SIN partir un carácter multibyte. */
+  const enc = new TextEncoder();
+  let name = tag.name.trim().slice(0, 24);
+  let nameBytes = enc.encode(name);
+  while (nameBytes.length > 63) {
+    name = name.slice(0, -1);
+    nameBytes = enc.encode(name);
+  }
+
+  if (!idx.length && pi <= 0 && !nameBytes.length) return '';
+
   const bw = new BitWriter();
-  bw.write(idx.length - 1, 2);         // 1-3 colores → 0-2
-  for (const i of idx) bw.write(i, 4); // índice de paleta 0-13
+  bw.write(idx.length, 2);                    // 0–3 colores
+  for (const i of idx) bw.write(i, 4);        // índice de paleta 0–13
+  bw.write(pi >= 0 ? pi : 0, 4);              // índice de patrón 0–9
+  bw.write(nameBytes.length, 6);              // largo del nombre en bytes
+  for (const b of nameBytes) bw.write(b, 8);
   return b64urlEncode(bw.bytes());
 }
 
-export function decodeEscudo(code: string): string[] | null {
+export function decodeEscudo(code: string): EscudoTag | null {
   if (!code.startsWith(PREFIX)) return null;
   const seg = code.slice(PREFIX.length).split('.')[1];
   if (!seg) return null;
   let bytes: Uint8Array;
   try { bytes = b64urlDecode(seg); } catch { return null; }
+
   const br = new BitReader(bytes);
-  const count = Math.min(br.read(2) + 1, 3);
-  const out: string[] = [];
+  const count = Math.min(br.read(2), 3);
+  const colors: string[] = [];
   for (let k = 0; k < count; k++) {
     const i = br.read(4);
-    if (i >= 0 && i < ESCUDO_PALETTE.length) out.push(ESCUDO_PALETTE[i]);
+    if (i < ESCUDO_PALETTE.length) colors.push(ESCUDO_PALETTE[i]);
   }
-  return out.length ? out : null;
+  const pIdx = br.read(4);
+  const pattern: Pattern | undefined = pIdx < PATTERNS.length ? PATTERNS[pIdx] : undefined;
+
+  const nameLen = Math.min(br.read(6), 63);
+  const nameBytes = new Uint8Array(nameLen);
+  for (let k = 0; k < nameLen; k++) nameBytes[k] = br.read(8);
+  let name = '';
+  try { name = new TextDecoder('utf-8', { fatal: false }).decode(nameBytes).trim().slice(0, 24); } catch { /* corrupto → sin nombre */ }
+
+  if (!colors.length && !name && pattern === undefined) return null;
+  return { colors, pattern, name };
 }

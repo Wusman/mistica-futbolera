@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useT, useLocale } from '../i18n';
 import { posLabel } from '../labels';
 import { type RunResult } from '../lib/run';
+import { type EscudoTag } from '../lib/sharecode';
 import { stagesFor } from '../lib/tournament';
 import { Emblem } from './Emblem';
 import { YOU_EMBLEM } from '../config';
@@ -9,7 +10,7 @@ import { YOU_EMBLEM } from '../config';
 interface Props {
   result: RunResult | null; // null = código inválido / irreproducible
   seed: number;
-  escudo?: string[] | null;  // escudo del autor de la corrida (viene en el share-code)
+  escudo?: EscudoTag | null; // identidad del autor (colores + patrón + nombre, del share-code)
   onPlaySeed: (seed: number) => void;
   onClose: () => void;
 }
@@ -48,7 +49,7 @@ export function Spectator({ result, seed, escudo, onPlaySeed, onClose }: Props) 
 
       {/* El once drafteado */}
       <motion.div className="spec-block" variants={riseIn}>
-        <h3 className="spec-h3"><Emblem colors={escudo ?? YOU_EMBLEM} size={22} className="spec-crest" />{t('spec.squad')} <span className="spec-avg">{t('spec.avg', { n: result.xiAvg })}</span></h3>
+        <h3 className="spec-h3"><Emblem colors={escudo?.colors.length ? escudo.colors : YOU_EMBLEM} pattern={escudo?.pattern} size={22} className="spec-crest" />{escudo?.name || t('spec.squad')} <span className="spec-avg">{t('spec.avg', { n: result.xiAvg })}</span></h3>
         <ul className="spec-xi">
           {result.xi.map((p) => (
             <li key={p.i} className="spec-xi-row">
