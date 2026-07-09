@@ -396,7 +396,7 @@ button:focus-visible,
 .swatch--on { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
 .swatch-n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 /* Selector de patrón: mini-escudos con TUS colores, 2 filas de 4. */
-.escudo-patterns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.escudo-patterns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
 .pat { display: flex; align-items: center; justify-content: center; padding: 3px; border-radius: 5px; border: 1px solid var(--line); background: transparent; cursor: pointer; transition: transform 0.12s ease; }
 .pat:hover { transform: scale(1.08); }
 .pat--on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }

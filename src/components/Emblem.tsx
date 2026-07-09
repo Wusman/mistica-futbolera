@@ -65,6 +65,22 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
           <rect x="38.4" width="9.6" height="56" fill={a} />
         </>
       );
+    case 'vtri':
+      return (
+        <>
+          <rect width="16" height="56" fill={a} />
+          <rect x="16" width="16" height="56" fill={b} />
+          <rect x="32" width="16" height="56" fill={c} />
+        </>
+      );
+    case 'htri':
+      return (
+        <>
+          <rect width="48" height="19" fill={a} />
+          <rect y="19" width="48" height="19" fill={b} />
+          <rect y="38" width="48" height="18" fill={c} />
+        </>
+      );
     case 'sash':
       return (
         <>
@@ -77,7 +93,7 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
         <>
           <rect width="48" height="56" fill={b} />
           <rect y="10" width="48" height="6" fill={a} />
-          <rect y="22" width="48" height="6" fill={a} />
+          <rect y="22" width="48" height="6" fill={c} />
           <rect y="34" width="48" height="6" fill={a} />
         </>
       );

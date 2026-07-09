@@ -66,7 +66,7 @@ export function saveTeamName(name: string): void {
 }
 /* ── Patrones del escudo ── vocabulario propio tipo camiseta (IP-safe). El
    jugador elige el suyo; los equipos existentes reciben uno determinista. */
-export const PATTERNS = ['solid', 'halves', 'vstripe', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters'] as const;
+export const PATTERNS = ['solid', 'halves', 'vstripe', 'vtri', 'htri', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters'] as const;
 export type Pattern = (typeof PATTERNS)[number];
 
 const PAT_KEY = 'mf.pattern.v1';
