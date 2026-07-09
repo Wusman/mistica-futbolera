@@ -660,7 +660,8 @@ button:focus-visible,
 }
 .champs-row:last-child { border-bottom: none; }
 .champs-pos { font-family: var(--font-brand); font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.champs-name { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.champs-name { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+.champs-name .champs-crest { flex: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4)); }
 .champs-rec { font-size: 12px; letter-spacing: 0.5px; color: var(--silver); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* El 1º: el rey de Europa de hoy. */
 .champs-row--top { padding: 12px 0; }
