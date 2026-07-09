@@ -173,7 +173,7 @@ export function BuildStep({
             )}
           </div>
         ) : (
-          <motion.button className="cta" {...tap} onClick={onSimulate}>
+          <motion.button className="cta" onClick={onSimulate}>
             {t('draft.simulate')}
           </motion.button>
         )}

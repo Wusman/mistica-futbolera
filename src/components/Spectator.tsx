@@ -31,7 +31,7 @@ export function Spectator({ result, seed, escudo, onPlaySeed, onClose }: Props) 
         <motion.h2 className="spec-title" variants={riseIn}>{t('spec.invalidTitle')}</motion.h2>
         <motion.p className="spec-sub" variants={riseIn}>{t('spec.invalidBody')}</motion.p>
         <motion.div className="spec-ctas" variants={riseIn}>
-          <motion.button className="cta" {...tap} onClick={onClose}>{t('spec.close')}</motion.button>
+          <motion.button className="cta" onClick={onClose}>{t('spec.close')}</motion.button>
         </motion.div>
       </motion.section>
     );
@@ -88,7 +88,7 @@ export function Spectator({ result, seed, escudo, onPlaySeed, onClose }: Props) 
       </motion.p>
 
       <motion.div className="spec-ctas" variants={riseIn}>
-        <motion.button className="cta" {...tap} onClick={() => onPlaySeed(seed)}>{t('spec.playThis')}</motion.button>
+        <motion.button className="cta" onClick={() => onPlaySeed(seed)}>{t('spec.playThis')}</motion.button>
         <motion.button className="cta cta--ghost" {...tap} onClick={onClose}>{t('spec.close')}</motion.button>
       </motion.div>
       <motion.p className="spec-seedline" variants={riseIn}>{t('spec.seedLine', { seed: seed36 })}</motion.p>

@@ -96,7 +96,7 @@ export function DailyDone({ rec, onFree }: Props) {
 
       <ChampionsBoard />
 
-      <motion.button className="cta" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={onFree}>
+      <motion.button className="cta" onClick={onFree}>
         {t('daily.free')}
       </motion.button>
     </motion.section>

@@ -181,7 +181,7 @@ export function PenaltyShootout({
           <p className={`tension ${winner === 'opp' ? 'tension--bad' : ''}`}>
             {winner === 'you' ? t('pens.win') : t('pens.lose')}
           </p>
-          <motion.button className="cta" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={onDone}>
+          <motion.button className="cta" onClick={onDone}>
             {t('pens.see')}
           </motion.button>
         </>

@@ -273,7 +273,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
               {copied ? t('home.copied') : t('home.copy')}
             </motion.button>
           </div>
-          <motion.button className="cta cta--seed" {...tap} onClick={playSeed}>
+          <motion.button className="cta cta--seed" onClick={playSeed}>
             ▶ {t('home.playSeed')}
           </motion.button>
           <p className="seed-hint">{t('home.seedHint')}</p>

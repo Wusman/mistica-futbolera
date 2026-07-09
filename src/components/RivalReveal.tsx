@@ -63,7 +63,7 @@ export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, you, tens
         </motion.p>
       )}
 
-      <motion.button className="cta cta--xl cta--kickoff" variants={rise} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={onKickoff}>
+      <motion.button className="cta cta--xl cta--kickoff" variants={rise} onClick={onKickoff}>
         {t('match.play')} →
       </motion.button>
     </motion.div>

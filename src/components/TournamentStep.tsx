@@ -303,7 +303,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           {mode === 'free' && (
             <motion.button className="cta cta--ghost" {...tap} onClick={onRetry}>{t('card.retry')}</motion.button>
           )}
-          <motion.button className="cta" {...tap} onClick={onReset}>
+          <motion.button className="cta" onClick={onReset}>
             {mode === 'daily' ? t('daily.free') : t('card.again')}
           </motion.button>
         </motion.div>
@@ -354,7 +354,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         {m.leg === 1 && <motion.p className="match-note" variants={riseIn}>{t('leg.return')}</motion.p>}
         <MatchTimeline m={m} />
         <motion.p className="flavor-line" variants={riseIn}>{line}</motion.p>
-        <motion.button className="cta" variants={riseIn} {...tap} onClick={onNext}>
+        <motion.button className="cta" variants={riseIn} onClick={onNext}>
           {m.leg === 1 ? `${t('leg.playReturn')} →` : t('card.nextRound')}
         </motion.button>
       </motion.section>

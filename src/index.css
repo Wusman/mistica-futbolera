@@ -22,6 +22,9 @@
   --white: #f4f6fb;                 /* texto principal */
   --elec: #2e6bff;                  /* energía C: gradientes de acción */
   --violet: #5b3df5;                /* energía C: par del eléctrico */
+  --cta-a: #243a9e;                 /* CTA: energía C atenuada (índigo eléctrico), respira con la noche */
+  --cta-b: #4a2f9c;                 /* CTA: par violeta del gradiente */
+  --cta-shadow: #1c1a52;            /* CTA: sombra dura desplazada */
 
   /* ── Vars operativas (las consumen las reglas de hoy; migran a las
      primitivas superficie por superficie durante las etapas 1–3) ── */
@@ -141,13 +144,13 @@ button:focus-visible,
    el corte diagonal sigue enterrado. El ghost secundario queda calmo. */
 .cta {
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 18px;
-  color: #fff; background: linear-gradient(135deg, var(--elec), var(--violet)); border: none; border-radius: 4px;
+  color: #fff; background: linear-gradient(135deg, var(--cta-a), var(--cta-b)); border: none; border-radius: 4px;
   padding: 16px; cursor: pointer;
-  margin-top: 6px; box-shadow: 4px 4px 0 var(--violet);
+  margin-top: 6px; box-shadow: 4px 4px 0 var(--cta-shadow);
   transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.12s ease;
 }
-.cta:hover { filter: brightness(1.08); }
-.cta:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--violet); }
+.cta:hover { filter: brightness(1.12); }
+.cta:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--cta-shadow); }
 .cta:disabled { background: rgba(255, 255, 255, 0.08); color: var(--muted); cursor: not-allowed; filter: none; box-shadow: none; transform: none; }
 .cta--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--line); margin-top: 0; box-shadow: none; }
 .cta--ghost:hover { border-color: var(--accent); filter: none; }
