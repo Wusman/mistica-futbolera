@@ -7,7 +7,7 @@ import { useT, useLocale } from '../i18n';
 import { BRAND, SITE_URL, YOU_EMBLEM } from '../config';
 import { scaledRivalOf, xiProfile, evHalf } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion, loadStreak } from '../lib/daily';
-import { summarizeRun } from '../lib/share';
+import { summarizeRun, duelVerdict, type RunSummary } from '../lib/share';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
@@ -16,6 +16,8 @@ import { Emblem } from './Emblem';
 import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
 
 interface Props {
+  /* Duelo aceptado (?d=): resumen del retador para comparar al final. */
+  duel?: { code: string; summary: RunSummary; name: string } | null;
   campaign: Campaign;
   stageLabel: string;
   xiAvg: number;
@@ -95,7 +97,7 @@ function MatchTimeline({ m }: { m: MatchView }) {
   return <Timeline events={m.ev} oppName={m.oppName} stagger />;
 }
 
-export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, shareCode, onKickoff, onNext, onRetry, onReset }: Props) {
+export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode, shareCode, duel, onKickoff, onNext, onRetry, onReset }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const s = c.stats;
@@ -190,7 +192,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     const sum = shareCode ? summarizeRun(shareCode) : null;
     const streakMeta = mode === 'daily' ? loadStreak() : null;
     const nowD = new Date();
-    const spectUrl = shareCode ? `${SITE_URL}/?r=${shareCode}` : SITE_URL;
+    const spectUrl = shareCode ? `${SITE_URL}/?d=${shareCode}` : SITE_URL;
     const shareTxt = [
       mode === 'daily'
         ? `${BRAND} · ${t('home.daily')} ${nowD.getUTCDate()}/${nowD.getUTCMonth() + 1}`
@@ -283,6 +285,22 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             <motion.p className="seed-hint" variants={riseIn}>{t('card.challenge')}</motion.p>
           </>
         )}
+        {duel && sum && (() => {
+          const v = duelVerdict(sum, duel.summary);
+          const rival = duel.name || t('duel.rivalDefault');
+          return (
+            <motion.div className={`duel-verdict duel-verdict--${v}`} variants={riseIn}>
+              <span className="duel-vtag">{t('duel.title')}</span>
+              <p className="duel-vline">{t(`duel.${v}`, { name: rival })}</p>
+              <p className="duel-vtheir">
+                {duel.summary.champion ? '🏆' : '⛔'} {duel.summary.squares} · {duel.summary.gf}:{duel.summary.ga}
+              </p>
+              <a className="duel-vwatch" href={`${SITE_URL}/?r=${duel.code}`} target="_blank" rel="noopener noreferrer">
+                {t('duel.watch')}
+              </a>
+            </motion.div>
+          );
+        })()}
         {/* ── Compartir con jerarquía ── un primario (share nativo en mobile,
             WhatsApp como fallback de escritorio) y el resto en fila callada.
             Antes: dos share-rows apiladas + semilla = amontonamiento. */}

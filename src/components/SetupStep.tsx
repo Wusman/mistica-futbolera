@@ -7,8 +7,12 @@ import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
 import { loadStreak, loadDaily, msToNextDailyUTC, fmtCountdown } from '../lib/daily';
+import { Emblem } from './Emblem';
+import { YOU_EMBLEM } from '../config';
+import type { EscudoTag } from '../lib/sharecode';
 
 interface Props {
+  duel?: { seed: number; tag: EscudoTag | null } | null;
   formation: FormationName;
   seed: number;
   onFormation: (f: FormationName) => void;
@@ -61,7 +65,7 @@ function boardPlay(seed: number, formation: FormationName, nth: number): { x: nu
   return path.map((i) => ({ x: slots[i].x, y: slots[i].y }));
 }
 
-export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
+export function SetupStep({ duel, formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
   /* Estado del daily de HOY: si ya se jugó, la celda muestra el countdown
      al próximo (tick de 30s, UI-only). */
   const playedToday = !!loadDaily();
@@ -141,6 +145,23 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           <p className="hero-sub">{t('home.sub')}</p>
           {/* El diario manda: es el hábito y la competencia. Entra como
               lower third de transmisión, con la fecha de HOY en la celda. */}
+          {duel && (
+            <motion.button
+              className="fixture fixture--duel"
+              variants={lowerThird}
+              {...tap}
+              onClick={() => onPlaySeed(duel.seed)}
+            >
+              <span className="fx-date fx-date--duel">
+                <Emblem colors={duel.tag?.colors.length ? duel.tag.colors : YOU_EMBLEM} pattern={duel.tag?.pattern} size={30} />
+              </span>
+              <span className="fx-main">
+                <span className="fx-label">{t('duel.banner', { name: duel.tag?.name || t('duel.rivalDefault') })}</span>
+                <span className="fx-meta">{t('duel.hint')}</span>
+              </span>
+              <span className="fx-arrow" aria-hidden="true">→</span>
+            </motion.button>
+          )}
           <motion.button
             className={`fixture ${playedToday ? 'fixture--done' : ''}`}
             variants={lowerThird}

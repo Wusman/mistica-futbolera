@@ -41,6 +41,7 @@ import { useT, useLocale } from './i18n';
 import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily';
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
 import { encodeRun, decodeRun, encodeEscudo, decodeEscudo, type EscudoTag } from './lib/sharecode';
+import { summarizeRun, type RunSummary } from './lib/share';
 import { loadEscudo, loadPattern, loadTeamName, teamPattern } from './lib/escudo';
 import { DailyDone } from './components/DailyDone';
 import { NightBackdrop } from './components/NightBackdrop';
@@ -408,6 +409,22 @@ export default function App() {
     return { result: res.ok ? res : null, seed: log.seed, escudo };
   });
   const [showSpectator, setShowSpectator] = useState(true);
+
+  /* Modo duelo: ?d=CODIGO fija la MISMA semilla del retador. El que acepta
+     juega su propia corrida (sus decisiones) sobre las mismas cartas y al
+     terminar se comparan por mérito. Todo shell: el core no se entera. */
+  const [duel] = useState<{ seed: number; code: string; summary: RunSummary; tag: EscudoTag | null } | null>(() => {
+    const code = new URLSearchParams(window.location.search).get('d');
+    if (!code) return null;
+    const log = decodeRun(code);
+    const summary = summarizeRun(code);
+    if (!log || !summary) return null; // código inválido → home normal
+    return { seed: log.seed, code, summary, tag: decodeEscudo(code) };
+  });
+  useEffect(() => {
+    if (duel) dispatch({ type: 'NEW_SEED', seed: duel.seed });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar
+  }, []);
   const spectatorActive = spectator !== undefined && showSpectator;
 
   /* ── Corte de transmisión entre pantallas ──
@@ -547,6 +564,7 @@ export default function App() {
         <SetupStep
           formation={state.formation}
           seed={state.seed}
+          duel={duel ? { seed: duel.seed, tag: duel.tag } : null}
           onFormation={(formation) => dispatch({ type: 'SET_FORMATION', formation })}
           onNewSeed={() => dispatch({ type: 'NEW_SEED', seed: newSeed() })}
           onSetSeed={(seed) => dispatch({ type: 'NEW_SEED', seed })}
@@ -644,6 +662,7 @@ export default function App() {
           seed={state.seed}
           mode={state.mode}
           shareCode={shareCode}
+          duel={duel && state.seed === duel.seed ? { code: duel.code, summary: duel.summary, name: duel.tag?.name ?? '' } : null}
           onKickoff={() => dispatch({ type: 'KICKOFF' })}
           onNext={() => dispatch({ type: 'NEXT' })}
           onRetry={() => {
