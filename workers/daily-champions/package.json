@@ -3,6 +3,7 @@
   "private": true,
   "description": "Worker de campeones del día. Deploy MANUAL: npx wrangler deploy (wrangler pineado: el latest rompía deploys).",
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
     "wrangler": "4.107.0"
   }
 }
