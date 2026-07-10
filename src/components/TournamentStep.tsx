@@ -6,7 +6,8 @@ import { flavor, type Cat } from '../messages';
 import { useT, useLocale } from '../i18n';
 import { BRAND, SITE_URL, YOU_EMBLEM } from '../config';
 import { scaledRivalOf, xiProfile, evHalf } from '../lib/engine';
-import { type DailyStats, loadDaily, saveDaily, submitChampion } from '../lib/daily';
+import { type DailyStats, loadDaily, saveDaily, submitChampion, loadStreak } from '../lib/daily';
+import { summarizeRun } from '../lib/share';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
@@ -182,9 +183,26 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     const champ = c.done.champion;
     const top = topScorer(s.goals);
     const idx = s.gf * 13 + s.ga * 7 + c.stageIdx * 5;
-    const shareTxt = mode === 'daily'
-      ? t('card.shareTextDaily', { brand: BRAND })
-      : t('card.shareText', { seed: seed.toString(36), brand: BRAND });
+    /* ── El brag (estilo Wordle): desenlace + cuadraditos por partido +
+       racha + link ESPECTADOR (?r=) — quien lo recibe puede VER la corrida.
+       summarizeRun reproduce el code (puro, <1ms); si no hay code, se
+       comparte el desafío pelado como antes. ── */
+    const sum = shareCode ? summarizeRun(shareCode) : null;
+    const streakMeta = mode === 'daily' ? loadStreak() : null;
+    const nowD = new Date();
+    const spectUrl = shareCode ? `${SITE_URL}/?r=${shareCode}` : SITE_URL;
+    const shareTxt = [
+      mode === 'daily'
+        ? `${BRAND} · ${t('home.daily')} ${nowD.getUTCDate()}/${nowD.getUTCMonth() + 1}`
+        : `${BRAND} · #${seed.toString(36).toUpperCase()}`,
+      sum && (sum.champion
+        ? `🏆 ${t('share.champ')}`
+        : `⛔ ${t('share.out', { stage: t('stage.' + sum.stage) })}`),
+      sum && `${sum.squares} · ${sum.gf}:${sum.ga}`,
+      streakMeta && streakMeta.streak >= 2 ? t('share.streak', { n: streakMeta.streak }) : null,
+      mode === 'daily' ? t('card.shareTextDaily', { brand: BRAND }) : t('card.shareText', { seed: seed.toString(36), brand: BRAND }),
+      spectUrl,
+    ].filter(Boolean).join('\n');
     const headline = champ ? flavor('champion', idx, locale) : flavor(OUT_CAT[c.done.stage], idx, locale);
     return (
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
@@ -272,12 +290,12 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
           {typeof navigator !== 'undefined' && navigator.share ? (
             <button
               className="cta cta--share"
-              onClick={() => { navigator.share({ text: shareTxt, url: SITE_URL }).catch(() => {}); }}
+              onClick={() => { navigator.share({ text: shareTxt }).catch(() => {}); }}
             ><IcoShare /><span>{t('card.share')}</span></button>
           ) : (
             <a
               className="cta cta--share"
-              href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(shareTxt)}`}
               target="_blank" rel="noopener noreferrer"
             ><IcoWa /><span>WhatsApp</span></a>
           )}
@@ -290,7 +308,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             {typeof navigator !== 'undefined' && !!navigator.share && (
               <a
                 className="share-chip share-chip--icon"
-                href={`https://wa.me/?text=${encodeURIComponent(`${shareTxt} ${SITE_URL}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(shareTxt)}`}
                 target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
               ><IcoWa /><span>WhatsApp</span></a>
             )}

@@ -248,7 +248,7 @@ export function decodeEscudo(code: string): EscudoTag | null {
   const nameBytes = new Uint8Array(nameLen);
   for (let k = 0; k < nameLen; k++) nameBytes[k] = br.read(8);
   let name = '';
-  try { name = new TextDecoder('utf-8', { fatal: false }).decode(nameBytes).trim().slice(0, 24); } catch { /* corrupto → sin nombre */ }
+  try { name = new TextDecoder().decode(nameBytes).trim().slice(0, 24); } catch { /* corrupto → sin nombre */ }
 
   if (!colors.length && !name && pattern === undefined) return null;
   return { colors, pattern, name };
