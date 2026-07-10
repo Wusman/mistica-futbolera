@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FORMATIONS, type FormationName, type Pos } from '../data/players';
 import { posLabel } from '../labels';
@@ -6,7 +6,7 @@ import { showcaseXI, seedFromInput, shortName, mulberry32, plateTier } from '../
 import { useT, useLocale } from '../i18n';
 import { PitchMarkings } from './PitchMarkings';
 import { ChampionsBoard } from './ChampionsBoard';
-import { loadStreak } from '../lib/daily';
+import { loadStreak, loadDaily, msToNextDailyUTC, fmtCountdown } from '../lib/daily';
 
 interface Props {
   formation: FormationName;
@@ -62,6 +62,16 @@ function boardPlay(seed: number, formation: FormationName, nth: number): { x: nu
 }
 
 export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, onStart, onPlaySeed, onDaily }: Props) {
+  /* Estado del daily de HOY: si ya se jugó, la celda muestra el countdown
+     al próximo (tick de 30s, UI-only). */
+  const playedToday = !!loadDaily();
+  const [, dTick] = useState(0);
+  useEffect(() => {
+    if (!playedToday) return;
+    const id = window.setInterval(() => dTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, [playedToday]);
+
   const t = useT();
   const { locale } = useLocale();
   const names = Object.keys(FORMATIONS) as FormationName[];
@@ -132,7 +142,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
           {/* El diario manda: es el hábito y la competencia. Entra como
               lower third de transmisión, con la fecha de HOY en la celda. */}
           <motion.button
-            className="fixture"
+            className={`fixture ${playedToday ? 'fixture--done' : ''}`}
             variants={lowerThird}
             {...tap}
             onClick={onDaily}
@@ -143,7 +153,7 @@ export function SetupStep({ formation, seed, onFormation, onNewSeed, onSetSeed, 
             </span>
             <span className="fx-main">
               <span className="fx-label">{t('home.daily')}</span>
-              <span className="fx-meta">{t('home.dailyHint')}</span>
+              <span className="fx-meta">{playedToday ? t('home.doneToday', { t: fmtCountdown(msToNextDailyUTC()) }) : t('home.dailyHint')}</span>
             </span>
             <span className="fx-arrow" aria-hidden="true">→</span>
           </motion.button>

@@ -56,6 +56,21 @@ export function bumpStreak(champion: boolean): StreakMeta {
   try { localStorage.setItem(STREAK_KEY, JSON.stringify(meta)); } catch { /* incógnito */ }
   return meta;
 }
+/* ── Countdown al próximo daily (rota a medianoche UTC) ── UI-only. */
+export function msToNextDailyUTC(now = Date.now()): number {
+  const d = new Date(now);
+  const next = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+  return Math.max(0, next - now);
+}
+
+/* "07h 14m" — grueso a propósito: minutos alcanzan para el hábito. */
+export function fmtCountdown(ms: number): string {
+  const totalMin = Math.ceil(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
+}
+
 const lsKey = (date: string) => `mf:daily:${date}`;
 
 /* try/catch: en modo incógnito localStorage puede fallar — sin candado, pero

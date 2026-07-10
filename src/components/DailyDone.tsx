@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { type DailyRecord, loadStreak } from '../lib/daily';
+import { type DailyRecord, loadStreak, msToNextDailyUTC, fmtCountdown } from '../lib/daily';
 import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
 import { Emblem } from './Emblem';
@@ -14,6 +15,13 @@ interface Props {
 /* "Ya jugaste hoy": resumen del intento del día + tabla + salida al modo
    libre. El torneo diario es UN intento; mañana hay semilla nueva. */
 export function DailyDone({ rec, onFree }: Props) {
+  /* Countdown al próximo daily (UI-only, tick de 30s). */
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => forceTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const t = useT();
   const st = rec.stats;
   const pj = st.w + st.d + st.l;
@@ -99,6 +107,7 @@ export function DailyDone({ rec, onFree }: Props) {
       <motion.button className="cta" onClick={onFree}>
         {t('daily.free')}
       </motion.button>
-    </motion.section>
+          <p className="daily-next">{t('daily.next', { t: fmtCountdown(msToNextDailyUTC()) })}</p>
+</motion.section>
   );
 }
