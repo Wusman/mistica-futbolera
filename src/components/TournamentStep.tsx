@@ -117,7 +117,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
     /* Identidad (Paso 3b): opcional — el worker la sanea y el salón la pinta. */
     const colors = loadEscudo() ?? undefined;
     const team = loadTeamName() || undefined;
-    submitChampion({ name, ...stats, colors, pattern: loadPattern(), team })
+    /* Módulo 7: sin code no hay alta — el worker verifica el replay. */
+    submitChampion({ name, code: shareCode ?? '', ...stats, colors, pattern: loadPattern(), team })
       .then(() => {
         const rec = loadDaily();
         if (rec) saveDaily({ ...rec, name });

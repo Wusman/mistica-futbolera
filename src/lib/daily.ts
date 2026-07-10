@@ -79,7 +79,9 @@ export async function fetchChampions(date = dateKeyUTC()): Promise<ChampionEntry
   return Array.isArray(list) ? (list as ChampionEntry[]) : [];
 }
 
-export async function submitChampion(entry: { name: string } & DailyStats & ChampionIdentity, date = dateKeyUTC()): Promise<void> {
+/* Módulo 7: el share-code viaja como COMPROBANTE — el worker reproduce la
+   corrida y deriva las stats del replay (las de acá son solo optimistas). */
+export async function submitChampion(entry: { name: string; code: string } & DailyStats & ChampionIdentity, date = dateKeyUTC()): Promise<void> {
   const res = await fetch(`${DAILY_WORKER_URL}/daily/${date}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
