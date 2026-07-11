@@ -193,9 +193,16 @@ export function BuildStep({
                 key={`${i}-${player ? player.i : 'empty'}`}
                 className={`pslot ${player ? 'pslot--filled' : 'pslot--empty'}${tierCls} ${isChoosable ? 'pslot--choose' : ''}`}
                 style={{ left: `${slot.x}%`, top: `${slot.y}%`, x: '-50%', y: '-50%' }}
-                initial={{ scale: 0.4, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 20 }}
+                /* Ceremonia del pick: la placa entra con FLIP (rotateY) y
+                   asienta con spring. Framer es dueño del transform del nodo;
+                   el barrido de foil y el bloom por tier van por ::after y
+                   box-shadow en CSS (fuera del alcance de Framer). Los slots
+                   vacíos conservan el pop sobrio de siempre. */
+                initial={player ? { scale: 0.6, opacity: 0, rotateY: 95 } : { scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                transition={player
+                  ? { type: 'spring', stiffness: 250, damping: 19 }
+                  : { type: 'spring', stiffness: 320, damping: 20 }}
                 onClick={isChoosable ? () => placeAt(i) : undefined}
                 {...(isChoosable ? { whileHover: { scale: 1.08 }, whileTap: { scale: 0.95 } } : {})}
               >
