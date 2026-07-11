@@ -8,6 +8,7 @@ import { BRAND, SITE_URL, YOU_EMBLEM } from '../config';
 import { scaledRivalOf, xiProfile, evHalf } from '../lib/engine';
 import { type DailyStats, loadDaily, saveDaily, submitChampion, loadStreak } from '../lib/daily';
 import { summarizeRun, duelVerdict, type RunSummary } from '../lib/share';
+import { adviceFor } from '../lib/advice';
 import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
@@ -206,6 +207,8 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
       spectUrl,
     ].filter(Boolean).join('\n');
     const headline = champ ? flavor('champion', idx, locale) : flavor(OUT_CAT[c.done.stage], idx, locale);
+    /* Consejo determinista al caer: causa raíz de la corrida (i18n). */
+    const adv = champ ? null : adviceFor({ stats: s, lostOnPens: !!m.pens && m.outcome === 'L', stage: c.done.stage, xiAvg });
     return (
       <motion.section className={`card ${champ ? 'card--perfect' : 'card--out'}`} variants={cardV} initial="hidden" animate="show">
         <ClubStripe colors={opp.colors} />
@@ -225,6 +228,9 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         )}
         {m.pens && <motion.p className="perfect-tag" variants={riseIn}>{t('card.pens', { a: m.pens.you, b: m.pens.opp })}</motion.p>}
         <motion.p className={`headline ${champ ? 'headline--win' : 'headline--lose'}`} variants={riseIn}>{headline}</motion.p>
+        {adv && (
+          <motion.p className="card-advice" variants={riseIn}>{t(adv.key, adv.params)}</motion.p>
+        )}
         <MatchTimeline m={m} />
         <motion.div className="scorers" variants={riseIn}>
           <h3 className="scorers-title">{t('card.campaign')}</h3>

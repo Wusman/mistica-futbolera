@@ -798,6 +798,9 @@ button:focus-visible,
 /* Racha del diario + vitrina: chip discreto bajo los CTAs del home. */
 /* Tu historial del diario: metadata callada pegada a la placa del día,
    alineada a su ancho — no un chip flotando en el vacío. */
+/* ── Consejo al caer eliminado (una línea, tono relator) ── */
+.card-advice { margin: 8px auto 0; max-width: 320px; font-size: 13px; line-height: 1.45; color: var(--muted); font-style: italic; text-align: center; }
+
 /* ── Duelo: banner del home + veredicto en la carta final ── */
 .fixture--duel { border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); }
 .fx-date--duel { display: grid; place-items: center; }
