@@ -452,25 +452,57 @@ button:focus-visible,
 
 /* ── The champion on offer ── */
 .draft-pick { border-left: 6px solid var(--club, var(--accent)); padding: 12px 0 12px 14px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 60%); }
-.draft-champ { margin-bottom: 10px; }
+.draft-champ {
+  margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px 8px 10px; background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--club, var(--line));
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.champ-crest { flex: none; filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45)); }
+.champ-id { min-width: 0; }
+.club-name { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; margin: 0; color: var(--text); line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-edition { color: var(--muted); font-size: 12.5px; margin: 2px 0 0; }
+/* club-colors sobrevive donde queden usos menores */
 .club-colors { display: flex; gap: 3px; margin-bottom: 8px; }
 .club-colors span { width: 22px; height: 6px; display: block; border: 1px solid rgba(255, 255, 255, 0.25); }
-.club-name { font-family: var(--font-display); font-size: 28px; text-transform: uppercase; margin: 0; color: var(--text); }
-.club-edition { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
 .choose-hint { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; font-size: 13px; color: var(--gold); margin: 0; }
 
 /* ── Player pick buttons ── */
 .players { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 6px; }
+/* Placa de banco: la misma anatomía material que las placas de la cancha
+   (superficie + corte diagonal de camiseta + material por tier). El draft
+   habla UN solo idioma visual. */
 .player {
-  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
-  background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; cursor: pointer;
-  font-size: 14px; color: var(--text); transition: border-color 0.12s ease;
+  position: relative; display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid var(--line); padding: 9px 14px 8px 12px; cursor: pointer;
+  font-size: 14px; color: var(--text); transition: border-color 0.12s ease, background-color 0.12s ease;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
 }
-.player:hover { border-color: var(--accent); }
-.player--crack { border-color: var(--gold); }
-.player-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.player-pos { font-family: var(--font-display); font-size: 11px; letter-spacing: 1px; color: var(--muted); }
-.player-rating { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
+.player:hover { border-color: var(--silver); background: color-mix(in srgb, var(--surface) 86%, white 4%); }
+.player--gold { border-top: 2px solid var(--gold); }
+.player--silver { border-top: 2px solid var(--silver); }
+.player--base { border-top: 2px solid rgba(255, 255, 255, 0.18); }
+.player-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.player-pos { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 1px; color: var(--muted); }
+.player-rating { font-family: var(--font-display); font-weight: 700; font-size: 16px; min-width: 26px; text-align: right; }
+.player--gold .player-rating { color: var(--gold); }
+.player--silver .player-rating { color: var(--silver); }
+.player--base .player-rating { color: var(--muted); }
+.pending-plate {
+  display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+  padding: 7px 14px 6px 12px; background: var(--surface); border: 1px solid var(--line);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+.pending-plate--gold { border-top: 2px solid var(--gold); }
+.pending-plate--gold .pending-rating { color: var(--gold); }
+.pending-plate--silver { border-top: 2px solid var(--silver); }
+.pending-plate--silver .pending-rating { color: var(--silver); }
+.pending-plate--base { border-top: 2px solid rgba(255, 255, 255, 0.18); }
+.pending-plate--base .pending-rating { color: var(--muted); }
+.pending-name { font-weight: 600; font-size: 14px; color: var(--text); }
+.pending-rating { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+
 .draft-none { display: flex; flex-direction: column; gap: 10px; color: var(--muted); }
 
 /* ── Passes ── */
@@ -601,6 +633,7 @@ button:focus-visible,
 .reel-window--hit::after { box-shadow: inset 0 0 0 2px hsl(45 80% 55% / 0.65), inset 0 0 22px hsl(45 80% 55% / 0.18); }
 .reel-cell { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
 .reel-cell .club-colors { margin-bottom: 6px; }
+.reel-crest { margin-bottom: 6px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5)); }
 .reel-name { font-family: var(--font-display); font-weight: 700; font-size: 26px; text-transform: uppercase; color: var(--text); line-height: 1; }
 .reel-ed { font-size: 12px; color: var(--muted); }
 .reel-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; text-transform: uppercase; letter-spacing: 1px; opacity: 0.65; }

@@ -18,6 +18,8 @@ import {
   plateTier,
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
+import { Emblem } from './Emblem';
+import { teamPattern } from '../lib/escudo';
 import { PitchMarkings } from './PitchMarkings';
 import { EscudoCreator } from './EscudoCreator';
 
@@ -117,10 +119,15 @@ export function BuildStep({
                 target={team}
                 spinKey={`${seed}:${step}`}
                 label={t('draft.spinning')}
+                quick={step > 0}
                 onDone={() => setSpinning(false)}
               />
             ) : pending ? (
               <div className="draft-none">
+                <div className={`pending-plate pending-plate--${plateTier(pending.r)}`}>
+                  <span className="pending-name">{shortName(pending.n)}</span>
+                  <span className="pending-rating">{pending.r}</span>
+                </div>
                 <p className="choose-hint">{t('draft.choose', { n: pending.n })}</p>
                 <motion.button className="cta cta--ghost" {...tap} onClick={() => setPending(null)}>
                   {t('common.cancel')}
@@ -128,14 +135,14 @@ export function BuildStep({
               </div>
             ) : (
               <>
+                {/* Lower-third de transmisión: el escudo curado ancla la
+                    identidad del campeón sorteado (A en reposo). */}
                 <header className="draft-champ" key={team.id}>
-                  <div className="club-colors">
-                    {team.colors.map((c, k) => (
-                      <span key={k} style={{ background: c }} />
-                    ))}
+                  <Emblem colors={team.colors} pattern={teamPattern(team.colors)} size={44} className="champ-crest" />
+                  <div className="champ-id">
+                    <h2 className="club-name">{team.name}</h2>
+                    <p className="club-edition">{team.edition}</p>
                   </div>
-                  <h2 className="club-name">{team.name}</h2>
-                  <p className="club-edition">{team.edition}</p>
                 </header>
 
                 {eligible.length > 0 ? (
@@ -143,7 +150,7 @@ export function BuildStep({
                     <motion.ul className="players" key={team.id} variants={listV} initial="hidden" animate="show">
                       {eligible.map((p) => (
                         <motion.li key={p.i} variants={itemV}>
-                          <motion.button className={`player ${p.r >= 88 ? 'player--crack' : ''}`} {...tap} onClick={() => handlePick(p)}>
+                          <motion.button className={`player player--${plateTier(p.r)} ${p.r >= 88 ? 'player--crack' : ''}`} {...tap} onClick={() => handlePick(p)}>
                             <span className="player-name">
                               {p.r >= 88 ? '★ ' : ''}
                               {p.n}
