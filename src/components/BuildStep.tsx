@@ -18,8 +18,7 @@ import {
   plateTier,
 } from '../lib/engine';
 import { TeamReel } from './TeamReel';
-import { Emblem } from './Emblem';
-import { teamPattern } from '../lib/escudo';
+import { TeamCrest } from './Emblem';
 import { PitchMarkings } from './PitchMarkings';
 import { EscudoCreator } from './EscudoCreator';
 
@@ -138,7 +137,7 @@ export function BuildStep({
                 {/* Lower-third de transmisión: el escudo curado ancla la
                     identidad del campeón sorteado (A en reposo). */}
                 <header className="draft-champ" key={team.id}>
-                  <Emblem colors={team.colors} pattern={teamPattern(team.colors)} size={44} className="champ-crest" />
+                  <TeamCrest colors={team.colors} size={44} className="champ-crest" />
                   <div className="champ-id">
                     <h2 className="club-name">{team.name}</h2>
                     <p className="club-edition">{team.edition}</p>

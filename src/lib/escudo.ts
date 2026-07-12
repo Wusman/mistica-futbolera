@@ -71,6 +71,13 @@ import { TEAMS } from '../data/players';
 /* ORDEN CONGELADO: el índice viaja en el share-code (4 bits). Patrones nuevos
    se agregan SOLO AL FINAL. band = banda vertical central (con filos del 3er
    color); chest = franja horizontal al pecho. */
+/* Ornamentos HERÁLDICOS GENÉRICOS (corona, rondel, cruz): vocabulario
+   universal de escudos, curado por equipo para evocar SIN reproducir el
+   badge real. Las estrellas son un hecho histórico (Copas de Europa hasta
+   esa edición), tope visual 5. Nada de esto viaja en el share-code: es
+   identidad de EQUIPO (dataset), no del jugador. */
+export type Ornament = 'crown' | 'roundel' | 'cross';
+
 export const PATTERNS = ['solid', 'halves', 'vstripe', 'vtri', 'htri', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters', 'band', 'chest'] as const;
 export type Pattern = (typeof PATTERNS)[number];
 
@@ -100,16 +107,44 @@ export function savePattern(p: Pattern): void {
    genérica, jamás el escudo real); si no hay, hash estable de los colores.
    La clave son los colores: los registros viejos del daily (que guardan solo
    colores) heredan la curaduría gratis. */
-let CURATED: Map<string, Pattern> | null = null; // LAZY: jamás tocar TEAMS en el init del módulo (ciclos)
+interface TeamStyle { pattern?: Pattern; ornament?: Ornament; stars?: number }
+let CURATED: Map<string, TeamStyle> | null = null; // LAZY: jamás tocar TEAMS en el init del módulo (ciclos)
 
-export function teamPattern(colors: string[]): Pattern {
+/* Clave = colores. Equipos con MISMOS colores (ediciones del mismo club)
+   comparten estilo; para estrellas se toma el MÍNIMO de las ediciones —
+   nunca sobredeclara honores (ej.: PSG 2020 finalista no hereda la copa
+   del 2025). Con el tope visual de 5, el costo es invisible. */
+function curated(): Map<string, TeamStyle> {
   if (!CURATED) {
     CURATED = new Map();
-    for (const tm of TEAMS) if (tm.pattern) CURATED.set(tm.colors.join('|'), tm.pattern);
+    for (const tm of TEAMS) {
+      const key = tm.colors.join('|');
+      const prev = CURATED.get(key);
+      CURATED.set(key, {
+        pattern: tm.pattern ?? prev?.pattern,
+        ornament: tm.ornament ?? prev?.ornament,
+        stars: prev?.stars !== undefined || tm.stars !== undefined
+          ? Math.min(prev?.stars ?? Infinity, tm.stars ?? Infinity)
+          : undefined,
+      });
+    }
   }
+  return CURATED;
+}
+
+export function teamOrnament(colors: string[]): Ornament | undefined {
+  return curated().get(colors.join('|'))?.ornament;
+}
+
+export function teamStars(colors: string[]): number {
+  const s = curated().get(colors.join('|'))?.stars;
+  return s && s !== Infinity ? s : 0;
+}
+
+export function teamPattern(colors: string[]): Pattern {
   const key = colors.join('|');
-  const curated = CURATED.get(key);
-  if (curated) return curated;
+  const curatedStyle = curated().get(key)?.pattern;
+  if (curatedStyle) return curatedStyle;
   let h = 2166136261;
   for (let i = 0; i < key.length; i++) {
     h ^= key.charCodeAt(i);

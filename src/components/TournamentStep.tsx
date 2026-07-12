@@ -13,8 +13,8 @@ import { RivalReveal } from './RivalReveal';
 import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 import { Timeline } from './Timeline';
-import { Emblem } from './Emblem';
-import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
+import { Emblem, TeamCrest } from './Emblem';
+import { loadEscudo, loadTeamName, loadPattern, teamPattern, teamOrnament, teamStars } from '../lib/escudo';
 
 interface Props {
   /* Duelo aceptado (?d=): resumen del retador para comparar al final. */
@@ -163,7 +163,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
           you={{ colors: loadEscudo() ?? [], pattern: loadPattern() }}
-          rival={{ colors: opp.colors, pattern: teamPattern(opp.colors) }}
+          rival={{ colors: opp.colors, pattern: teamPattern(opp.colors), ornament: teamOrnament(opp.colors), stars: teamStars(opp.colors) }}
           from={resume ?? 45}
           to={m.end2}
           events={m.ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
@@ -220,7 +220,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             <span className="score-sep">–</span>
             <CountScore n={m.ga} away />
           </div>
-          <Emblem colors={opp.colors} pattern={teamPattern(opp.colors)} size={46} className="emb" />
+          <TeamCrest colors={opp.colors} size={46} className="emb" />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (
@@ -389,7 +389,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
             <span className="score-sep">–</span>
             <CountScore n={m.ga} away />
           </div>
-          <Emblem colors={opp.colors} pattern={teamPattern(opp.colors)} size={46} className="emb" />
+          <TeamCrest colors={opp.colors} size={46} className="emb" />
         </motion.div>
         <motion.p className="vs" variants={riseIn}>{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: `${m.oppName} · ${m.oppEdition}` })}</motion.p>
         {m.leg === 2 && m.agg && (

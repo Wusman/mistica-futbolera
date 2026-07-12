@@ -4,7 +4,7 @@ import { type TickerEvent } from '../lib/engine';
 import { useT } from '../i18n';
 import { Timeline } from './Timeline';
 import { Emblem } from './Emblem';
-import { type Pattern } from '../lib/escudo';
+import { type Ornament, type Pattern } from '../lib/escudo';
 
 /* ── Tunables del relato (ajustá a gusto) ──
    duration: segundos que corre el reloj por mitad.
@@ -14,7 +14,7 @@ const TICK = { duration: 4.2, holdEnd: 0.7 };
 /* Identidad mínima para pintar un escudo (colores propios + patrón). NO es IP
    real: la paleta es curada y el patrón lo elige nuestro sistema. Se pasa por
    props para que la presentación no lea localStorage. */
-export interface Crest { colors: string[]; pattern?: Pattern }
+export interface Crest { colors: string[]; pattern?: Pattern; ornament?: Ornament; stars?: number }
 
 interface Props {
   you: Crest;              // escudo del jugador

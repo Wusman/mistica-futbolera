@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { type Team } from '../data/players';
 import { mulberry32, hashSeed } from '../lib/engine';
-import { teamPattern } from '../lib/escudo';
-import { Emblem } from './Emblem';
+import { TeamCrest } from './Emblem';
 import { useT } from '../i18n';
 
 /* ── Tunables del tambor ──
@@ -121,7 +120,7 @@ export function TeamReel({ teams, target, spinKey, label, quick, onDone }: Props
             : { y: 0, opacity: 1, transition: { duration: 0.06, ease: 'linear' } }}
         >
           {landed && (
-            <Emblem colors={cell.colors} pattern={teamPattern(cell.colors)} size={40} className="reel-crest" />
+            <TeamCrest colors={cell.colors} size={40} className="reel-crest" />
           )}
           <span className="reel-name">{cell.name}</span>
           <span className="reel-ed">{cell.edition}</span>

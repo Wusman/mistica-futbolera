@@ -42,7 +42,7 @@ import { type DailyRecord, loadDaily, saveDaily, bumpStreak } from './lib/daily'
 import { type RunLog, type RunResult, RUN_VERSION, playRun } from './lib/run';
 import { encodeRun, decodeRun, encodeEscudo, decodeEscudo, type EscudoTag } from './lib/sharecode';
 import { summarizeRun, type RunSummary } from './lib/share';
-import { loadEscudo, loadPattern, loadTeamName, teamPattern } from './lib/escudo';
+import { loadEscudo, loadPattern, loadTeamName, teamPattern, teamOrnament, teamStars } from './lib/escudo';
 import { DailyDone } from './components/DailyDone';
 import { NightBackdrop } from './components/NightBackdrop';
 import { SecondHalfPen } from './components/SecondHalfPen';
@@ -395,7 +395,7 @@ export default function App() {
      jugador sale de localStorage (barato: App re-renderiza en dispatches, no por
      frame); el del rival deriva de sus colores de marca + nuestro patrón. */
   const youCrest = { colors: loadEscudo() ?? [], pattern: loadPattern() };
-  const crestOf = (team: { colors: string[] }) => ({ colors: team.colors, pattern: teamPattern(team.colors) });
+  const crestOf = (team: { colors: string[] }) => ({ colors: team.colors, pattern: teamPattern(team.colors), ornament: teamOrnament(team.colors), stars: teamStars(team.colors) });
 
   /* Modo espectador: ?r=CODIGO reproduce una corrida ajena (client-side, sin
      tocar el Worker). Se lee una sola vez al montar. */

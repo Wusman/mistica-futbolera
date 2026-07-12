@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { type Rival } from '../lib/engine';
 import { useT } from '../i18n';
-import { Emblem } from './Emblem';
-import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
+import { Emblem, TeamCrest } from './Emblem';
+import { loadEscudo, loadTeamName, loadPattern } from '../lib/escudo';
 import { YOU_EMBLEM } from '../config';
 
 interface Props {
@@ -45,7 +45,7 @@ export function RivalReveal({ rival, colors, inGroup, groupPts, xiAvg, you, tens
         <motion.p className="vs-mid" variants={slam} aria-hidden="true">VS</motion.p>
 
         <motion.div className="vs-side vs-side--opp" variants={slideR}>
-          <Emblem colors={colors} pattern={teamPattern(colors)} size={44} className="vs-crest" />
+          <TeamCrest colors={colors} size={44} className="vs-crest" />
           <p className="vs-tag">{rival.name}</p>
           <p className="vs-num">{rival.overall}</p>
           <p className="vs-sub">{rival.edition}</p>

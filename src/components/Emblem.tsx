@@ -1,10 +1,12 @@
 import { useId } from 'react';
 import { YOU_EMBLEM } from '../config';
-import { type Pattern } from '../lib/escudo';
+import { teamOrnament, teamPattern, teamStars, type Ornament, type Pattern } from '../lib/escudo';
 
 interface Props {
   colors: string[];      // 1–3 colores PROPIOS del equipo (no crest real)
   pattern?: Pattern;     // patrón; por defecto se deriva de la cantidad de colores
+  ornament?: Ornament;   // heráldica genérica (corona/rondel/cruz)
+  stars?: number;        // honores (tope visual 5); con corona no se dibujan
   size?: number;         // alto en px (default 48)
   className?: string;
 }
@@ -17,7 +19,7 @@ const SHIELD = 'M6 5 L42 5 L42 32 C42 44 24 51 24 51 C24 51 6 44 6 32 Z';
 /* Escudo generativo: presentación pura, determinista desde colores + patrón.
    Sin azar, sin marcas reales. Todos los patrones son simétricos respecto al
    eje (x=24), salvo diagonal y banda que son asimétricos a propósito. */
-export function Emblem({ colors, pattern, size = 48, className }: Props) {
+export function Emblem({ colors, pattern, ornament, stars = 0, size = 48, className }: Props) {
   const raw = useId().replace(/[:]/g, '');
   const clip = `emb-${raw}`;
   const cs = colors.length ? colors.slice(0, 3) : YOU_EMBLEM;
@@ -35,6 +37,7 @@ export function Emblem({ colors, pattern, size = 48, className }: Props) {
         <Fill pat={pat} cs={cs} />
         {/* arco de cancha sutil: textura de fútbol propia */}
         <path d="M6 34 Q24 41 42 34" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="5" />
+        <Ornaments ornament={ornament} stars={stars} cs={cs} size={size} />
       </g>
       {/* filete dorado — atributos SVG (no CSS) para evitar el bug de rect negro */}
       <path d={SHIELD} fill="none" stroke={GOLD} strokeWidth="1.5" />
@@ -140,4 +143,61 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
         </>
       );
   }
+}
+
+/* ── Capa heráldica ── gating por tamaño: los detalles finos (estrellas,
+   cruz, corona) solo aparecen si el escudo se lee (≥26px); el rondel es
+   legible desde 20px (es LA seña de los clubes de badge circular). */
+function Ornaments({ ornament, stars, cs, size }: { ornament?: Ornament; stars: number; cs: string[]; size: number }) {
+  const fine = size >= 26;
+  const b = cs[1] ?? cs[0];
+  const accent = cs[2] && cs[2] !== cs[0] ? cs[2] : b;
+  const shown = ornament === 'crown' ? 0 : Math.min(stars, 5); // la corona ES el honor
+  const starXs = Array.from({ length: shown }, (_, k) => 24 + (k - (shown - 1) / 2) * 6);
+  return (
+    <>
+      {ornament === 'roundel' && size >= 20 && (
+        <>
+          <circle cx="24" cy="26" r="9.5" fill={b} />
+          <circle cx="24" cy="26" r="5.5" fill={cs[0]} />
+        </>
+      )}
+      {ornament === 'cross' && fine && (
+        <g fill={accent}>
+          <rect x="12.6" y="9" width="2.8" height="9.5" rx="0.6" />
+          <rect x="9.3" y="12.3" width="9.5" height="2.8" rx="0.6" />
+        </g>
+      )}
+      {ornament === 'crown' && fine && (
+        <path d="M16.5 16.5 L16.5 10 L20.4 13.2 L24 8 L27.6 13.2 L31.5 10 L31.5 16.5 Z" fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.6" />
+      )}
+      {fine && starXs.map((x) => <Star key={x} cx={x} cy={10.5} />)}
+    </>
+  );
+}
+
+function Star({ cx, cy }: { cx: number; cy: number }) {
+  const pts: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? 2.6 : 1.1;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    pts.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+  }
+  return <polygon points={pts.join(' ')} fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.5" />;
+}
+
+/* ── Escudo de EQUIPO ── resuelve solo la curaduría del dataset (patrón +
+   ornamento + estrellas) desde los colores. Para el escudo del JUGADOR
+   seguir usando <Emblem/> directo: los honores no se heredan. */
+export function TeamCrest({ colors, size, className }: { colors: string[]; size?: number; className?: string }) {
+  return (
+    <Emblem
+      colors={colors}
+      pattern={teamPattern(colors)}
+      ornament={teamOrnament(colors)}
+      stars={teamStars(colors)}
+      size={size}
+      className={className}
+    />
+  );
 }

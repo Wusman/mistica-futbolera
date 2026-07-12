@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { type DailyRecord, loadStreak, msToNextDailyUTC, fmtCountdown } from '../lib/daily';
 import { useT } from '../i18n';
 import { ChampionsBoard } from './ChampionsBoard';
-import { Emblem } from './Emblem';
+import { Emblem, TeamCrest } from './Emblem';
 import { YOU_EMBLEM } from '../config';
-import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
+import { loadEscudo, loadTeamName, loadPattern } from '../lib/escudo';
 
 interface Props {
   rec: DailyRecord;
@@ -48,7 +48,7 @@ export function DailyDone({ rec, onFree }: Props) {
             <span className="score-sep">–</span>
             <span className="score score--away">{rec.ga}</span>
           </div>
-          <Emblem colors={rec.colors ?? []} pattern={teamPattern(rec.colors ?? [])} size={46} className="emb" />
+          <TeamCrest colors={rec.colors ?? []} size={46} className="emb" />
         </div>
 
         <p className="vs">{t('card.vs', { you: loadTeamName() || t('vs.you'), opp: rec.opp })}</p>
