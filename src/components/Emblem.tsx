@@ -1,12 +1,10 @@
 import { useId } from 'react';
 import { YOU_EMBLEM } from '../config';
-import { teamOrnament, teamPattern, teamStars, type Ornament, type Pattern } from '../lib/escudo';
+import { teamStyle, type Pattern } from '../lib/escudo';
 
 interface Props {
   colors: string[];      // 1–3 colores PROPIOS del equipo (no crest real)
   pattern?: Pattern;     // patrón; por defecto se deriva de la cantidad de colores
-  ornament?: Ornament;   // heráldica genérica (corona/rondel/cruz)
-  stars?: number;        // honores (tope visual 5); con corona no se dibujan
   size?: number;         // alto en px (default 48)
   className?: string;
 }
@@ -19,7 +17,7 @@ const SHIELD = 'M6 5 L42 5 L42 32 C42 44 24 51 24 51 C24 51 6 44 6 32 Z';
 /* Escudo generativo: presentación pura, determinista desde colores + patrón.
    Sin azar, sin marcas reales. Todos los patrones son simétricos respecto al
    eje (x=24), salvo diagonal y banda que son asimétricos a propósito. */
-export function Emblem({ colors, pattern, ornament, stars = 0, size = 48, className }: Props) {
+export function Emblem({ colors, pattern, size = 48, className }: Props) {
   const raw = useId().replace(/[:]/g, '');
   const clip = `emb-${raw}`;
   const cs = colors.length ? colors.slice(0, 3) : YOU_EMBLEM;
@@ -37,8 +35,11 @@ export function Emblem({ colors, pattern, ornament, stars = 0, size = 48, classN
         <Fill pat={pat} cs={cs} />
         {/* arco de cancha sutil: textura de fútbol propia */}
         <path d="M6 34 Q24 41 42 34" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="5" />
-        <Ornaments ornament={ornament} stars={stars} cs={cs} size={size} />
       </g>
+      {/* bordure: el 3er color como ribete interno (piping), heráldica clásica */}
+      {cs[2] && cs[2] !== cs[0] && (
+        <path d="M8.2 7.2 L39.8 7.2 L39.8 31.4 C39.8 41.5 24 48.4 24 48.4 C24 48.4 8.2 41.5 8.2 31.4 Z" fill="none" stroke={cs[2]} strokeWidth="1.6" />
+      )}
       {/* filete dorado — atributos SVG (no CSS) para evitar el bug de rect negro */}
       <path d={SHIELD} fill="none" stroke={GOLD} strokeWidth="1.5" />
     </svg>
@@ -60,11 +61,13 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
         </>
       );
     case 'vstripe':
+      /* Rayas de CAMISETA: siempre a sobre b (blaugrana, rojiblanco,
+         nerazzurro). El 3er color no es franja: viaja como BORDURE. */
       return (
         <>
           <rect width="48" height="56" fill={b} />
           <rect x="0" width="9.6" height="56" fill={a} />
-          <rect x="19.2" width="9.6" height="56" fill={c} />
+          <rect x="19.2" width="9.6" height="56" fill={a} />
           <rect x="38.4" width="9.6" height="56" fill={a} />
         </>
       );
@@ -145,59 +148,100 @@ function Fill({ pat, cs }: { pat: Pattern; cs: string[] }) {
   }
 }
 
-/* ── Capa heráldica ── gating por tamaño: los detalles finos (estrellas,
-   cruz, corona) solo aparecen si el escudo se lee (≥26px); el rondel es
-   legible desde 20px (es LA seña de los clubes de badge circular). */
-function Ornaments({ ornament, stars, cs, size }: { ornament?: Ornament; stars: number; cs: string[]; size: number }) {
-  const fine = size >= 26;
-  const b = cs[1] ?? cs[0];
-  const accent = cs[2] && cs[2] !== cs[0] ? cs[2] : b;
-  const shown = ornament === 'crown' ? 0 : Math.min(stars, 5); // la corona ES el honor
-  const starXs = Array.from({ length: shown }, (_, k) => 24 + (k - (shown - 1) / 2) * 6);
+/* ══════════════════════════════════════════
+   TeamCrest — la INSIGNIA del equipo en esa Champions.
+
+   Conclusión de la investigación de la industria (Konami, packs de FM):
+   el genérico plano se siente vacío; el reconocimiento nace de
+   (1) la paleta EXACTA del kit de esa edición,
+   (2) la SILUETA de la insignia (círculo para Bayern/Inter: su badge real
+       es circular — la forma sola identifica),
+   (3) UN elemento distintivo (corona, cruz, estrellas de campeón).
+   Todo con vocabulario genérico propio: ninguna forma ni arte copiados.
+
+   El kit vive ADENTRO: patrón de la casaca + BORDURE (ribete interno del
+   color de vivo — el piping de esa temporada: naranja de La Décima, negro
+   del BVB '13). El escudo heráldico del JUGADOR sigue siendo <Emblem/>.
+══════════════════════════════════════════ */
+export function TeamCrest({ colors, size = 48, className }: { colors: string[]; size?: number; className?: string }) {
+  const raw = useId().replace(/[:]/g, '');
+  const clip = `tc-${raw}`;
+  const cs = colors.length ? colors.slice(0, 3) : YOU_EMBLEM;
+  const { pattern, ornament, stars, shape } = teamStyle(cs);
+  const a = cs[0];
+  const trim = cs[2] && cs[2] !== a ? cs[2] : cs[1] && cs[1] !== a ? cs[1] : undefined;
+  const pat: Pattern = pattern;
+  const fine = size >= 26;   // estrellas legibles
+  const badge = size >= 30;  // distintivo legible
+  const shown = ornament === 'crown' ? 0 : Math.min(stars, ornament ? 3 : 5);
+
+  if (shape === 'circle') {
+    /* Insignia CIRCULAR (Bayern, Inter): anillo de vivo + kit adentro. */
+    const w = size;
+    const starX0 = 24 - (shown - 1) * 2.9;
+    return (
+      <svg viewBox="0 0 48 48" width={w} height={size} className={className} role="img" aria-hidden="true">
+        <defs>
+          <clipPath id={clip}><circle cx="24" cy="24" r="21" /></clipPath>
+        </defs>
+        <g clipPath={`url(#${clip})`}>
+          <g transform="translate(0,-4)"><Fill pat={pat} cs={cs} /></g>
+        </g>
+        {trim && <circle cx="24" cy="24" r="18.6" fill="none" stroke={trim} strokeWidth="2.4" />}
+        {badge && ornament === 'crown' && (
+          <path d="M18 21.5 L18 16.5 L20.8 18.8 L24 15 L27.2 18.8 L30 16.5 L30 21.5 Z" fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.5" />
+        )}
+        {badge && ornament === 'cross' && (
+          <g fill={trim ?? GOLD}>
+            <rect x="23" y="15" width="2" height="8" rx="0.5" />
+            <rect x="20" y="18" width="8" height="2" rx="0.5" />
+          </g>
+        )}
+        {fine && Array.from({ length: shown }, (_, k) => <Star key={k} cx={starX0 + k * 5.8} cy={ornament ? 30 : 26} />)}
+        <circle cx="24" cy="24" r="22" fill="none" stroke={GOLD} strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  /* Insignia ESCUDO (default): kit + bordure + honores. */
+  const w = Math.round((size * 48) / 56);
+  const starX0 = 24 - (shown - 1) * 2.9;
   return (
-    <>
-      {ornament === 'roundel' && size >= 20 && (
-        <>
-          <circle cx="24" cy="26" r="9.5" fill={b} />
-          <circle cx="24" cy="26" r="5.5" fill={cs[0]} />
-        </>
+    <svg viewBox="0 0 48 56" width={w} height={size} className={className} role="img" aria-hidden="true">
+      <defs>
+        <clipPath id={clip}><path d={SHIELD} /></clipPath>
+      </defs>
+      <g clipPath={`url(#${clip})`}>
+        <Fill pat={pat} cs={cs} />
+        <path d="M6 34 Q24 41 42 34" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="5" />
+      </g>
+      {/* BORDURE: el vivo de la casaca de esa edición como ribete interno */}
+      {trim && (
+        <path d="M8.2 7.2 L39.8 7.2 L39.8 31.4 C39.8 41.5 24 48.4 24 48.4 C24 48.4 8.2 41.5 8.2 31.4 Z" fill="none" stroke={trim} strokeWidth="1.6" />
       )}
-      {ornament === 'cross' && fine && (
-        <g fill={accent}>
-          <rect x="12.6" y="9" width="2.8" height="9.5" rx="0.6" />
-          <rect x="9.3" y="12.3" width="9.5" height="2.8" rx="0.6" />
+      {badge && ornament === 'crown' && (
+        <path d="M17.5 18 L17.5 12.5 L20.4 15 L24 10.8 L27.6 15 L30.5 12.5 L30.5 18 Z" fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.5" />
+      )}
+      {badge && ornament === 'cross' && (
+        <g fill={trim ?? GOLD}>
+          <rect x="22.9" y="11" width="2.2" height="9" rx="0.5" />
+          <rect x="19.5" y="14.4" width="9" height="2.2" rx="0.5" />
         </g>
       )}
-      {ornament === 'crown' && fine && (
-        <path d="M16.5 16.5 L16.5 10 L20.4 13.2 L24 8 L27.6 13.2 L31.5 10 L31.5 16.5 Z" fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.6" />
-      )}
-      {fine && starXs.map((x) => <Star key={x} cx={x} cy={10.5} />)}
-    </>
+      {fine && Array.from({ length: shown }, (_, k) => (
+        <Star key={k} cx={starX0 + k * 5.8} cy={ornament === 'crown' ? 24 : ornament === 'cross' ? 26 : 13.5} />
+      ))}
+      <path d={SHIELD} fill="none" stroke={GOLD} strokeWidth="1.5" />
+    </svg>
   );
 }
 
 function Star({ cx, cy }: { cx: number; cy: number }) {
   const pts: string[] = [];
   for (let i = 0; i < 10; i++) {
-    const r = i % 2 === 0 ? 2.6 : 1.1;
-    const a = -Math.PI / 2 + (i * Math.PI) / 5;
-    pts.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+    const r = i % 2 === 0 ? 2.4 : 1.05;
+    const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+    pts.push(`${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`);
   }
   return <polygon points={pts.join(' ')} fill={GOLD} stroke="rgba(0,0,0,0.35)" strokeWidth="0.5" />;
-}
-
-/* ── Escudo de EQUIPO ── resuelve solo la curaduría del dataset (patrón +
-   ornamento + estrellas) desde los colores. Para el escudo del JUGADOR
-   seguir usando <Emblem/> directo: los honores no se heredan. */
-export function TeamCrest({ colors, size, className }: { colors: string[]; size?: number; className?: string }) {
-  return (
-    <Emblem
-      colors={colors}
-      pattern={teamPattern(colors)}
-      ornament={teamOrnament(colors)}
-      stars={teamStars(colors)}
-      size={size}
-      className={className}
-    />
-  );
 }

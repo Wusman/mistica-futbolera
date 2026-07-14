@@ -76,7 +76,13 @@ import { TEAMS } from '../data/players';
    badge real. Las estrellas son un hecho histórico (Copas de Europa hasta
    esa edición), tope visual 5. Nada de esto viaja en el share-code: es
    identidad de EQUIPO (dataset), no del jugador. */
-export type Ornament = 'crown' | 'roundel' | 'cross';
+export type Ornament = 'crown' | 'cross';
+/* Silueta de la insignia, curada por equipo. Los clubes de badge circular
+   (Bayern, Inter) se reconocen por la FORMA antes que por nada — hallazgo
+   de la investigación de la industria (Konami varía siluetas; los packs
+   "Footbe" ponen UN distintivo por club). Vocabulario genérico: nadie es
+   dueño de un círculo ni de un escudo. */
+export type BadgeShape = 'shield' | 'circle';
 
 export const PATTERNS = ['solid', 'halves', 'vstripe', 'vtri', 'htri', 'diagonal', 'sash', 'hoops', 'chevron', 'quarters', 'band', 'chest'] as const;
 export type Pattern = (typeof PATTERNS)[number];
@@ -107,7 +113,7 @@ export function savePattern(p: Pattern): void {
    genérica, jamás el escudo real); si no hay, hash estable de los colores.
    La clave son los colores: los registros viejos del daily (que guardan solo
    colores) heredan la curaduría gratis. */
-interface TeamStyle { pattern?: Pattern; ornament?: Ornament; stars?: number }
+export interface TeamStyle { pattern?: Pattern; ornament?: Ornament; stars?: number; shape?: BadgeShape }
 let CURATED: Map<string, TeamStyle> | null = null; // LAZY: jamás tocar TEAMS en el init del módulo (ciclos)
 
 /* Clave = colores. Equipos con MISMOS colores (ediciones del mismo club)
@@ -123,6 +129,7 @@ function curated(): Map<string, TeamStyle> {
       CURATED.set(key, {
         pattern: tm.pattern ?? prev?.pattern,
         ornament: tm.ornament ?? prev?.ornament,
+        shape: tm.shape ?? prev?.shape,
         stars: prev?.stars !== undefined || tm.stars !== undefined
           ? Math.min(prev?.stars ?? Infinity, tm.stars ?? Infinity)
           : undefined,
@@ -130,6 +137,18 @@ function curated(): Map<string, TeamStyle> {
     }
   }
   return CURATED;
+}
+
+/* Estilo COMPLETO de la casaca del equipo (patrón + heráldica + cuello),
+   resuelto por colores con fallback de patrón por hash. */
+export function teamStyle(colors: string[]): { pattern: Pattern; ornament?: Ornament; stars: number; shape: BadgeShape } {
+  const s = curated().get(colors.join('|'));
+  return {
+    pattern: s?.pattern ?? teamPattern(colors),
+    ornament: s?.ornament,
+    stars: s?.stars && s.stars !== Infinity ? s.stars : 0,
+    shape: s?.shape ?? 'shield',
+  };
 }
 
 export function teamOrnament(colors: string[]): Ornament | undefined {

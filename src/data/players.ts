@@ -25,7 +25,7 @@ export type Pos =
 /* IMPORT TYPE a nivel sentencia, NO `import { type ... }`: con
    verbatimModuleSyntax el inline deja un import de efecto y crea un CICLO
    runtime players↔escudo que revienta el init (pantalla en negro). */
-import type { Ornament, Pattern } from '../lib/escudo';
+import type { BadgeShape, Ornament, Pattern } from '../lib/escudo';
 
 export interface Player {
   i: number;
@@ -48,6 +48,9 @@ export interface Team {
      5 en el Emblem). Evocación, jamás el badge real. */
   ornament?: Ornament;
   stars?: number;
+  /* Silueta de la insignia (default: escudo). 'circle' para clubes cuyo
+     badge real es circular: la forma sola ya identifica. */
+  shape?: BadgeShape;
   players: Player[];
 }
 
@@ -103,7 +106,7 @@ export type FormationName = keyof typeof FORMATIONS;
 export const TEAMS: Team[] = [
   /* ── Real Madrid · Champions 2022 ── Ancelotti; Benzema's Ballon d'Or run; beat Liverpool. */
   {
-    id: 'rma22', name: 'Real Madrid', edition: 'Champions 2022', colors: ['#e9e9e9', '#1d2b6b', '#c8a24a'], pattern: 'solid', ornament: 'crown', stars: 14,
+    id: 'rma22', name: 'Real Madrid', edition: 'Champions 2022', colors: ['#f4f4f6', '#ff6b1c', '#1d2b6b'], pattern: 'solid', ornament: 'crown', stars: 14,
     players: [
       { i: 100, n: 'Thibaut Courtois',   pos: ['GK'],       r: 90 }, // MOTM in the final
       { i: 101, n: 'Dani Carvajal',      pos: ['RB'],       r: 84 },
@@ -141,7 +144,7 @@ export const TEAMS: Team[] = [
 
   /* ── Bayern München · Champions 2020 ── Flick's treble; 11 wins from 11; beat PSG. */
   {
-    id: 'fcb20', name: 'Bayern München', edition: 'Champions 2020', colors: ['#dc052d', '#0066b2'], pattern: 'solid', ornament: 'roundel', stars: 6,
+    id: 'fcb20', name: 'Bayern München', edition: 'Champions 2020', colors: ['#dc052d', '#ffffff', '#0066b2'], pattern: 'solid', shape: 'circle', stars: 6,
     players: [
       { i: 300, n: 'Manuel Neuer',       pos: ['GK'],       r: 90 },
       { i: 301, n: 'Joshua Kimmich',     pos: ['RB', 'DM'], r: 88 },
@@ -198,7 +201,7 @@ export const TEAMS: Team[] = [
 
   /* ── Inter · Champions 2010 ── Mourinho's treble; beat Bayern in Madrid. */
   {
-    id: 'int10', name: 'Inter', edition: 'Champions 2010', colors: ['#0a0a0a', '#1f4fb6'], pattern: 'vstripe', ornament: 'roundel', stars: 3,
+    id: 'int10', name: 'Inter', edition: 'Champions 2010', colors: ['#0a0a0a', '#1f4fb6'], pattern: 'vstripe', shape: 'circle', stars: 3,
     players: [
       { i: 600, n: 'Júlio César',        pos: ['GK'],       r: 87 },
       { i: 601, n: 'Maicon',             pos: ['RB'],       r: 86 },
@@ -217,7 +220,7 @@ export const TEAMS: Team[] = [
 
   /* ── AC Milan · Champions 2007 ── Ancelotti; Kaká's year; beat Liverpool (revenge of 2005). */
   {
-    id: 'acm07', name: 'AC Milan', edition: 'Champions 2007', colors: ['#fb090b', '#0a0a0a'], pattern: 'vstripe', stars: 7,
+    id: 'acm07', name: 'AC Milan', edition: 'Champions 2007', colors: ['#f5f5f5', '#fb090b', '#0a0a0a'], pattern: 'solid', stars: 7,
     players: [
       { i: 700, n: 'Dida',                pos: ['GK'],       r: 84 },
       { i: 701, n: 'Massimo Oddo',        pos: ['RB'],       r: 80 },
@@ -236,7 +239,7 @@ export const TEAMS: Team[] = [
 
 /* ── Real Madrid · Champions 2014 ── "La Décima"; Bale + BBC; beat Atlético. */
   {
-    id: 'rma14', name: 'Real Madrid', edition: 'Champions 2014', colors: ['#e9e9e9', '#1d2b6b', '#c8a24a'], pattern: 'solid', ornament: 'crown', stars: 10,
+    id: 'rma14', name: 'Real Madrid', edition: 'Champions 2014', colors: ['#f4f4f6', '#ff6b1c', '#141414'], pattern: 'solid', ornament: 'crown', stars: 10,
     players: [
       { i: 900, n: 'Iker Casillas',     pos: ['GK'],             r: 85 },
       { i: 901, n: 'Dani Carvajal',     pos: ['RB'],             r: 82 },
@@ -330,7 +333,7 @@ export const TEAMS: Team[] = [
 
   /* ── Marseille · Champions 1993 ── first French winner; beat Milan. */
   {
-    id: 'om93', name: 'Marseille', edition: 'Champions 1993', colors: ['#2faee0', '#ffffff'], pattern: 'solid', stars: 1,
+    id: 'om93', name: 'Marseille', edition: 'Champions 1993', colors: ['#ffffff', '#2faee0'], pattern: 'solid', stars: 1,
     players: [
       { i: 1400, n: 'Fabien Barthez',     pos: ['GK'],       r: 80 },
       { i: 1401, n: 'Jocelyn Angloma',    pos: ['RB'],       r: 78 },
@@ -393,7 +396,7 @@ export const TEAMS: Team[] = [
 
   /* ── Arsenal · Finalista 2006 ── récord defensivo en la corrida; con 10 casi la gana. */
   {
-    id: 'ars06', name: 'Arsenal', edition: 'Finalista 2006', colors: ['#ef0107', '#c8a24a'], pattern: 'solid',
+    id: 'ars06', name: 'Arsenal', edition: 'Finalista 2006', colors: ['#fdd63a', '#4a4e54'], pattern: 'chevron',
     players: [
       { i: 1600, n: 'Jens Lehmann',      pos: ['GK'],       r: 84 },
       { i: 1601, n: 'Emmanuel Eboué',    pos: ['RB'],       r: 78 },
@@ -551,7 +554,7 @@ export const TEAMS: Team[] = [
 
   /* ── Ajax · Champions 1995 ── los pibes de Van Gaal; campeones invictos. */
   {
-    id: 'aja95', name: 'Ajax', edition: 'Champions 1995', colors: ['#ffffff', '#d2122e'], pattern: 'band', stars: 4,
+    id: 'aja95', name: 'Ajax', edition: 'Champions 1995', colors: ['#242e52', '#ffffff', '#d2122e'], pattern: 'solid', stars: 4,
     players: [
       { i: 2400, n: 'Edwin van der Sar', pos: ['GK'],       r: 87 },
       { i: 2401, n: 'Michael Reiziger',  pos: ['RB'],       r: 80 },
@@ -570,7 +573,7 @@ export const TEAMS: Team[] = [
 
   /* ── Juventus · Champions 1996 ── la Juve de Lippi; ganó la tanda en Roma. */
   {
-    id: 'juv96', name: 'Juventus', edition: 'Champions 1996', colors: ['#0a0a0a', '#ffffff'], pattern: 'vstripe', stars: 2,
+    id: 'juv96', name: 'Juventus', edition: 'Champions 1996', colors: ['#27418f', '#ffd23e'], pattern: 'solid', stars: 2,
     players: [
       { i: 2500, n: 'Angelo Peruzzi',     pos: ['GK'],       r: 85 },
       { i: 2501, n: 'Moreno Torricelli',  pos: ['RB'],       r: 77 },
@@ -589,7 +592,7 @@ export const TEAMS: Team[] = [
 
   /* ── Bayern München · Champions 2001 ── Kahn atajó tres en la tanda de Milán. */
   {
-    id: 'mun01', name: 'Bayern München', edition: 'Champions 2001', colors: ['#dc052d', '#0066b2'], pattern: 'solid', ornament: 'roundel', stars: 4,
+    id: 'mun01', name: 'Bayern München', edition: 'Champions 2001', colors: ['#dc052d', '#0066b2'], pattern: 'solid', shape: 'circle', stars: 4,
     players: [
       { i: 2600, n: 'Oliver Kahn',        pos: ['GK'],       r: 91 }, // héroe de la tanda
       { i: 2601, n: 'Willy Sagnol',       pos: ['RB'],       r: 80 },
@@ -665,7 +668,7 @@ export const TEAMS: Team[] = [
 
   /* ── Inter · Finalista 2023 ── le plantó cara al City de Estambul. */
   {
-    id: 'int23', name: 'Inter', edition: 'Finalista 2023', colors: ['#0068a8', '#0a0a0a'], pattern: 'vstripe', ornament: 'roundel', stars: 3,
+    id: 'int23', name: 'Inter', edition: 'Finalista 2023', colors: ['#0068a8', '#0a0a0a'], pattern: 'vstripe', shape: 'circle', stars: 3,
     players: [
       { i: 3000, n: 'André Onana',        pos: ['GK'],       r: 85 },
       { i: 3001, n: 'Matteo Darmian',     pos: ['RB', 'CB'], r: 79 },
