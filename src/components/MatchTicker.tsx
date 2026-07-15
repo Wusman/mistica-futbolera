@@ -18,7 +18,7 @@ export interface Crest { colors: string[]; pattern?: Pattern }
 
 interface Props {
   you: Crest;              // escudo del jugador
-  rival: Crest;            // escudo del rival (team.colors + teamPattern)
+  rival: Crest;            // insignia del rival (se resuelve por team.colors)
   from: number;            // 0 (1er tiempo) ó 45 (2do)
   to: number;              // 45 ó 90
   events: TickerEvent[];   // solo los goles de este segmento

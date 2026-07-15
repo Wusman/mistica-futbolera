@@ -14,7 +14,7 @@ import { Bracket } from './Bracket';
 import { MatchTicker } from './MatchTicker';
 import { Timeline } from './Timeline';
 import { Emblem, TeamCrest } from './Emblem';
-import { loadEscudo, loadTeamName, loadPattern, teamPattern } from '../lib/escudo';
+import { loadEscudo, loadTeamName, loadPattern } from '../lib/escudo';
 
 interface Props {
   /* Duelo aceptado (?d=): resumen del retador para comparar al final. */
@@ -163,7 +163,7 @@ export function TournamentStep({ campaign: c, stageLabel, xiAvg, opp, seed, mode
         <p className="match-tag">{stageLabel}</p>
         <MatchTicker
           you={{ colors: loadEscudo() ?? [], pattern: loadPattern() }}
-          rival={{ colors: opp.colors, pattern: teamPattern(opp.colors) }}
+          rival={{ colors: opp.colors }}
           from={resume ?? 45}
           to={m.end2}
           events={m.ev.filter((e) => evHalf(e) === 2 && e.min >= (resume ?? 46))}
